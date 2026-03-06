@@ -31,6 +31,14 @@ class AgentState(TypedDict):
     is_verified: bool            # Whether answer passed verification
     verification_reason: str     # Reason if not verified
 
+    # --- Grounding Policy ---
+    grounding_action: str        # "pass" | "disclaimer" | "cited_facts_only" | "refuse"
+    follow_up_suggestions: list[str]  # Suggested follow-up queries
+
+    # --- Observability ---
+    trace_id: str                # UUID per request for log correlation
+    timings_ms: dict[str, float] # Per-node timing {node_name: duration_ms}
+
     # --- Multimodal Input ---
     input_mode: str              # "text", "voice", or "image"
     input_audio_path: str        # Path to recorded audio (if voice input)

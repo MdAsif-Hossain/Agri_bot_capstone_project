@@ -1,29 +1,36 @@
 """
 AgriBot — Production FastAPI Backend.
 
-Provides REST API endpoints for the agentic RAG pipeline:
-- POST /chat           — text-based query
-- POST /chat/voice     — voice-based query (audio upload)
-- POST /chat/image     — image-based query (photo upload)
-- GET  /health         — system health check
-- GET  /kg/stats       — knowledge graph statistics
-- GET  /kg/search      — search KG entities
+Provides versioned REST API endpoints:
+ - /v1/health          — system health + manifest
+ - /v1/chat            — text query
+ - /v1/chat/voice      — voice query (audio upload)
+ - /v1/chat/image      — image query (photo upload)
+ - /v1/tts             — text-to-speech synthesis
+ - /v1/kg/stats        — knowledge graph statistics
+ - /v1/kg/search       — search KG entities
 
-Designed for:
-- React kiosk web UI (desktop/laptop)
-- Mobile thin client over LAN/Wi‑Fi
+Legacy endpoints (/chat, /health, etc.) remain as thin wrappers.
 """
 
 import sys
+import uuid
+import time
+import asyncio
 import tempfile
 from pathlib import Path
 from contextlib import asynccontextmanager
+from functools import wraps
 
-from fastapi import FastAPI, UploadFile, File, Form, HTTPException
+from fastapi import (
+    FastAPI, UploadFile, File, Form,
+    HTTPException, Request, Depends, APIRouter,
+)
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, StreamingResponse, JSONResponse
 from pydantic import BaseModel, Field
+import structlog
 
 # --- Ensure project root is on path ---
 PROJECT_ROOT = Path(__file__).resolve().parent
@@ -37,9 +44,10 @@ setup_logging(json_output=True, log_level="INFO")
 logger = get_logger("agribot.api")
 
 # =============================================================================
-# GLOBAL SERVICES (initialized at startup)
+# GLOBAL SERVICES + CONCURRENCY CONTROL
 # =============================================================================
 _services: dict = {}
+_llm_semaphore: asyncio.Semaphore | None = None
 
 
 def _init_services() -> dict:
@@ -112,7 +120,7 @@ def _init_services() -> dict:
     svc["stt"] = get_stt(model_size=settings.WHISPER_MODEL_SIZE)
     svc["tts"] = get_tts(rate=settings.TTS_RATE, bengali_voice_name=settings.TTS_BENGALI_VOICE)
 
-    # 9. Agent graph
+    # 9. Agent graph (with config-driven retries + grounding policy)
     logger.info("Building agent pipeline...")
     svc["agent"] = build_agent_graph(
         llm=svc["llm"],
@@ -121,10 +129,21 @@ def _init_services() -> dict:
         entity_linker=svc["entity_linker"],
         translator=svc["translator"],
         max_tokens=settings.LLM_MAX_TOKENS,
+        max_retries=settings.MAX_RETRIES,
+        grounding_mode=settings.GROUNDING_MODE,
+        on_verify_fail=settings.ON_VERIFY_FAIL,
     )
 
     svc["kg_stats"] = svc["kg"].get_stats()
     svc["chunk_count"] = len(svc["index_bundle"].chunks)
+
+    # Load manifest if exists
+    manifest_path = settings.INDEX_DIR / "manifest.json"
+    if manifest_path.exists():
+        import json
+        svc["manifest"] = json.loads(manifest_path.read_text(encoding="utf-8"))
+    else:
+        svc["manifest"] = None
 
     logger.info("All services initialized successfully")
     return svc
@@ -133,11 +152,11 @@ def _init_services() -> dict:
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     """Startup/shutdown lifecycle for FastAPI."""
-    global _services
+    global _services, _llm_semaphore
     logger.info("Starting AgriBot API server...")
     _services = _init_services()
+    _llm_semaphore = asyncio.Semaphore(settings.MAX_CONCURRENT_LLM)
     yield
-    # Cleanup
     if "kg" in _services:
         _services["kg"].close()
     logger.info("AgriBot API server shutdown")
@@ -156,14 +175,43 @@ app = FastAPI(
     lifespan=lifespan,
 )
 
-# CORS — allow React kiosk UI and mobile clients on local network
+# --- CORS (configurable, not wide-open by default) ---
+_cors_origins = [o.strip() for o in settings.CORS_ORIGINS.split(",") if o.strip()]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # In production, restrict to kiosk origin
+    allow_origins=_cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+# =============================================================================
+# OPTIONAL API KEY MIDDLEWARE
+# =============================================================================
+
+@app.middleware("http")
+async def api_key_middleware(request: Request, call_next):
+    """Enforce API key if AGRIBOT_API_KEY is configured."""
+    if not settings.API_KEY:
+        return await call_next(request)
+
+    # Skip auth for health, docs, static files
+    path = request.url.path
+    if path in ("/health", "/v1/health", "/docs", "/redoc", "/openapi.json") \
+       or path.startswith("/assets") or not path.startswith("/v1/"):
+        return await call_next(request)
+
+    # Protected endpoints require API key
+    if path.startswith("/v1/chat") or path.startswith("/v1/tts"):
+        provided = request.headers.get("X-API-Key", "")
+        if provided != settings.API_KEY:
+            return JSONResponse(
+                status_code=401,
+                content={"detail": "Invalid or missing API key"},
+            )
+
+    return await call_next(request)
 
 
 # =============================================================================
@@ -176,7 +224,7 @@ class ChatRequest(BaseModel):
 
 
 class ChatResponse(BaseModel):
-    """Chat response with bilingual answer and evidence."""
+    """Chat response with bilingual answer, evidence, and diagnostics."""
     answer: str = Field(..., description="English answer")
     answer_bn: str = Field(default="", description="Bengali translation")
     citations: list[str] = Field(default_factory=list, description="Source citations")
@@ -186,6 +234,11 @@ class ChatResponse(BaseModel):
     verification_reason: str = Field(default="", description="Verification details")
     retry_count: int = Field(default=0, description="Number of retrieval retries")
     input_mode: str = Field(default="text", description="Input mode used")
+    # --- New fields ---
+    trace_id: str = Field(default="", description="Request trace ID for correlation")
+    timings_ms: dict[str, float] = Field(default_factory=dict, description="Per-node timings in ms")
+    grounding_action: str = Field(default="pass", description="Grounding policy action taken")
+    follow_up_suggestions: list[str] = Field(default_factory=list, description="Suggested follow-up queries")
 
 
 class HealthResponse(BaseModel):
@@ -195,6 +248,10 @@ class HealthResponse(BaseModel):
     kg_entities: int
     kg_aliases: int
     kg_relations: int
+    # --- New fields ---
+    manifest: dict | None = Field(default=None, description="Index manifest summary")
+    enabled_modules: dict = Field(default_factory=dict, description="Module status")
+    grounding_mode: str = Field(default="strict", description="Current grounding mode")
 
 
 class KGSearchResponse(BaseModel):
@@ -202,11 +259,17 @@ class KGSearchResponse(BaseModel):
     entities: list[dict]
 
 
+class TTSRequest(BaseModel):
+    """Text-to-speech request."""
+    text: str = Field(..., min_length=1, max_length=5000, description="Text to synthesize")
+    language: str = Field(default="en", description="Language: 'en' or 'bn'")
+
+
 # =============================================================================
 # HELPER
 # =============================================================================
 
-def _build_initial_state(query: str, input_mode: str = "text") -> dict:
+def _build_initial_state(query: str, input_mode: str = "text", trace_id: str = "") -> dict:
     """Build the initial agent state for a query."""
     return {
         "query_original": query,
@@ -227,16 +290,54 @@ def _build_initial_state(query: str, input_mode: str = "text") -> dict:
         "input_mode": input_mode,
         "input_audio_path": "",
         "error": "",
+        # --- New fields ---
+        "trace_id": trace_id,
+        "timings_ms": {},
+        "grounding_action": "pass",
+        "follow_up_suggestions": [],
     }
 
 
-def _run_agent(query: str, input_mode: str = "text") -> ChatResponse:
-    """Run the agent pipeline and return a structured response."""
-    agent = _services["agent"]
-    initial_state = _build_initial_state(query, input_mode)
+async def _run_agent(query: str, input_mode: str = "text") -> ChatResponse:
+    """Run the agent pipeline with concurrency control and timeout."""
+    trace_id = str(uuid.uuid4())
+    structlog.contextvars.bind_contextvars(trace_id=trace_id)
+
+    logger.info("Processing request", query=query[:100], input_mode=input_mode)
+
+    # Acquire semaphore with timeout (concurrency limit)
+    try:
+        acquired = _llm_semaphore.locked()
+        if _llm_semaphore.locked():
+            logger.info("LLM semaphore busy, queuing request")
+
+        async with asyncio.timeout(settings.REQUEST_TIMEOUT_S):
+            await _llm_semaphore.acquire()
+    except asyncio.TimeoutError:
+        logger.warning("Request timeout waiting for LLM semaphore")
+        raise HTTPException(
+            status_code=429,
+            detail="System is busy processing other requests. Please try again.",
+            headers={"Retry-After": "10"},
+        )
 
     try:
-        result = agent.invoke(initial_state)
+        agent = _services["agent"]
+        initial_state = _build_initial_state(query, input_mode, trace_id)
+
+        # Run agent in thread pool to not block the event loop
+        loop = asyncio.get_event_loop()
+        start = time.perf_counter()
+
+        result = await asyncio.wait_for(
+            loop.run_in_executor(None, agent.invoke, initial_state),
+            timeout=settings.REQUEST_TIMEOUT_S,
+        )
+
+        total_ms = (time.perf_counter() - start) * 1000
+        timings = result.get("timings_ms", {})
+        timings["total"] = round(total_ms, 1)
+
         return ChatResponse(
             answer=result.get("answer", "An error occurred."),
             answer_bn=result.get("answer_bn", ""),
@@ -247,19 +348,56 @@ def _run_agent(query: str, input_mode: str = "text") -> ChatResponse:
             verification_reason=result.get("verification_reason", ""),
             retry_count=result.get("retry_count", 0),
             input_mode=input_mode,
+            trace_id=trace_id,
+            timings_ms=timings,
+            grounding_action=result.get("grounding_action", "pass"),
+            follow_up_suggestions=result.get("follow_up_suggestions", []),
         )
+
+    except asyncio.TimeoutError:
+        logger.error("Agent execution timed out", trace_id=trace_id)
+        raise HTTPException(
+            status_code=504,
+            detail=f"Request timed out after {settings.REQUEST_TIMEOUT_S}s. trace_id={trace_id}",
+        )
+    except HTTPException:
+        raise
     except Exception as e:
-        logger.error("Agent error: %s", e, exc_info=True)
+        logger.error("Agent error: %s", e, exc_info=True, trace_id=trace_id)
         raise HTTPException(status_code=500, detail=f"Agent processing error: {e}")
+    finally:
+        _llm_semaphore.release()
+        structlog.contextvars.unbind_contextvars("trace_id")
+
+
+def _validate_upload_size(content: bytes, max_mb: int, file_type: str):
+    """Validate upload file size."""
+    max_bytes = max_mb * 1024 * 1024
+    if len(content) > max_bytes:
+        raise HTTPException(
+            status_code=413,
+            detail=f"{file_type} file too large ({len(content)/1024/1024:.1f}MB). Max: {max_mb}MB",
+        )
+
+
+def _validate_content_type(content_type: str | None, allowed: list[str], file_type: str):
+    """Validate upload content type."""
+    if content_type and not any(content_type.startswith(a) for a in allowed):
+        raise HTTPException(
+            status_code=415,
+            detail=f"Invalid {file_type} content type: {content_type}. Allowed: {allowed}",
+        )
 
 
 # =============================================================================
-# ENDPOINTS
+# V1 ROUTER
 # =============================================================================
+v1 = APIRouter(prefix="/v1", tags=["v1"])
 
-@app.get("/health", response_model=HealthResponse)
-async def health_check():
-    """System health and KG statistics."""
+
+@v1.get("/health", response_model=HealthResponse)
+async def v1_health():
+    """System health, KG stats, manifest, and enabled modules."""
     stats = _services.get("kg_stats", {})
     return HealthResponse(
         status="ok",
@@ -267,49 +405,49 @@ async def health_check():
         kg_entities=stats.get("entities", 0),
         kg_aliases=stats.get("aliases", 0),
         kg_relations=stats.get("relations", 0),
+        manifest=_services.get("manifest"),
+        enabled_modules={
+            "kg": True,
+            "reranker": True,
+            "translator": True,
+            "stt": _services.get("stt") is not None,
+            "tts": _services.get("tts") is not None,
+            "vlm": settings.VLM_ENABLED,
+        },
+        grounding_mode=settings.GROUNDING_MODE,
     )
 
 
-@app.post("/chat", response_model=ChatResponse)
-async def chat(request: ChatRequest):
-    """
-    Process a text-based agricultural query.
-
-    Accepts English or Bengali text. Returns bilingual answer
-    with citations and evidence metadata.
-    """
-    logger.info("Chat query: %s", request.query[:100])
-    return _run_agent(request.query, input_mode="text")
+@v1.post("/chat", response_model=ChatResponse)
+async def v1_chat(request: ChatRequest):
+    """Process a text-based agricultural query (bilingual)."""
+    logger.info("Chat query", query=request.query[:100])
+    return await _run_agent(request.query, input_mode="text")
 
 
-@app.post("/chat/voice", response_model=ChatResponse)
-async def chat_voice(audio: UploadFile = File(..., description="Audio file (WAV/MP3)")):
-    """
-    Process a voice-based agricultural query.
-
-    Accepts audio file upload, transcribes via Whisper ASR,
-    then processes through the agent pipeline.
-    """
+@v1.post("/chat/voice", response_model=ChatResponse)
+async def v1_chat_voice(audio: UploadFile = File(..., description="Audio file (WAV/MP3)")):
+    """Process a voice-based query via Whisper transcription."""
     stt = _services["stt"]
 
-    # Save uploaded audio to temp file
+    content = await audio.read()
+    _validate_upload_size(content, settings.AUDIO_MAX_MB, "Audio")
+    _validate_content_type(audio.content_type, ["audio/"], "Audio")
+
     suffix = Path(audio.filename).suffix if audio.filename else ".wav"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        content = await audio.read()
         tmp.write(content)
         tmp_path = tmp.name
 
     try:
-        # Transcribe
         result = stt.transcribe(tmp_path)
         query = result["text"]
-        detected_lang = result["language"]
-        logger.info("Voice transcription (%s): %s", detected_lang, query[:100])
+        logger.info("Voice transcription", language=result["language"], text=query[:100])
 
         if not query.strip():
             raise HTTPException(status_code=400, detail="Could not transcribe audio")
 
-        return _run_agent(query, input_mode="voice")
+        return await _run_agent(query, input_mode="voice")
 
     except HTTPException:
         raise
@@ -320,43 +458,40 @@ async def chat_voice(audio: UploadFile = File(..., description="Audio file (WAV/
         Path(tmp_path).unlink(missing_ok=True)
 
 
-@app.post("/chat/image", response_model=ChatResponse)
-async def chat_image(
+@v1.post("/chat/image", response_model=ChatResponse)
+async def v1_chat_image(
     image: UploadFile = File(..., description="Crop/plant photo (JPG/PNG)"),
-    query: str = Form(default="", description="Optional text query to accompany the image"),
+    query: str = Form(default="", description="Optional text query"),
 ):
-    """
-    Process an image-based agricultural query.
+    """Process an image-based query (OCR + heuristic symptom analysis)."""
+    content = await image.read()
+    _validate_upload_size(content, settings.IMAGE_MAX_MB, "Image")
+    _validate_content_type(image.content_type, ["image/"], "Image")
 
-    Accepts a crop/plant photo, generates a description using VLM,
-    and processes through the agent pipeline.
-    """
-    # Save uploaded image to temp file
     suffix = Path(image.filename).suffix if image.filename else ".jpg"
     with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
-        content = await image.read()
         tmp.write(content)
         tmp_path = tmp.name
 
     try:
-        # Process image through vision module
         from agribot.vision.image_processor import get_image_processor
-        processor = get_image_processor()
+        processor = get_image_processor(
+            vlm_model_path=settings.VLM_MODEL_PATH if settings.VLM_ENABLED else None
+        )
         image_description = processor.describe_image(tmp_path)
 
-        # Combine image description with optional text query
         if query.strip():
             combined_query = f"{query}\n\nImage analysis: {image_description}"
         else:
             combined_query = f"Based on this crop image: {image_description}"
 
-        logger.info("Image query: %s", combined_query[:100])
-        return _run_agent(combined_query, input_mode="image")
+        logger.info("Image query", description=combined_query[:100])
+        return await _run_agent(combined_query, input_mode="image")
 
     except ImportError:
         raise HTTPException(
             status_code=501,
-            detail="Image processing module not available. Install required dependencies.",
+            detail="Image processing module not available.",
         )
     except Exception as e:
         logger.error("Image processing error: %s", e, exc_info=True)
@@ -365,49 +500,9 @@ async def chat_image(
         Path(tmp_path).unlink(missing_ok=True)
 
 
-@app.get("/kg/stats")
-async def kg_stats():
-    """Get knowledge graph statistics."""
-    kg = _services["kg"]
-    return kg.get_stats()
-
-
-@app.get("/kg/search", response_model=KGSearchResponse)
-async def kg_search(q: str):
-    """Search the knowledge graph for entities matching a term."""
-    kg = _services["kg"]
-    entities = kg.find_by_partial_alias(q)
-    return KGSearchResponse(
-        entities=[
-            {
-                "id": e.id,
-                "canonical_bn": e.canonical_bn,
-                "canonical_en": e.canonical_en,
-                "entity_type": e.entity_type,
-                "aliases": [a.alias_text for a in kg.get_aliases(e.id)],
-            }
-            for e in entities[:20]
-        ]
-    )
-
-
-# =============================================================================
-# TTS ENDPOINT
-# =============================================================================
-
-class TTSRequest(BaseModel):
-    """Text-to-speech request."""
-    text: str = Field(..., min_length=1, max_length=5000, description="Text to synthesize")
-    language: str = Field(default="en", description="Language: 'en' or 'bn'")
-
-
-@app.post("/tts")
-async def text_to_speech(request: TTSRequest):
-    """
-    Synthesize text to speech and return WAV audio.
-
-    Returns audio/wav stream for playback in the React frontend.
-    """
+@v1.post("/tts")
+async def v1_tts(request: TTSRequest):
+    """Synthesize text to speech (WAV audio stream)."""
     tts = _services.get("tts")
     if not tts:
         raise HTTPException(status_code=503, detail="TTS service not available")
@@ -429,12 +524,90 @@ async def text_to_speech(request: TTSRequest):
             media_type="audio/wav",
             headers={"Content-Disposition": "inline; filename=tts_output.wav"},
         )
-
     except HTTPException:
         raise
     except Exception as e:
         logger.error("TTS error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"TTS error: {e}")
+
+
+@v1.get("/kg/stats")
+async def v1_kg_stats():
+    """Knowledge graph statistics."""
+    kg = _services["kg"]
+    return kg.get_stats()
+
+
+@v1.get("/kg/search", response_model=KGSearchResponse)
+async def v1_kg_search(q: str):
+    """Search the knowledge graph for entities."""
+    kg = _services["kg"]
+    entities = kg.find_by_partial_alias(q)
+    return KGSearchResponse(
+        entities=[
+            {
+                "id": e.id,
+                "canonical_bn": e.canonical_bn,
+                "canonical_en": e.canonical_en,
+                "entity_type": e.entity_type,
+                "aliases": [a.alias_text for a in kg.get_aliases(e.id)],
+            }
+            for e in entities[:20]
+        ]
+    )
+
+
+# --- Mount v1 router ---
+app.include_router(v1)
+
+
+# =============================================================================
+# LEGACY ENDPOINTS (wrappers → v1, deprecated)
+# =============================================================================
+
+@app.get("/health", response_model=HealthResponse, tags=["legacy"], deprecated=True)
+async def health_check():
+    """Legacy health endpoint — use /v1/health instead."""
+    return await v1_health()
+
+
+@app.post("/chat", response_model=ChatResponse, tags=["legacy"], deprecated=True)
+async def chat(request: ChatRequest):
+    """Legacy chat endpoint — use /v1/chat instead."""
+    return await v1_chat(request)
+
+
+@app.post("/chat/voice", response_model=ChatResponse, tags=["legacy"], deprecated=True)
+async def chat_voice(audio: UploadFile = File(...)):
+    """Legacy voice endpoint — use /v1/chat/voice instead."""
+    return await v1_chat_voice(audio)
+
+
+@app.post("/chat/image", response_model=ChatResponse, tags=["legacy"], deprecated=True)
+async def chat_image(
+    image: UploadFile = File(...),
+    query: str = Form(default=""),
+):
+    """Legacy image endpoint — use /v1/chat/image instead."""
+    return await v1_chat_image(image, query)
+
+
+@app.post("/tts", tags=["legacy"], deprecated=True)
+async def text_to_speech(request: TTSRequest):
+    """Legacy TTS endpoint — use /v1/tts instead."""
+    return await v1_tts(request)
+
+
+@app.get("/kg/stats", tags=["legacy"], deprecated=True)
+async def kg_stats():
+    """Legacy KG stats — use /v1/kg/stats instead."""
+    return await v1_kg_stats()
+
+
+@app.get("/kg/search", response_model=KGSearchResponse, tags=["legacy"], deprecated=True)
+async def kg_search(q: str):
+    """Legacy KG search — use /v1/kg/search instead."""
+    return await v1_kg_search(q)
 
 
 # =============================================================================
@@ -444,10 +617,9 @@ async def text_to_speech(request: TTSRequest):
 _FRONTEND_DIR = PROJECT_ROOT / "frontend" / "dist"
 
 if _FRONTEND_DIR.exists():
-    # Serve static assets (JS, CSS, images)
     app.mount("/assets", StaticFiles(directory=str(_FRONTEND_DIR / "assets")), name="assets")
 
-    @app.get("/{full_path:path}")
+    @app.get("/{full_path:path}", tags=["static"])
     async def serve_spa(full_path: str):
         """SPA catch-all: serve index.html for client-side routing."""
         file_path = _FRONTEND_DIR / full_path

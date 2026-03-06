@@ -1,10 +1,13 @@
 """
 Agent graph nodes: each function implements one step of the agentic RAG pipeline.
 
-Flow: normalize → kg_link → retrieve → rerank → grade → (rewrite | generate) → translate → verify → respond
+Flow: normalize → kg_link → retrieve → rerank → grade → (rewrite | generate) → translate → verify → enforce_policy → END
+
+Each node records timing in state["timings_ms"] for observability.
 """
 
 import re
+import time
 import logging
 
 from llama_cpp import Llama
@@ -24,6 +27,27 @@ from agribot.llm.engine import (
 logger = logging.getLogger(__name__)
 
 
+# --- Timing helper ---
+
+def _timed(node_name: str, fn, state: AgentState) -> dict:
+    """Wrap a node function with timing instrumentation."""
+    start = time.perf_counter()
+    result = fn(state)
+    elapsed_ms = (time.perf_counter() - start) * 1000
+
+    # Merge timing into result
+    timings = dict(state.get("timings_ms", {}))
+    timings[node_name] = round(elapsed_ms, 1)
+    result["timings_ms"] = timings
+
+    logger.debug(
+        "Node %s completed in %.1fms",
+        node_name, elapsed_ms,
+        extra={"trace_id": state.get("trace_id", "")},
+    )
+    return result
+
+
 # --- Node factory functions ---
 # Each returns a closure bound to the required services.
 
@@ -31,26 +55,25 @@ logger = logging.getLogger(__name__)
 def make_normalize_node(translator: BanglaTranslator | None = None):
     """Create the query normalization node. Optionally translates Bengali queries."""
 
-    def normalize(state: AgentState) -> dict:
+    def _normalize(state: AgentState) -> dict:
         query = state["query_original"].strip()
-
-        # Basic normalization
-        # Remove excessive whitespace
         query = re.sub(r"\s+", " ", query)
 
-        # Detect language (simple heuristic: Bengali Unicode range)
         has_bengali = bool(re.search(r"[\u0980-\u09FF]", query))
         lang = "bn" if has_bengali else "en"
 
-        # If Bengali input, translate to English for retrieval/LLM
         normalized_query = query
         if lang == "bn" and translator is not None:
-            translated = translator.translate_bn_to_en(query)
-            if translated and translated != query:
-                logger.info("BN→EN query translation: '%s' → '%s'", query[:60], translated[:60])
-                normalized_query = translated
-            else:
-                logger.warning("BN→EN translation returned empty/same; using original")
+            try:
+                translated = translator.translate_bn_to_en(query)
+                if translated and translated != query:
+                    logger.info("BN→EN query translation: '%s' → '%s'", query[:60], translated[:60])
+                    normalized_query = translated
+                else:
+                    logger.warning("BN→EN translation returned empty/same; using original")
+            except Exception as e:
+                logger.error("Translation fallback: %s", e)
+                # Fallback: use original query
 
         logger.info("Normalized query (lang=%s): %s", lang, normalized_query[:100])
         return {
@@ -58,33 +81,41 @@ def make_normalize_node(translator: BanglaTranslator | None = None):
             "query_language": lang,
         }
 
+    def normalize(state: AgentState) -> dict:
+        return _timed("normalize", _normalize, state)
+
     return normalize
 
 
 def make_kg_link_node(entity_linker: EntityLinker):
     """Create the KG entity linking + query expansion node."""
 
-    def kg_link(state: AgentState) -> dict:
+    def _kg_link(state: AgentState) -> dict:
         query = state["query_normalized"]
 
-        # Link entities
-        entities = entity_linker.link_entities(query)
-        entity_info = [
-            {"bn": e.canonical_bn, "en": e.canonical_en, "type": e.entity_type}
-            for e in entities
-        ]
+        try:
+            entities = entity_linker.link_entities(query)
+            entity_info = [
+                {"bn": e.canonical_bn, "en": e.canonical_en, "type": e.entity_type}
+                for e in entities
+            ]
+            expanded = entity_linker.expand_query(query)
 
-        # Expand query
-        expanded = entity_linker.expand_query(query)
+            logger.info("KG linked %d entities, expanded: %s", len(entities), expanded[:100])
+            return {
+                "query_expanded": expanded,
+                "kg_entities": entity_info,
+            }
+        except Exception as e:
+            # Fallback: skip KG expansion on failure
+            logger.error("KG linking fallback: %s", e)
+            return {
+                "query_expanded": query,
+                "kg_entities": [],
+            }
 
-        logger.info(
-            "KG linked %d entities, expanded: %s",
-            len(entities), expanded[:100],
-        )
-        return {
-            "query_expanded": expanded,
-            "kg_entities": entity_info,
-        }
+    def kg_link(state: AgentState) -> dict:
+        return _timed("kg_link", _kg_link, state)
 
     return kg_link
 
@@ -92,7 +123,7 @@ def make_kg_link_node(entity_linker: EntityLinker):
 def make_retrieve_node(retriever: HybridRetriever):
     """Create the hybrid retrieval node."""
 
-    def retrieve(state: AgentState) -> dict:
+    def _retrieve(state: AgentState) -> dict:
         query = state.get("query_expanded") or state["query_normalized"]
         try:
             evidences = retriever.retrieve(query, top_n=15)
@@ -102,13 +133,16 @@ def make_retrieve_node(retriever: HybridRetriever):
             logger.error("Retrieval error: %s", e)
             return {"evidences": [], "error": f"Retrieval error: {e}"}
 
+    def retrieve(state: AgentState) -> dict:
+        return _timed("retrieve", _retrieve, state)
+
     return retrieve
 
 
 def make_rerank_node(reranker: Reranker):
     """Create the reranking node."""
 
-    def rerank(state: AgentState) -> dict:
+    def _rerank(state: AgentState) -> dict:
         query = state.get("query_expanded") or state["query_normalized"]
         evidences = state.get("evidences", [])
 
@@ -122,7 +156,6 @@ def make_rerank_node(reranker: Reranker):
         try:
             reranked = reranker.rerank(query, evidences)
 
-            # Build concatenated evidence text with citations
             evidence_parts = []
             citations = []
             for ev in reranked:
@@ -132,7 +165,6 @@ def make_rerank_node(reranker: Reranker):
                     citations.append(citation)
 
             evidence_text = "\n\n".join(evidence_parts)
-
             logger.info("Reranked to %d evidences", len(reranked))
             return {
                 "evidences": reranked,
@@ -141,13 +173,19 @@ def make_rerank_node(reranker: Reranker):
                 "should_refuse": len(reranked) == 0,
             }
         except Exception as e:
-            logger.error("Reranking error: %s", e)
+            # Fallback: use top-k retrieval without reranking
+            logger.error("Reranking fallback to top-k: %s", e)
+            fallback = evidences[:5]
             return {
-                "evidences": evidences[:5],
-                "evidence_texts": "\n\n".join(ev.text for ev in evidences[:5]),
+                "evidences": fallback,
+                "evidence_texts": "\n\n".join(ev.text for ev in fallback),
+                "citations": list({ev.citation for ev in fallback}),
                 "should_refuse": False,
-                "error": f"Reranking error: {e}",
+                "error": f"Reranking error (using top-k fallback): {e}",
             }
+
+    def rerank(state: AgentState) -> dict:
+        return _timed("rerank", _rerank, state)
 
     return rerank
 
@@ -155,7 +193,7 @@ def make_rerank_node(reranker: Reranker):
 def make_grade_node(llm: Llama):
     """Create the evidence grading node."""
 
-    def grade(state: AgentState) -> dict:
+    def _grade(state: AgentState) -> dict:
         if state.get("should_refuse"):
             return {"evidence_grade": "INSUFFICIENT"}
 
@@ -169,13 +207,16 @@ def make_grade_node(llm: Llama):
         logger.info("Evidence grade: %s (confidence=%.2f)", grade_result, confidence)
         return {"evidence_grade": grade_result}
 
+    def grade(state: AgentState) -> dict:
+        return _timed("grade", _grade, state)
+
     return grade
 
 
 def make_rewrite_node(llm: Llama):
     """Create the query rewrite node for retry."""
 
-    def rewrite(state: AgentState) -> dict:
+    def _rewrite(state: AgentState) -> dict:
         retry_count = state.get("retry_count", 0) + 1
         original_query = state["query_normalized"]
         failed_context = state.get("evidence_texts", "")
@@ -188,13 +229,16 @@ def make_rewrite_node(llm: Llama):
             "retry_count": retry_count,
         }
 
+    def rewrite(state: AgentState) -> dict:
+        return _timed("rewrite", _rewrite, state)
+
     return rewrite
 
 
 def make_generate_node(llm: Llama, max_tokens: int = 512):
     """Create the answer generation node."""
 
-    def gen(state: AgentState) -> dict:
+    def _gen(state: AgentState) -> dict:
         if state.get("should_refuse"):
             return {
                 "answer": "I don't know based on the provided documents.",
@@ -220,17 +264,19 @@ def make_generate_node(llm: Llama, max_tokens: int = 512):
                 "error": f"Generation error: {e}",
             }
 
+    def gen(state: AgentState) -> dict:
+        return _timed("generate", _gen, state)
+
     return gen
 
 
 def make_verify_node(llm: Llama):
     """Create the answer verification node."""
 
-    def verify(state: AgentState) -> dict:
+    def _verify(state: AgentState) -> dict:
         answer = state.get("answer", "")
         context = state.get("evidence_texts", "")
 
-        # Skip verification for refusals
         if state.get("should_refuse") or not answer.strip():
             return {
                 "is_verified": True,
@@ -240,27 +286,20 @@ def make_verify_node(llm: Llama):
         try:
             is_verified, reason = verify_answer(llm, answer, context)
             logger.info("Verification: %s — %s", is_verified, reason)
-
-            if not is_verified:
-                # Add safety disclaimer
-                disclaimer = (
-                    "\n\n⚠️ Note: Some claims in this answer could not be fully "
-                    "verified against the source documents. Please cross-check "
-                    "with your local agricultural extension officer."
-                )
-                answer = state["answer"] + disclaimer
-
             return {
                 "is_verified": is_verified,
                 "verification_reason": reason,
-                "answer": answer,
             }
         except Exception as e:
-            logger.error("Verification error: %s", e)
+            # Fallback: mark as unverified, policy will handle
+            logger.error("Verification fallback: %s", e)
             return {
                 "is_verified": False,
-                "verification_reason": f"Verification error: {e}",
+                "verification_reason": f"Verification error (fallback): {e}",
             }
+
+    def verify(state: AgentState) -> dict:
+        return _timed("verify", _verify, state)
 
     return verify
 
@@ -268,10 +307,9 @@ def make_verify_node(llm: Llama):
 def make_translate_node(translator: BanglaTranslator):
     """Create the BanglaT5 translation node."""
 
-    def translate(state: AgentState) -> dict:
+    def _translate(state: AgentState) -> dict:
         answer = state.get("answer", "")
 
-        # Skip translation for refusals (already has hardcoded BN)
         if state.get("should_refuse") or state.get("answer_bn"):
             return {}
 
@@ -283,7 +321,11 @@ def make_translate_node(translator: BanglaTranslator):
             logger.info("Translated to Bengali (%d chars)", len(answer_bn))
             return {"answer_bn": answer_bn}
         except Exception as e:
-            logger.error("Translation error: %s", e)
-            return {"answer_bn": "(অনুবাদ ত্রুটি / Translation error)"}
+            # Fallback: return empty with logged reason
+            logger.error("Translation fallback: %s", e)
+            return {"answer_bn": ""}
+
+    def translate(state: AgentState) -> dict:
+        return _timed("translate", _translate, state)
 
     return translate

@@ -1,0 +1,5 @@
+{"query": "What is the capital of Bangladesh?", "expected": "refuse"}
+{"query": "How do I fix my car engine?", "expected": "refuse"}
+{"query": "Write me a poem about flowers", "expected": "refuse"}
+{"query": "What is the stock price of Apple?", "expected": "refuse"}
+{"query": "How to cook chicken curry?", "expected": "refuse"}

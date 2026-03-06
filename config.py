@@ -44,10 +44,28 @@ class AgriConfig(BaseSettings):
     MAX_RETRIES: int = 2
     EVIDENCE_GRADE_THRESHOLD: float = 0.5
 
+    # --- Grounding Policy ---
+    GROUNDING_MODE: str = "strict"       # "strict" | "lenient"
+    ON_VERIFY_FAIL: str = "disclaimer"   # "disclaimer" | "cited_facts_only" | "refuse"
+
     # --- Voice ---
     WHISPER_MODEL_SIZE: str = "base"     # faster-whisper model: tiny/base/small/medium
     TTS_RATE: int = 150                  # TTS speaking rate (words per minute)
     TTS_BENGALI_VOICE: str = ""          # System Bengali voice name (empty = auto-detect)
+
+    # --- Vision / VLM ---
+    VLM_ENABLED: bool = False            # Enable offline VLM captioning
+    VLM_MODEL_PATH: Optional[str] = None # Path to VLM GGUF model
+
+    # --- Concurrency & Limits ---
+    MAX_CONCURRENT_LLM: int = 1          # Max concurrent LLM generation requests
+    REQUEST_TIMEOUT_S: int = 120         # Request timeout in seconds
+    IMAGE_MAX_MB: int = 10               # Max image upload size in MB
+    AUDIO_MAX_MB: int = 25               # Max audio upload size in MB
+
+    # --- Security ---
+    CORS_ORIGINS: str = "http://localhost:5173,http://localhost:8000"
+    API_KEY: str = ""                    # If set, require X-API-Key header
 
     # --- Noise Filtering ---
     HEADER_FOOTER_FREQ_THRESHOLD: float = 0.5  # Lines appearing in >50% of pages

@@ -84,6 +84,30 @@ def main():
     )
     print(f"   ✅ Indexes built and saved ({bundle.faiss_index.ntotal} vectors)")
 
+    # --- 3b. Write manifest ---
+    import json
+    import subprocess
+    manifest = {
+        "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+        "embedding_model": settings.EMBEDDING_MODEL,
+        "chunk_size": settings.CHUNK_SIZE,
+        "chunk_overlap": settings.CHUNK_OVERLAP,
+        "chunk_count": len(chunks),
+        "vector_count": int(bundle.faiss_index.ntotal),
+        "python_version": sys.version.split()[0],
+    }
+    try:
+        git_hash = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, cwd=str(PROJECT_ROOT)
+        ).decode().strip()
+        manifest["git_commit"] = git_hash
+    except Exception:
+        manifest["git_commit"] = "unknown"
+
+    manifest_path = settings.INDEX_DIR / "manifest.json"
+    manifest_path.write_text(json.dumps(manifest, indent=2), encoding="utf-8")
+    print(f"   ✅ Manifest written to {manifest_path}")
+
     # --- 4. Knowledge Graph ---
     print(f"\n🌿 Initializing Knowledge Graph at: {settings.KG_DB_PATH}")
     kg = KnowledgeGraph(settings.KG_DB_PATH)

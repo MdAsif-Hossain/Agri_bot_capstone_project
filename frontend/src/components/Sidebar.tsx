@@ -1,127 +1,93 @@
 import { useState, useEffect } from "react";
-import { getHealth } from "../api/client";
-import type { HealthResponse } from "../api/types";
+import { getHealth, type HealthResponse } from "../lib/api";
 
-const FEATURES = [
-    { icon: "🔍", label: "Hybrid Retrieval (FAISS + BM25)" },
-    { icon: "⚖️", label: "Cross-Encoder Reranking" },
-    { icon: "🌿", label: "Dialect Knowledge Graph" },
-    { icon: "🔄", label: "Self-Correcting Agent Loop" },
-    { icon: "✅", label: "Answer Verification" },
-    { icon: "🎤", label: "Voice Input (Whisper ASR)" },
-    { icon: "🔊", label: "Voice Output (TTS)" },
-    { icon: "📷", label: "Image Analysis (VLM)" },
-];
-
-interface SidebarProps {
-    isOpen: boolean;
-    onClose: () => void;
-}
-
-export default function Sidebar({ isOpen, onClose }: SidebarProps) {
+export default function Sidebar({ open, onClose }: { open: boolean; onClose: () => void }) {
     const [health, setHealth] = useState<HealthResponse | null>(null);
-    const [healthStatus, setHealthStatus] = useState<
-        "loading" | "online" | "offline"
-    >("loading");
+    const [status, setStatus] = useState<"loading" | "online" | "offline">("loading");
 
     useEffect(() => {
-        let mounted = true;
-
-        async function checkHealth() {
-            try {
-                const data = await getHealth();
-                if (mounted) {
-                    setHealth(data);
-                    setHealthStatus("online");
-                }
-            } catch {
-                if (mounted) setHealthStatus("offline");
-            }
-        }
-
-        checkHealth();
-        const interval = setInterval(checkHealth, 30_000);
-
-        return () => {
-            mounted = false;
-            clearInterval(interval);
+        let live = true;
+        const check = async () => {
+            try { const d = await getHealth(); if (live) { setHealth(d); setStatus("online"); } }
+            catch { if (live) setStatus("offline"); }
         };
+        check();
+        const t = setInterval(check, 30000);
+        return () => { live = false; clearInterval(t); };
     }, []);
+
+    const features = [
+        ["🔍", "Hybrid Retrieval (FAISS + BM25)"],
+        ["⚖️", "Cross-Encoder Reranking"],
+        ["🌿", "Dialect Knowledge Graph"],
+        ["🔄", "Self-Correcting Agent Loop"],
+        ["✅", "Answer Verification"],
+        ["🛡️", "Grounding Policy Enforcement"],
+        ["🎤", "Voice Input (Whisper ASR)"],
+        ["🔊", "Voice Output (TTS)"],
+        ["📷", "Image Analysis (OCR + Heuristic)"],
+    ];
 
     return (
         <>
-            {isOpen && <div className="sidebar-overlay" onClick={onClose} />}
-            <aside className={`sidebar ${isOpen ? "open" : ""}`}>
+            {open && <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={onClose} />}
+            <aside className={`w-72 shrink-0 bg-glass/50 backdrop-blur-2xl border-r border-glass-border flex flex-col p-5 overflow-y-auto z-50 transition-transform lg:translate-x-0 fixed lg:static inset-y-0 left-0 ${open ? "translate-x-0" : "-translate-x-full"}`}>
                 {/* Brand */}
-                <div className="sidebar-brand">
-                    <div className="sidebar-brand-icon">🌾</div>
+                <div className="flex items-center gap-3 mb-6">
+                    <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-600 to-emerald-400 flex items-center justify-center text-lg shadow-[0_0_15px_rgba(16,185,129,0.2)]">🌾</div>
                     <div>
-                        <h1>AgriBot</h1>
-                        <p>Agricultural Advisory</p>
+                        <h1 className="text-base font-bold bg-gradient-to-r from-emerald-300 to-emerald-100 bg-clip-text text-transparent">AgriBot</h1>
+                        <p className="text-[0.6rem] text-emerald-700 uppercase tracking-wider font-medium">Agricultural Advisory</p>
                     </div>
                 </div>
 
                 {/* Health */}
-                <div className="sidebar-section">
-                    <div className="sidebar-section-title">System Status</div>
-                    <div className={`health-badge ${healthStatus}`}>
-                        <span className="health-dot" />
-                        {healthStatus === "loading"
-                            ? "Connecting..."
-                            : healthStatus === "online"
-                                ? "Online"
-                                : "Offline"}
+                <div className="mb-5">
+                    <div className="text-[0.6rem] uppercase tracking-wider text-emerald-700 font-semibold mb-2">System Status</div>
+                    <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-semibold ${status === "online" ? "bg-green-500/10 text-green-400 border border-green-500/20" : status === "offline" ? "bg-red-500/10 text-red-400 border border-red-500/20" : "bg-yellow-500/10 text-yellow-400 border border-yellow-500/20"}`}>
+                        <span className="w-2 h-2 rounded-full animate-pulse-dot" style={{ background: status === "online" ? "#22c55e" : status === "offline" ? "#ef4444" : "#f59e0b" }} />
+                        {status === "loading" ? "Connecting…" : status === "online" ? "Online" : "Offline"}
                     </div>
+                    {health && (
+                        <div className="text-[0.6rem] text-emerald-700 mt-1.5">
+                            Mode: <span className="text-emerald-400">{health.grounding_mode}</span>
+                        </div>
+                    )}
                 </div>
 
                 {/* Stats */}
                 {health && (
-                    <div className="sidebar-section">
-                        <div className="sidebar-section-title">Knowledge Base</div>
-                        <div className="stats-grid">
-                            <div className="stat-card">
-                                <div className="stat-value">{health.chunk_count}</div>
-                                <div className="stat-label">📄 Chunks</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value">{health.kg_entities}</div>
-                                <div className="stat-label">🔗 Entities</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value">{health.kg_aliases}</div>
-                                <div className="stat-label">📝 Aliases</div>
-                            </div>
-                            <div className="stat-card">
-                                <div className="stat-value">{health.kg_relations}</div>
-                                <div className="stat-label">🔀 Relations</div>
-                            </div>
+                    <div className="mb-5">
+                        <div className="text-[0.6rem] uppercase tracking-wider text-emerald-700 font-semibold mb-2">Knowledge Base</div>
+                        <div className="grid grid-cols-2 gap-1.5">
+                            {[
+                                [health.chunk_count, "Chunks"],
+                                [health.kg_entities, "Entities"],
+                                [health.kg_aliases, "Aliases"],
+                                [health.kg_relations, "Relations"],
+                            ].map(([v, l]) => (
+                                <div key={l as string} className="bg-surface-3 border border-glass-border rounded-lg p-2.5 text-center hover:border-emerald-600 hover:shadow-[0_0_10px_rgba(16,185,129,0.1)] transition-all">
+                                    <div className="text-lg font-bold text-emerald-400 tabular-nums">{v as number}</div>
+                                    <div className="text-[0.6rem] text-emerald-700 mt-0.5">{l as string}</div>
+                                </div>
+                            ))}
                         </div>
                     </div>
                 )}
 
                 {/* Features */}
-                <div className="sidebar-section" style={{ flex: 1 }}>
-                    <div className="sidebar-section-title">Capabilities</div>
-                    <ul className="feature-list">
-                        {FEATURES.map((f) => (
-                            <li key={f.label} className="feature-item">
-                                <span className="feature-icon">{f.icon}</span>
-                                {f.label}
+                <div className="flex-1 mb-4">
+                    <div className="text-[0.6rem] uppercase tracking-wider text-emerald-700 font-semibold mb-2">Capabilities</div>
+                    <ul className="space-y-0.5">
+                        {features.map(([icon, label]) => (
+                            <li key={label} className="flex items-center gap-2 text-xs text-emerald-200/70 px-2.5 py-1.5 rounded-md hover:bg-emerald-900/20 transition-colors">
+                                <span className="w-4 text-center">{icon}</span>{label}
                             </li>
                         ))}
                     </ul>
                 </div>
 
-                {/* Footer */}
-                <div
-                    style={{
-                        fontSize: "0.7rem",
-                        color: "var(--text-muted)",
-                        textAlign: "center",
-                    }}
-                >
-                    Offline-first • RTX 3050 Optimized
-                </div>
+                <div className="text-[0.6rem] text-emerald-800 text-center">Offline-first • RTX 3050 Optimized</div>
             </aside>
         </>
     );

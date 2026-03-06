@@ -1,0 +1,5 @@
+{"query": "What causes rice blast disease?", "relevant_doc_ids": ["manual_rice_p15", "manual_rice_p16"]}
+{"query": "How to treat leaf blight in wheat?", "relevant_doc_ids": ["manual_wheat_p42"]}
+{"query": "Best fertilizer for tomato cultivation", "relevant_doc_ids": ["manual_vegetables_p8", "manual_vegetables_p9"]}
+{"query": "What are the symptoms of stem borer infestation in rice?", "relevant_doc_ids": ["manual_rice_p28"]}
+{"query": "How to control aphids in mustard?", "relevant_doc_ids": ["manual_oilcrops_p12"]}
