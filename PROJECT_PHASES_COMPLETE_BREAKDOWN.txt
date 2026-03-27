@@ -1,22 +1,25 @@
 AGRIBOT COMPLETE PROJECT PHASE BREAKDOWN (FIRST TO LAST)
-Version date: 2026-03-14
+Version date: 2026-03-25
 Scope: This document summarizes the full project lifecycle and current implementation state, including models, approaches, and design rationale.
 
 ====================================================================
 PHASE 1 - PROBLEM FRAMING AND PRODUCT GOAL DEFINITION
 ====================================================================
 What was done:
-- Defined AgriBot as an offline-first agricultural decision-support system for Bangladesh.
+- Defined AgriBot as a production-grade, offline-first agricultural decision-support system for Bangladesh.
 - Set the primary requirement: multimodal input (text, voice, image) with bilingual output (English + Bangla).
 - Added mandatory trust constraints: grounded answers, citations, conservative refusal behavior.
+- Established strict edge hardware limits (e.g., 4GB VRAM): GPU reserved strictly for LLM, CPU for all other models.
 
 Approach used:
-- Offline RAG architecture with strict evidence and verification flow.
+- Offline Agentic RAG architecture with strict evidence and verification flow.
+- Strict Hardware-Isolated Vision Architecture (CPU-Bound CNN + Heuristics) instead of memory-heavy VLMs.
 - Production orientation (API contracts, diagnostics, testability, deployment artifacts).
 
 Why this approach:
 - Rural/field usage has unstable connectivity, so cloud-first was rejected.
 - Agricultural advice is safety-sensitive; hallucination must be reduced with evidence policy.
+- Edge consumer hardware (like RTX 3050 4GB) cannot run VLMs and conversational LLMs simultaneously without OOM crashes.
 
 
 ====================================================================
@@ -63,23 +66,24 @@ Why this approach:
 
 
 ====================================================================
-PHASE 4 - KNOWLEDGE GRAPH FOUNDATION (DIALECT TO CANONICAL TERMS)
+PHASE 4 - DIALECT KNOWLEDGE GRAPH (KG BEYOND A LEXICON)
 ====================================================================
 What was done:
-- Implemented SQLite-backed knowledge graph schema and seed data.
-- Added aliases and relation links (symptom/disease/treatment style graph edges).
+- Implemented SQLite-backed offline knowledge graph schema and seed data.
+- Mapped dialect terms to canonical Bengali/English/scientific entities.
+- Added structured relation links (symptom->disease, disease->treatment).
 
 Models/tools used:
-- SQLite graph tables (custom KG schema)
-- Entity linker and query expansion logic
+- SQLite graph tables (portable, versionable KG schema)
+- Entity linker, disambiguation, and query expansion logic
 
 Approach used:
 - Query tokenization with unigram/bigram/trigram matching.
-- Alias/canonical linking + neighbor expansion to enrich retrieval query.
+- Alias/canonical linking + neighbor expansion to enrich retrieval query before semantic search.
 
 Why this approach:
-- Farmers use colloquial/dialect terms that do not always match manual terminology.
-- KG expansion increases retrieval recall and disambiguation quality.
+- Farmers use colloquial/dialect terms that break standard dense/sparse vector retrieval against scientific manuals.
+- Graph relationships provide material reasoning enhancements and high disambiguation quality for Agentic RAG.
 
 
 ====================================================================
@@ -105,22 +109,24 @@ Why this approach:
 
 
 ====================================================================
-PHASE 6 - AGENTIC ORCHESTRATION WITH BOUNDED SELF-CORRECTION
+PHASE 6 - AGENTIC ORCHESTRATION WITH CONVERSATIONAL FALLBACK
 ====================================================================
 What was done:
-- Built LangGraph state-machine pipeline with conditional retry behavior.
+- Built LangGraph state-machine pipeline with conditional retry and conversational fallback behavior.
 
 Models/tools used:
 - LangGraph workflow in agent graph
-- LLM-based grading/rewrite/verify helpers
+- LLM-based grading/rewrite/verify/fallback helpers
 
 Approach used:
-- Pipeline: normalize -> kg_link -> retrieve -> rerank -> grade -> (rewrite loop if needed) -> generate -> translate -> verify -> enforce policy.
+- Pipeline: normalize -> kg_link -> vision heuristic fusion -> retrieve -> grade -> (rewrite/fallback) -> generate -> verify.
 - Bounded retry count to avoid runaway loops.
+- Conversational Fallback: Agent proactively pauses RAG loop to ask the farmer follow-up questions if visual context is lacking (e.g., severity).
 
 Why this approach:
 - Single-pass RAG fails on weak retrieval contexts.
-- Bounded correction gives better groundedness while keeping latency controlled.
+- The lack of an intensive generalized VLM requires procedural intelligence to gather exact context.
+- Bounded correction gives better groundedness while keeping latency and token costs scalable securely.
 
 
 ====================================================================
@@ -211,23 +217,24 @@ Why this approach:
 
 
 ====================================================================
-PHASE 11 - IMAGE PIPELINE (OPTIONAL CLASSIFIER-ASSISTED MODE)
+PHASE 11 - CPU-BOUND VISION PIPELINE (MOBILENETV3 + HEURISTICS)
 ====================================================================
 What was done:
-- Implemented image endpoint and optional classifier interface.
-- Added schema for possible conditions and confidence output.
+- Implemented a hardware-isolated image endpoint using a deterministic, lightweight CNN and color heuristics.
+- Integrated output schemas with the LangGraph conversational fallback logic.
 
 Models/tools used:
-- Optional ONNX classifier (config-gated)
-- PIL + numpy preprocessing pipeline
+- MobileNetV3 (ONNX Runtime, strictly localized to CPU)
+- PIL + numpy color heuristics (symptom isolation, e.g., "yellowing")
 
 Approach used:
-- OCR/analysis baseline remains available.
-- Classifier loads only if model path exists; otherwise no hard failure.
+- Completely offload visual diagnosis to CPU RAM.
+- Feed Top-K disease classes + heuristic hints to the LangGraph Agent.
+- Explicit agentic prompting ensures follow-ups requested from the user if accuracy implies risk.
 
 Why this approach:
-- Keeps system functional even when no trained image model is present.
-- Supports gradual upgrade path for crop disease visual models.
+- General VLMs crash 4GB GPUs or hallucinate context arbitrarily.
+- A deterministic CNN supported by robust heuristic rules enables fully concurrent multimodal request processing without OOM errors.
 
 
 ====================================================================
@@ -333,7 +340,8 @@ Voice TTS:
 - pyttsx3 system voices (Bangla voice if available, else fallback).
 
 Vision:
-- Optional ONNX classifier path (currently config-gated).
+- MobileNetV3 ONNX + OpenCV/NumPy color heuristics (strictly CPU-bound).
+- Agentic conversational fallback for handling low visual confidence.
 
 Safety:
 - Strict grounding mode support, verification checks, retry loop, refusal/caveat behavior.
