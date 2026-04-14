@@ -170,7 +170,8 @@ class TestCheckFfmpeg:
     """Test ffmpeg availability detection."""
 
     @patch("shutil.which", return_value="/usr/bin/ffmpeg")
-    def test_ffmpeg_found(self, mock_which):
+    @patch("os.environ.get", return_value="")
+    def test_ffmpeg_found(self, mock_env, mock_which):
         from agribot.voice.audio_preprocess import _ffmpeg_available
 
         # Reset cache
@@ -180,7 +181,9 @@ class TestCheckFfmpeg:
         assert _ffmpeg_available() is True
 
     @patch("shutil.which", return_value=None)
-    def test_ffmpeg_not_found(self, mock_which):
+    @patch("agribot.voice.audio_preprocess.Path.exists", return_value=False)
+    @patch("os.environ.get", return_value="")
+    def test_ffmpeg_not_found(self, mock_env, mock_exists, mock_which):
         from agribot.voice.audio_preprocess import _ffmpeg_available
 
         import agribot.voice.audio_preprocess as ap
