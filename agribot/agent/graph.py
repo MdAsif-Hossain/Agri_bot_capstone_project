@@ -44,10 +44,16 @@ def _make_grade_router(max_retries: int = 2):
         if grade == "SUFFICIENT":
             return "generate"
         elif retry >= max_retries:
-            logger.info("Max retries reached (%d/%d), generating with available evidence", retry, max_retries)
+            logger.info(
+                "Max retries reached (%d/%d), generating with available evidence",
+                retry,
+                max_retries,
+            )
             return "generate"
         else:
-            logger.info("Evidence insufficient, rewriting (retry %d/%d)", retry + 1, max_retries)
+            logger.info(
+                "Evidence insufficient, rewriting (retry %d/%d)", retry + 1, max_retries
+            )
             return "rewrite"
 
     return _grade_router
@@ -140,6 +146,8 @@ def build_agent_graph(
     compiled = workflow.compile()
     logger.info(
         "Agent graph compiled (max_retries=%d, grounding=%s, on_fail=%s)",
-        max_retries, grounding_mode, on_verify_fail,
+        max_retries,
+        grounding_mode,
+        on_verify_fail,
     )
     return compiled

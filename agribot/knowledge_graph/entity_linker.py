@@ -64,7 +64,8 @@ class EntityLinker:
 
         logger.info(
             "Linked %d entities from query: %s",
-            len(found_entities), list(found_entities.keys()),
+            len(found_entities),
+            list(found_entities.keys()),
         )
         return list(found_entities.values())
 
@@ -104,9 +105,7 @@ class EntityLinker:
                 expansion_terms.add(alias.alias_text)
 
             # Graph expansion: get related entities
-            neighbors = self.kg.get_neighbors(
-                entity.id, hops=self.expansion_hops
-            )
+            neighbors = self.kg.get_neighbors(entity.id, hops=self.expansion_hops)
             for neighbor_entity, rel_type in neighbors:
                 expansion_terms.add(neighbor_entity.canonical_en)
                 if neighbor_entity.canonical_bn:
@@ -116,8 +115,7 @@ class EntityLinker:
         # Remove terms already in the original query
         query_lower = query.lower()
         new_terms = [
-            t for t in expansion_terms
-            if t.lower() not in query_lower and len(t) > 1
+            t for t in expansion_terms if t.lower() not in query_lower and len(t) > 1
         ]
 
         if new_terms:

@@ -25,7 +25,9 @@ def seed_knowledge_graph(kg: KnowledgeGraph) -> None:
     """
     stats_before = kg.get_stats()
     if stats_before["entities"] > 0:
-        logger.info("KG already seeded (%d entities). Skipping.", stats_before["entities"])
+        logger.info(
+            "KG already seeded (%d entities). Skipping.", stats_before["entities"]
+        )
         return
 
     logger.info("Seeding knowledge graph with agricultural data...")
@@ -225,5 +227,7 @@ def seed_knowledge_graph(kg: KnowledgeGraph) -> None:
     stats = kg.get_stats()
     logger.info(
         "KG seeded: %d entities, %d aliases, %d relations",
-        stats["entities"], stats["aliases"], stats["relations"],
+        stats["entities"],
+        stats["aliases"],
+        stats["relations"],
     )

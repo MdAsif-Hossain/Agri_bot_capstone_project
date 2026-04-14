@@ -63,7 +63,9 @@ def main():
     print(f"   ✅ Extracted {len(pages)} pages ({content_pages} content pages)")
 
     # --- 2. Chunk ---
-    print(f"\n📝 Chunking pages (size={settings.CHUNK_SIZE}, overlap={settings.CHUNK_OVERLAP})...")
+    print(
+        f"\n📝 Chunking pages (size={settings.CHUNK_SIZE}, overlap={settings.CHUNK_OVERLAP})..."
+    )
     chunks = chunk_pages(
         pages,
         chunk_size=settings.CHUNK_SIZE,
@@ -87,6 +89,7 @@ def main():
     # --- 3b. Write manifest ---
     import json
     import subprocess
+
     manifest = {
         "timestamp": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
         "embedding_model": settings.EMBEDDING_MODEL,
@@ -97,9 +100,15 @@ def main():
         "python_version": sys.version.split()[0],
     }
     try:
-        git_hash = subprocess.check_output(
-            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL, cwd=str(PROJECT_ROOT)
-        ).decode().strip()
+        git_hash = (
+            subprocess.check_output(
+                ["git", "rev-parse", "HEAD"],
+                stderr=subprocess.DEVNULL,
+                cwd=str(PROJECT_ROOT),
+            )
+            .decode()
+            .strip()
+        )
         manifest["git_commit"] = git_hash
     except Exception:
         manifest["git_commit"] = "unknown"
@@ -113,7 +122,9 @@ def main():
     kg = KnowledgeGraph(settings.KG_DB_PATH)
     seed_knowledge_graph(kg)
     stats = kg.get_stats()
-    print(f"   ✅ KG ready: {stats['entities']} entities, {stats['aliases']} aliases, {stats['relations']} relations")
+    print(
+        f"   ✅ KG ready: {stats['entities']} entities, {stats['aliases']} aliases, {stats['relations']} relations"
+    )
     kg.close()
 
     # --- Done ---

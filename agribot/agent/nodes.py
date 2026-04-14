@@ -29,6 +29,7 @@ logger = logging.getLogger(__name__)
 
 # --- Timing helper ---
 
+
 def _timed(node_name: str, fn, state: AgentState) -> dict:
     """Wrap a node function with timing instrumentation."""
     start = time.perf_counter()
@@ -42,7 +43,8 @@ def _timed(node_name: str, fn, state: AgentState) -> dict:
 
     logger.debug(
         "Node %s completed in %.1fms",
-        node_name, elapsed_ms,
+        node_name,
+        elapsed_ms,
         extra={"trace_id": state.get("trace_id", "")},
     )
     return result
@@ -67,10 +69,16 @@ def make_normalize_node(translator: BanglaTranslator | None = None):
             try:
                 translated = translator.translate_bn_to_en(query)
                 if translated and translated != query:
-                    logger.info("BN→EN query translation: '%s' → '%s'", query[:60], translated[:60])
+                    logger.info(
+                        "BN→EN query translation: '%s' → '%s'",
+                        query[:60],
+                        translated[:60],
+                    )
                     normalized_query = translated
                 else:
-                    logger.warning("BN→EN translation returned empty/same; using original")
+                    logger.warning(
+                        "BN→EN translation returned empty/same; using original"
+                    )
             except Exception as e:
                 logger.error("Translation fallback: %s", e)
                 # Fallback: use original query
@@ -101,7 +109,9 @@ def make_kg_link_node(entity_linker: EntityLinker):
             ]
             expanded = entity_linker.expand_query(query)
 
-            logger.info("KG linked %d entities, expanded: %s", len(entities), expanded[:100])
+            logger.info(
+                "KG linked %d entities, expanded: %s", len(entities), expanded[:100]
+            )
             return {
                 "query_expanded": expanded,
                 "kg_entities": entity_info,

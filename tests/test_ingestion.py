@@ -23,8 +23,13 @@ class TestPageClassification:
     """Tests for page type classification."""
 
     def test_content_page(self):
-        text = "Rice blast is a serious disease caused by the fungus Magnaporthe oryzae. " * 5
-        page_type, weight = _classify_page_type(text, ["table of contents", "references"])
+        text = (
+            "Rice blast is a serious disease caused by the fungus Magnaporthe oryzae. "
+            * 5
+        )
+        page_type, weight = _classify_page_type(
+            text, ["table of contents", "references"]
+        )
         assert page_type == "content"
         assert weight == 1.0
 
@@ -43,7 +48,10 @@ class TestPageClassification:
         assert weight < 1.0
 
     def test_reference_page(self):
-        lines = [f"[{i}] Author{i}, A. et al. (2023). Some paper title. Journal.\n" for i in range(1, 10)]
+        lines = [
+            f"[{i}] Author{i}, A. et al. (2023). Some paper title. Journal.\n"
+            for i in range(1, 10)
+        ]
         text = "".join(lines)
         page_type, weight = _classify_page_type(text, ["references"])
         assert page_type == "reference"
@@ -83,14 +91,24 @@ class TestChunker:
         pages = [
             PageData("doc.pdf", 1, "A " * 500, "content", 1.0),
         ]
-        chunks = chunk_pages(pages, chunk_size=200, chunk_overlap=40, min_chunk_length=10)
+        chunks = chunk_pages(
+            pages, chunk_size=200, chunk_overlap=40, min_chunk_length=10
+        )
         assert len(chunks) > 1
 
     def test_chunk_provenance(self):
         pages = [
-            PageData("manual.pdf", 5, "Rice blast is caused by Magnaporthe oryzae. " * 10, "content", 1.0),
+            PageData(
+                "manual.pdf",
+                5,
+                "Rice blast is caused by Magnaporthe oryzae. " * 10,
+                "content",
+                1.0,
+            ),
         ]
-        chunks = chunk_pages(pages, chunk_size=200, chunk_overlap=40, min_chunk_length=10)
+        chunks = chunk_pages(
+            pages, chunk_size=200, chunk_overlap=40, min_chunk_length=10
+        )
         assert all(c.source_file == "manual.pdf" for c in chunks)
         assert all(c.page_num == 5 for c in chunks)
 
@@ -98,7 +116,9 @@ class TestChunker:
         pages = [
             PageData("doc.pdf", 1, "Hi", "content", 1.0),  # Too short
         ]
-        chunks = chunk_pages(pages, chunk_size=200, chunk_overlap=40, min_chunk_length=30)
+        chunks = chunk_pages(
+            pages, chunk_size=200, chunk_overlap=40, min_chunk_length=30
+        )
         assert len(chunks) == 0
 
     def test_chunk_serialization(self):
@@ -132,5 +152,7 @@ class TestChunker:
             PageData("doc.pdf", 1, "x" * 10, "low_signal", 0.1),  # Short
             PageData("doc.pdf", 2, "Good content. " * 50, "content", 1.0),  # Adequate
         ]
-        chunks = chunk_pages(pages, chunk_size=200, chunk_overlap=40, min_chunk_length=30)
+        chunks = chunk_pages(
+            pages, chunk_size=200, chunk_overlap=40, min_chunk_length=30
+        )
         assert all(c.page_num == 2 for c in chunks)

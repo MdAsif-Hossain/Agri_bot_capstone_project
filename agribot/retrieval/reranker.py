@@ -70,10 +70,12 @@ class Reranker:
 
         # Sort by rerank score (descending) and take top_n
         reranked.sort(key=lambda x: x.rerank_score or 0, reverse=True)
-        reranked = reranked[:self.top_n]
+        reranked = reranked[: self.top_n]
 
         logger.info(
             "Reranked %d → %d evidences (threshold=%.2f)",
-            len(evidences), len(reranked), self.threshold,
+            len(evidences),
+            len(reranked),
+            self.threshold,
         )
         return reranked

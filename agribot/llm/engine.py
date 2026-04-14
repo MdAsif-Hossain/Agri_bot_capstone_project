@@ -35,7 +35,12 @@ def get_llm(
         if _llm_instance is not None:
             return _llm_instance
 
-        logger.info("Loading LLM from %s (n_ctx=%d, n_gpu_layers=%d)", model_path, n_ctx, n_gpu_layers)
+        logger.info(
+            "Loading LLM from %s (n_ctx=%d, n_gpu_layers=%d)",
+            model_path,
+            n_ctx,
+            n_gpu_layers,
+        )
         _llm_instance = Llama(
             model_path=model_path,
             n_ctx=n_ctx,
@@ -135,7 +140,7 @@ def generate_answer(
     - Answer in English with proper citations
     - Cite sources with page numbers
     - Refuse if evidence is insufficient
-    
+
     Bengali translation is handled separately by BanglaT5.
     """
     prompt = f"""<|im_start|>system

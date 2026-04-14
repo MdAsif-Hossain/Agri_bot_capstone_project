@@ -17,6 +17,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class Chunk:
     """A text chunk with full provenance metadata."""
+
     text: str
     source_file: str
     page_num: int
@@ -86,14 +87,16 @@ def chunk_pages(
             if len(split_text) < min_chunk_length:
                 continue
 
-            all_chunks.append(Chunk(
-                text=split_text,
-                source_file=page.source_file,
-                page_num=page.page_num,
-                chunk_idx=global_idx,
-                chunk_type=page.page_type,
-                keep_weight=page.keep_weight,
-            ))
+            all_chunks.append(
+                Chunk(
+                    text=split_text,
+                    source_file=page.source_file,
+                    page_num=page.page_num,
+                    chunk_idx=global_idx,
+                    chunk_type=page.page_type,
+                    keep_weight=page.keep_weight,
+                )
+            )
             global_idx += 1
 
     logger.info("Created %d chunks from %d pages", len(all_chunks), len(pages))

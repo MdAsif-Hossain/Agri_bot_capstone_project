@@ -93,6 +93,7 @@ class TestSpeechToText:
 
         # Create a temp file to transcribe
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             f.write(b"fake audio data")
             tmp_path = f.name
@@ -134,6 +135,7 @@ class TestSpeechToText:
         stt._model.transcribe.return_value = ([mock_segment], mock_info)
 
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             f.write(b"fake audio data")
             tmp_path = f.name
@@ -168,6 +170,7 @@ class TestSpeechToText:
         stt._model.transcribe.return_value = ([mock_segment], mock_info)
 
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             f.write(b"fake audio data")
             tmp_path = f.name
@@ -207,6 +210,7 @@ class TestSpeechToText:
         stt._model.transcribe.return_value = ([mock_segment], mock_info)
 
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             f.write(b"fake")
             tmp_path = f.name
@@ -233,6 +237,7 @@ class TestSpeechToText:
         stt._model.transcribe.return_value = ([], mock_info)  # No segments
 
         import tempfile
+
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as f:
             f.write(b"fake")
             tmp_path = f.name
@@ -251,7 +256,11 @@ class TestSpeechToText:
         threshold = 0.6
 
         high_conf_result = {"text": "clear speech", "confidence": 0.85, "warnings": []}
-        low_conf_result = {"text": "garbled", "confidence": 0.3, "warnings": ["low_confidence"]}
+        low_conf_result = {
+            "text": "garbled",
+            "confidence": 0.3,
+            "warnings": ["low_confidence"],
+        }
 
         # High confidence → should proceed
         needs_confirm_high = (

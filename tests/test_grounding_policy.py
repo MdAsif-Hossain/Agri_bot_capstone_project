@@ -55,21 +55,24 @@ class TestRiskDetection:
 
     def test_bengali_risk_patterns(self):
         """Bengali dosage/chemical patterns are detected."""
-        assert is_risky_query("কীটনাশক মাত্রা কত?") is True        # pesticide dosage
-        assert is_risky_query("ছত্রাকনাশক ব্যবহার") is True        # fungicide usage
-        assert is_risky_query("আগাছানাশক স্প্রে হার") is True      # herbicide spray rate
-        assert is_risky_query("প্রতি একর কত কেজি সার?") is True    # per acre kg fertilizer
-        assert is_risky_query("10 মিলি প্রতি লিটার") is True       # 10 ml per liter
-        assert is_risky_query("কতটুকু দিতে হবে?") is True          # how much to apply
+        assert is_risky_query("কীটনাশক মাত্রা কত?") is True  # pesticide dosage
+        assert is_risky_query("ছত্রাকনাশক ব্যবহার") is True  # fungicide usage
+        assert is_risky_query("আগাছানাশক স্প্রে হার") is True  # herbicide spray rate
+        assert is_risky_query("প্রতি একর কত কেজি সার?") is True  # per acre kg fertilizer
+        assert is_risky_query("10 মিলি প্রতি লিটার") is True  # 10 ml per liter
+        assert is_risky_query("কতটুকু দিতে হবে?") is True  # how much to apply
 
     def test_safe_bengali_queries(self):
         """Safe Bengali queries pass through."""
-        assert is_risky_query("ধানের রোগের লক্ষণ কি?") is False     # disease symptoms
-        assert is_risky_query("শীতকালে কি চাষ করতে হয়?") is False  # what to grow in winter
+        assert is_risky_query("ধানের রোগের লক্ষণ কি?") is False  # disease symptoms
+        assert (
+            is_risky_query("শীতকালে কি চাষ করতে হয়?") is False
+        )  # what to grow in winter
 
     def test_escalation_messages_exist(self):
         """Escalation messages contain expected content."""
         from agribot.agent.grounding_policy import ESCALATION_EN, ESCALATION_BN
+
         assert "BARI" in ESCALATION_EN
         assert "extension officer" in ESCALATION_EN
         assert "BARI" in ESCALATION_BN
@@ -212,7 +215,9 @@ class TestEnforcePolicyLenient:
 
     def test_lenient_adds_disclaimer(self):
         """Lenient mode always adds disclaimer, never refuses."""
-        node = make_enforce_policy_node("lenient", "refuse")  # refuse ignored in lenient
+        node = make_enforce_policy_node(
+            "lenient", "refuse"
+        )  # refuse ignored in lenient
         state = self._make_state()
         result = node(state)
         assert result["grounding_action"] == "disclaimer"

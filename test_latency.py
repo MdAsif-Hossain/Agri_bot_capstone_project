@@ -7,26 +7,25 @@ from pathlib import Path
 PROJECT_ROOT = Path(__file__).resolve().parent
 sys.path.insert(0, str(PROJECT_ROOT))
 
-from config import settings
 from agribot.logging_config import setup_logging
 from api import _init_services
-from agribot.agent.state import AgentState
 
 setup_logging(log_level="DEBUG")
 logger = logging.getLogger("test_latency")
+
 
 def main():
     logger.info("Starting latency test...")
     start_init = time.time()
     svc = _init_services()
     logger.info("Services initialized in %.2fs", time.time() - start_init)
-    
+
     agent = svc["agent"]
-    
+
     # Test a simple query
     query = "What is rice blast?"
     logger.info("Invoking agent with query: %s", query)
-    
+
     initial_state = {
         "query_original": query,
         "query_language": "",
@@ -47,7 +46,7 @@ def main():
         "input_audio_path": "",
         "error": "",
     }
-    
+
     start_invoke = time.time()
     try:
         # We can stream or just invoke
@@ -59,6 +58,7 @@ def main():
         print(results.get("answer_bn", "NO ANSWER BN"))
     except Exception as e:
         logger.exception("Agent invocation failed: %s", e)
+
 
 if __name__ == "__main__":
     main()

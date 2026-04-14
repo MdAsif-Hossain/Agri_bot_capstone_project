@@ -144,23 +144,29 @@ class KnowledgeGraph:
     def find_by_alias(self, text: str) -> list[Entity]:
         """Find entities matching an alias (case-insensitive)."""
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT e.id, e.canonical_bn, e.canonical_en, e.entity_type
             FROM entities e
             JOIN aliases a ON e.id = a.entity_id
             WHERE a.alias_text = ? COLLATE NOCASE
-        """, (text,))
+        """,
+            (text,),
+        )
         return [Entity(**dict(row)) for row in cursor.fetchall()]
 
     def find_by_partial_alias(self, text: str) -> list[Entity]:
         """Find entities with aliases containing the text."""
         cursor = self.conn.cursor()
-        cursor.execute("""
+        cursor.execute(
+            """
             SELECT DISTINCT e.id, e.canonical_bn, e.canonical_en, e.entity_type
             FROM entities e
             JOIN aliases a ON e.id = a.entity_id
             WHERE a.alias_text LIKE ? COLLATE NOCASE
-        """, (f"%{text}%",))
+        """,
+            (f"%{text}%",),
+        )
         return [Entity(**dict(row)) for row in cursor.fetchall()]
 
     def get_entity(self, entity_id: int) -> Entity | None:

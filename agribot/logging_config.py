@@ -16,7 +16,7 @@ def setup_logging(json_output: bool = False, log_level: str = "INFO") -> None:
     Configure structured logging for the entire application.
 
     Args:
-        json_output: If True, output JSON logs (production). 
+        json_output: If True, output JSON logs (production).
                      If False, output colored console logs (development).
         log_level: Minimum log level (DEBUG, INFO, WARNING, ERROR).
     """

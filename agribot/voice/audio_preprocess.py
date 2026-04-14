@@ -111,7 +111,9 @@ def _resolve_ffmpeg_binary() -> Optional[str]:
         return in_path
 
     # 3) Common winget install location (Windows)
-    winget_root = Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+    winget_root = (
+        Path(os.environ.get("LOCALAPPDATA", "")) / "Microsoft" / "WinGet" / "Packages"
+    )
     if winget_root.exists():
         candidates = sorted(
             winget_root.glob("Gyan.FFmpeg_*/ffmpeg-*/bin/ffmpeg.exe"),
@@ -148,6 +150,7 @@ def _preprocess_ffmpeg(input_path: Path, target_sr: int) -> tuple[Path, dict]:
     out_fd, out_path_str = tempfile.mkstemp(suffix=".wav", prefix="agribot_pp_")
     # Close the fd; ffmpeg will write to the path
     import os
+
     os.close(out_fd)
     out_path = Path(out_path_str)
 
@@ -156,13 +159,20 @@ def _preprocess_ffmpeg(input_path: Path, target_sr: int) -> tuple[Path, dict]:
         raise RuntimeError("ffmpeg binary not found")
 
     cmd = [
-        ffmpeg_bin, "-y",
-        "-i", str(input_path),
-        "-ac", "1",                     # mono
-        "-ar", str(target_sr),          # resample
-        "-sample_fmt", "s16",           # 16-bit PCM
-        "-af", "loudnorm=I=-16:TP=-1.5:LRA=11",  # EBU R128 normalize
-        "-f", "wav",
+        ffmpeg_bin,
+        "-y",
+        "-i",
+        str(input_path),
+        "-ac",
+        "1",  # mono
+        "-ar",
+        str(target_sr),  # resample
+        "-sample_fmt",
+        "s16",  # 16-bit PCM
+        "-af",
+        "loudnorm=I=-16:TP=-1.5:LRA=11",  # EBU R128 normalize
+        "-f",
+        "wav",
         str(out_path),
     ]
 
@@ -173,8 +183,12 @@ def _preprocess_ffmpeg(input_path: Path, target_sr: int) -> tuple[Path, dict]:
             timeout=30,
         )
         if result.returncode != 0:
-            logger.error("ffmpeg error: %s", result.stderr.decode(errors="replace")[-500:])
-            raise RuntimeError(f"ffmpeg preprocessing failed (code {result.returncode})")
+            logger.error(
+                "ffmpeg error: %s", result.stderr.decode(errors="replace")[-500:]
+            )
+            raise RuntimeError(
+                f"ffmpeg preprocessing failed (code {result.returncode})"
+            )
     except subprocess.TimeoutExpired:
         out_path.unlink(missing_ok=True)
         raise RuntimeError("ffmpeg audio preprocessing timed out (30s)")
@@ -216,9 +230,7 @@ def _preprocess_stdlib(input_path: Path, target_sr: int) -> tuple[Path, dict]:
 
     # Resample to target_sr if needed
     if framerate != target_sr:
-        raw_data, _ = audioop.ratecv(
-            raw_data, sampwidth, 1, framerate, target_sr, None
-        )
+        raw_data, _ = audioop.ratecv(raw_data, sampwidth, 1, framerate, target_sr, None)
         framerate = target_sr
 
     # Peak normalization (scale to ~90% of max to avoid clipping)
@@ -234,6 +246,7 @@ def _preprocess_stdlib(input_path: Path, target_sr: int) -> tuple[Path, dict]:
     # Write canonical WAV
     out_fd, out_path_str = tempfile.mkstemp(suffix=".wav", prefix="agribot_pp_")
     import os
+
     os.close(out_fd)
     out_path = Path(out_path_str)
 

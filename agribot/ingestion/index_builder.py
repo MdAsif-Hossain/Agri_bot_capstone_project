@@ -54,7 +54,9 @@ class IndexBundle:
         chunk_dicts = [c.to_dict() for c in self.chunks]
         with open(meta_path, "w", encoding="utf-8") as f:
             json.dump(chunk_dicts, f, ensure_ascii=False, indent=2)
-        logger.info("Saved %d chunk metadata entries to %s", len(self.chunks), meta_path)
+        logger.info(
+            "Saved %d chunk metadata entries to %s", len(self.chunks), meta_path
+        )
 
         # Embeddings (numpy)
         emb_path = index_dir / "embeddings.npy"
@@ -93,7 +95,9 @@ class IndexBundle:
 
         logger.info(
             "Loaded indexes from %s: %d chunks, FAISS dim=%d",
-            index_dir, len(chunks), faiss_index.d,
+            index_dir,
+            len(chunks),
+            faiss_index.d,
         )
         return cls(faiss_index, bm25_index, chunks, embeddings)
 

@@ -63,9 +63,7 @@ class ImageProcessor:
         result = self.describe_image_structured(image_path)
         return result.build_query_text()
 
-    def describe_image_structured(
-        self, image_path: str | Path, classifier=None
-    ):
+    def describe_image_structured(self, image_path: str | Path, classifier=None):
         """
         Analyze a crop/plant image and return structured analysis.
 
@@ -102,7 +100,11 @@ class ImageProcessor:
                 result.keywords.extend(key_words[:3])
 
         # 3. Optional classifier-assisted path
-        if classifier is not None and hasattr(classifier, "is_available") and classifier.is_available:
+        if (
+            classifier is not None
+            and hasattr(classifier, "is_available")
+            and classifier.is_available
+        ):
             try:
                 conditions = classifier.predict(image_path)
                 if conditions:
@@ -213,13 +215,17 @@ class ImageProcessor:
             # Yellowing detection (high R, high G, low B relative to green)
             yellow_ratio = (r_mean + g_mean) / (2 * max(b_mean, 1))
             if yellow_ratio > 2.5 and g_mean > 100:
-                symptoms.append("significant yellowing detected (possible nutrient deficiency or disease)")
+                symptoms.append(
+                    "significant yellowing detected (possible nutrient deficiency or disease)"
+                )
 
             # Brown spots (moderate R, low G, low B)
             brown_mask = (r > 100) & (g < 100) & (b < 80)
             brown_fraction = brown_mask.mean()
             if brown_fraction > 0.05:
-                symptoms.append(f"brown discoloration detected ({brown_fraction:.0%} of image area)")
+                symptoms.append(
+                    f"brown discoloration detected ({brown_fraction:.0%} of image area)"
+                )
 
             # Predominantly green (healthy plant reference)
             if g_mean > r_mean and g_mean > b_mean and avg_saturation > 0.3:
@@ -231,10 +237,12 @@ class ImageProcessor:
             white_mask = (r > 200) & (g > 200) & (b > 200)
             white_fraction = white_mask.mean()
             if white_fraction > 0.1:
-                symptoms.append(f"white/pale patches detected ({white_fraction:.0%} of area, possible mildew)")
+                symptoms.append(
+                    f"white/pale patches detected ({white_fraction:.0%} of area, possible mildew)"
+                )
 
             # Dark patches (possible rot or severe damage)
-            dark_mask = (max_c < 50)
+            dark_mask = max_c < 50
             dark_fraction = dark_mask.mean()
             if dark_fraction > 0.15:
                 symptoms.append("dark/necrotic areas detected")

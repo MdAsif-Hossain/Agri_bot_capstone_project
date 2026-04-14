@@ -40,7 +40,7 @@ def _script_stats(text: str) -> dict[str, int]:
         elif 0x0900 <= cp <= 0x097F:
             devanagari += 1
             total_letters += 1
-        elif ("a" <= ch.lower() <= "z"):
+        elif "a" <= ch.lower() <= "z":
             latin += 1
             total_letters += 1
     return {
@@ -49,6 +49,7 @@ def _script_stats(text: str) -> dict[str, int]:
         "latin": latin,
         "letters": total_letters,
     }
+
 
 # Singleton
 _stt_instance: "SpeechToText | None" = None
@@ -170,12 +171,17 @@ class SpeechToText:
 
             try:
                 import torch
-                use_cuda = self.device == "cuda" or (self.device == "auto" and torch.cuda.is_available())
+
+                use_cuda = self.device == "cuda" or (
+                    self.device == "auto" and torch.cuda.is_available()
+                )
             except Exception:
                 use_cuda = False
 
             device = "cuda:0" if use_cuda else "cpu"
-            download_path = Path(__file__).resolve().parents[2] / "models" / "banglaspeech2text"
+            download_path = (
+                Path(__file__).resolve().parents[2] / "models" / "banglaspeech2text"
+            )
             download_path.mkdir(parents=True, exist_ok=True)
 
             model_choices = available_models()
@@ -190,7 +196,9 @@ class SpeechToText:
 
             if isinstance(selected_model, list):
                 if not selected_model:
-                    logger.warning("BanglaSpeech2Text model group '%s' is empty", model_key)
+                    logger.warning(
+                        "BanglaSpeech2Text model group '%s' is empty", model_key
+                    )
                     return False
                 selected_model = selected_model[0]
 
@@ -211,8 +219,12 @@ class SpeechToText:
         try:
             from transformers import pipeline
 
-            fallback_model_id = model_key if "/" in model_key else "bangla-speech-processing/BanglaASR"
-            logger.info("Loading BanglaSpeech2Text transformers fallback: %s", fallback_model_id)
+            fallback_model_id = (
+                model_key if "/" in model_key else "bangla-speech-processing/BanglaASR"
+            )
+            logger.info(
+                "Loading BanglaSpeech2Text transformers fallback: %s", fallback_model_id
+            )
             self._bangla_s2t = pipeline(
                 "automatic-speech-recognition",
                 model=fallback_model_id,
@@ -246,13 +258,25 @@ class SpeechToText:
                     pcm_bytes = wf.readframes(num_frames)
 
                 if sampwidth == 1:
-                    audio_array = (np.frombuffer(pcm_bytes, dtype=np.uint8).astype(np.float32) - 128.0) / 128.0
+                    audio_array = (
+                        np.frombuffer(pcm_bytes, dtype=np.uint8).astype(np.float32)
+                        - 128.0
+                    ) / 128.0
                 elif sampwidth == 2:
-                    audio_array = np.frombuffer(pcm_bytes, dtype=np.int16).astype(np.float32) / 32768.0
+                    audio_array = (
+                        np.frombuffer(pcm_bytes, dtype=np.int16).astype(np.float32)
+                        / 32768.0
+                    )
                 elif sampwidth == 4:
-                    audio_array = np.frombuffer(pcm_bytes, dtype=np.int32).astype(np.float32) / 2147483648.0
+                    audio_array = (
+                        np.frombuffer(pcm_bytes, dtype=np.int32).astype(np.float32)
+                        / 2147483648.0
+                    )
                 else:
-                    logger.warning("BanglaSpeech2Text transcription failed: unsupported WAV sample width: %s", sampwidth)
+                    logger.warning(
+                        "BanglaSpeech2Text transcription failed: unsupported WAV sample width: %s",
+                        sampwidth,
+                    )
                     return None
 
                 if channels > 1:
@@ -263,10 +287,12 @@ class SpeechToText:
                         return None
                     audio_array = audio_array.reshape(-1, channels).mean(axis=1)
 
-                out = self._bangla_s2t({
-                    "array": audio_array,
-                    "sampling_rate": int(sample_rate),
-                })
+                out = self._bangla_s2t(
+                    {
+                        "array": audio_array,
+                        "sampling_rate": int(sample_rate),
+                    }
+                )
             if isinstance(out, dict):
                 text = str(out.get("text", "")).strip()
             else:
@@ -301,7 +327,11 @@ class SpeechToText:
                 segment_list=[],
                 language_prob=language_probability,
             )
-            if stats["bengali"] == 0 and stats["latin"] > 0 and "script_mismatch" not in warnings:
+            if (
+                stats["bengali"] == 0
+                and stats["latin"] > 0
+                and "script_mismatch" not in warnings
+            ):
                 warnings.append("script_mismatch")
             warnings.append("banglaspeech2text_used")
 
@@ -341,7 +371,9 @@ class SpeechToText:
 
         model_path = self.vosk_bn_model_path.strip()
         if not model_path:
-            logger.warning("Vosk fallback requested but AGRIBOT_VOSK_BN_MODEL_PATH is empty")
+            logger.warning(
+                "Vosk fallback requested but AGRIBOT_VOSK_BN_MODEL_PATH is empty"
+            )
             return False
 
         path = Path(model_path)
@@ -371,7 +403,8 @@ class SpeechToText:
                 if wf.getnchannels() != 1 or wf.getsampwidth() != 2:
                     logger.warning(
                         "Vosk fallback skipped due to incompatible WAV format (channels=%d, sampwidth=%d)",
-                        wf.getnchannels(), wf.getsampwidth(),
+                        wf.getnchannels(),
+                        wf.getsampwidth(),
                     )
                     return None
 
@@ -453,7 +486,9 @@ class SpeechToText:
 
         logger.info(
             "Transcribing: %s (lang=%s, beam=%d)",
-            audio_path.name, effective_lang or "auto", effective_beam,
+            audio_path.name,
+            effective_lang or "auto",
+            effective_beam,
         )
 
         def _to_float(value, default: float) -> float:
@@ -507,13 +542,15 @@ class SpeechToText:
                 seg_logprob = _to_float(getattr(seg, "avg_logprob", -1.0), -1.0)
                 seg_no_speech = _to_float(getattr(seg, "no_speech_prob", 0.0), 0.0)
 
-                segment_list.append({
-                    "start": _to_float(getattr(seg, "start", 0.0), 0.0),
-                    "end": _to_float(getattr(seg, "end", 0.0), 0.0),
-                    "text": text,
-                    "avg_logprob": seg_logprob,
-                    "no_speech_prob": seg_no_speech,
-                })
+                segment_list.append(
+                    {
+                        "start": _to_float(getattr(seg, "start", 0.0), 0.0),
+                        "end": _to_float(getattr(seg, "end", 0.0), 0.0),
+                        "text": text,
+                        "avg_logprob": seg_logprob,
+                        "no_speech_prob": seg_no_speech,
+                    }
+                )
                 full_text_parts.append(text)
                 logprob_sum += seg_logprob
                 logprob_count += 1
@@ -526,7 +563,9 @@ class SpeechToText:
             else:
                 confidence = 0.0
 
-            language_probability = _to_float(getattr(info, "language_probability", 0.0), 0.0)
+            language_probability = _to_float(
+                getattr(info, "language_probability", 0.0), 0.0
+            )
             warnings = _build_warnings(
                 full_text=full_text,
                 confidence=confidence,
@@ -562,7 +601,9 @@ class SpeechToText:
             text = result.get("text", "").strip()
             low_text = text.lower()
             language = str(result.get("language", "")).lower()
-            decode_language = str(result.get("meta", {}).get("decode_language", "auto")).lower()
+            decode_language = str(
+                result.get("meta", {}).get("decode_language", "auto")
+            ).lower()
             backend = str(result.get("meta", {}).get("backend", "whisper")).lower()
 
             if result.get("text", "").strip():
@@ -582,7 +623,9 @@ class SpeechToText:
                 bengali_chars = stats["bengali"]
                 devanagari_chars = stats["devanagari"]
                 latin_chars = stats["latin"]
-                punctuation_chars = sum(1 for ch in text if not ch.isalnum() and not ch.isspace())
+                punctuation_chars = sum(
+                    1 for ch in text if not ch.isalnum() and not ch.isspace()
+                )
 
                 score += min(0.25, bengali_chars / max(20, len(text)))
                 score -= min(0.20, punctuation_chars / max(10, len(text)))
@@ -616,8 +659,18 @@ class SpeechToText:
 
                 # Bonus for agricultural terms likely in user queries.
                 agri_terms = {
-                    "ধান", "পোকা", "রোগ", "সার", "পাতা", "গাছ", "ফসল",
-                    "rice", "pest", "disease", "fertilizer", "crop",
+                    "ধান",
+                    "পোকা",
+                    "রোগ",
+                    "সার",
+                    "পাতা",
+                    "গাছ",
+                    "ফসল",
+                    "rice",
+                    "pest",
+                    "disease",
+                    "fertilizer",
+                    "crop",
                 }
                 if any(term in low_text for term in agri_terms):
                     score += 0.08
@@ -641,12 +694,10 @@ class SpeechToText:
 
         candidates = [primary_result]
 
-        should_retry_no_vad = (
-            self.vad_filter and (
-                "no_speech" in primary_result["warnings"]
-                or "noisy_audio" in primary_result["warnings"]
-                or primary_result["confidence"] < 0.45
-            )
+        should_retry_no_vad = self.vad_filter and (
+            "no_speech" in primary_result["warnings"]
+            or "noisy_audio" in primary_result["warnings"]
+            or primary_result["confidence"] < 0.45
         )
         if should_retry_no_vad:
             retry_beam = max(int(effective_beam), 8)
@@ -672,12 +723,10 @@ class SpeechToText:
                     fallback_result["confidence"],
                 )
 
-        should_retry_auto_lang = (
-            effective_lang is not None and (
-                "no_speech" in selected_result["warnings"]
-                or "low_confidence" in selected_result["warnings"]
-                or selected_result["confidence"] < 0.35
-            )
+        should_retry_auto_lang = effective_lang is not None and (
+            "no_speech" in selected_result["warnings"]
+            or "low_confidence" in selected_result["warnings"]
+            or selected_result["confidence"] < 0.35
         )
         if should_retry_auto_lang:
             auto_result = _transcribe_once(
@@ -796,6 +845,7 @@ class SpeechToText:
         # Save to temp WAV file (faster-whisper reads files)
         with tempfile.NamedTemporaryFile(suffix=".wav", delete=False) as tmp:
             import soundfile as sf
+
             sf.write(tmp.name, audio_array, sample_rate)
             tmp_path = tmp.name
 
@@ -812,6 +862,7 @@ def _build_warnings(
     language_prob: float,
 ) -> list[str]:
     """Build list of warning strings based on transcription metrics."""
+
     def _num(value, default: float = 0.0) -> float:
         try:
             return float(value)
@@ -831,8 +882,7 @@ def _build_warnings(
 
     # Check for high no-speech probability in segments
     high_nospeech = sum(
-        1 for s in segment_list
-        if _num(s.get("no_speech_prob", 0.0), 0.0) > 0.6
+        1 for s in segment_list if _num(s.get("no_speech_prob", 0.0), 0.0) > 0.6
     )
     if high_nospeech > len(segment_list) * 0.5 and segment_list:
         warnings.append("noisy_audio")
@@ -845,10 +895,7 @@ def _build_warnings(
         warnings.append("script_mismatch")
 
     # Repeated-token transcript is often ASR hallucination.
-    tokens = [
-        t for t in re.split(r"\s+|,|\.|;|:|\u0964", full_text.lower())
-        if t
-    ]
+    tokens = [t for t in re.split(r"\s+|,|\.|;|:|\u0964", full_text.lower()) if t]
     if len(tokens) >= 6:
         top_ratio = max(Counter(tokens).values()) / len(tokens)
         if top_ratio >= 0.45:

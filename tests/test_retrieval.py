@@ -27,7 +27,9 @@ class TestEvidenceChunk:
             chunk_type="content",
             keep_weight=1.0,
         )
-        ev = EvidenceChunk(chunk=chunk, dense_score=0.8, sparse_score=0.5, fused_score=0.7)
+        ev = EvidenceChunk(
+            chunk=chunk, dense_score=0.8, sparse_score=0.5, fused_score=0.7
+        )
         assert ev.text == chunk.text
         assert ev.citation == "irri_rice.pdf, p.42"
         assert ev.fused_score == 0.7

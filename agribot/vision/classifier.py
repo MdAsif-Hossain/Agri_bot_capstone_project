@@ -59,7 +59,9 @@ class CropClassifier:
             self._available = True
             logger.info(
                 "CropClassifier loaded: %s (%d labels, top_k=%d)",
-                self.model_path.name, len(self._labels), self.top_k,
+                self.model_path.name,
+                len(self._labels),
+                self.top_k,
             )
         except Exception as e:
             logger.warning("Failed to load classifier: %s; falling back", e)
@@ -80,6 +82,7 @@ class CropClassifier:
         if suffix == ".onnx":
             try:
                 import onnxruntime as ort
+
                 self._model = ort.InferenceSession(
                     str(self.model_path),
                     providers=["CPUExecutionProvider"],
@@ -88,7 +91,8 @@ class CropClassifier:
                 labels_path = self.model_path.with_suffix(".txt")
                 if labels_path.exists():
                     self._labels = [
-                        label.strip() for label in labels_path.read_text().strip().split("\n")
+                        label.strip()
+                        for label in labels_path.read_text().strip().split("\n")
                         if label.strip()
                     ]
                 else:
@@ -158,15 +162,17 @@ class CropClassifier:
         probs = exp_logits / exp_logits.sum()
 
         # Top-K
-        top_indices = probs.argsort()[::-1][:self.top_k]
+        top_indices = probs.argsort()[::-1][: self.top_k]
         conditions = []
         for idx in top_indices:
             conf = float(probs[idx])
             if conf >= self.confidence_threshold and idx < len(self._labels):
-                conditions.append(PossibleCondition(
-                    label=self._labels[idx],
-                    confidence=conf,
-                ))
+                conditions.append(
+                    PossibleCondition(
+                        label=self._labels[idx],
+                        confidence=conf,
+                    )
+                )
 
         return conditions
 

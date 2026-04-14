@@ -19,12 +19,24 @@ class TestAgentState:
     def test_state_has_required_fields(self):
         """AgentState should have all required fields."""
         required_fields = [
-            "query_original", "query_language", "query_normalized",
-            "query_expanded", "kg_entities", "evidences",
-            "evidence_texts", "evidence_grade", "answer",
-            "answer_bn", "citations", "is_verified",
-            "verification_reason", "retry_count", "should_refuse",
-            "error", "input_mode", "input_audio_path",
+            "query_original",
+            "query_language",
+            "query_normalized",
+            "query_expanded",
+            "kg_entities",
+            "evidences",
+            "evidence_texts",
+            "evidence_grade",
+            "answer",
+            "answer_bn",
+            "citations",
+            "is_verified",
+            "verification_reason",
+            "retry_count",
+            "should_refuse",
+            "error",
+            "input_mode",
+            "input_audio_path",
         ]
         annotations = AgentState.__annotations__
         for field in required_fields:
@@ -61,24 +73,28 @@ class TestGradeRouter:
 
     def test_sufficient_routes_to_generate(self):
         from agribot.agent.graph import _make_grade_router
+
         router = _make_grade_router()
         state = {"evidence_grade": "SUFFICIENT", "retry_count": 0}
         assert router(state) == "generate"
 
     def test_insufficient_routes_to_rewrite(self):
         from agribot.agent.graph import _make_grade_router
+
         router = _make_grade_router()
         state = {"evidence_grade": "INSUFFICIENT", "retry_count": 0}
         assert router(state) == "rewrite"
 
     def test_max_retries_routes_to_generate(self):
         from agribot.agent.graph import _make_grade_router
+
         router = _make_grade_router(max_retries=2)
         state = {"evidence_grade": "INSUFFICIENT", "retry_count": 2}
         assert router(state) == "generate"
 
     def test_max_retries_boundary(self):
         from agribot.agent.graph import _make_grade_router
+
         router = _make_grade_router(max_retries=2)
         state = {"evidence_grade": "INSUFFICIENT", "retry_count": 1}
         assert router(state) == "rewrite"  # Still below max

@@ -28,8 +28,13 @@ from contextlib import asynccontextmanager
 from typing import Optional
 
 from fastapi import (
-    FastAPI, UploadFile, File, Form,
-    HTTPException, Request, APIRouter,
+    FastAPI,
+    UploadFile,
+    File,
+    Form,
+    HTTPException,
+    Request,
+    APIRouter,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
@@ -94,6 +99,7 @@ def _init_services() -> dict:
     # 3. Embedding model
     logger.info("Loading embedding model...")
     from sentence_transformers import SentenceTransformer
+
     svc["embedding_model"] = SentenceTransformer(settings.EMBEDDING_MODEL)
 
     # 4. Retriever
@@ -139,13 +145,16 @@ def _init_services() -> dict:
         vosk_bn_model_path=settings.VOSK_BN_MODEL_PATH,
     )
     svc["vosk_model_ready"] = Path(settings.VOSK_BN_MODEL_PATH).exists()
-    svc["tts"] = get_tts(rate=settings.TTS_RATE, bengali_voice_name=settings.TTS_BENGALI_VOICE)
+    svc["tts"] = get_tts(
+        rate=settings.TTS_RATE, bengali_voice_name=settings.TTS_BENGALI_VOICE
+    )
     svc["ffmpeg_available"] = check_ffmpeg()
 
     # 9. Optional image classifier
     if settings.IMAGE_CLASSIFIER_ENABLED and settings.IMAGE_CLASSIFIER_MODEL_PATH:
         try:
             from agribot.vision.classifier import get_classifier
+
             svc["classifier"] = get_classifier(
                 model_path=settings.IMAGE_CLASSIFIER_MODEL_PATH,
                 top_k=settings.IMAGE_CLASSIFIER_TOP_K,
@@ -178,6 +187,7 @@ def _init_services() -> dict:
     manifest_path = settings.INDEX_DIR / "manifest.json"
     if manifest_path.exists():
         import json
+
         svc["manifest"] = json.loads(manifest_path.read_text(encoding="utf-8"))
     else:
         svc["manifest"] = None
@@ -229,6 +239,7 @@ app.add_middleware(
 # OPTIONAL API KEY MIDDLEWARE
 # =============================================================================
 
+
 @app.middleware("http")
 async def api_key_middleware(request: Request, call_next):
     """Enforce API key if AGRIBOT_API_KEY is configured."""
@@ -237,8 +248,11 @@ async def api_key_middleware(request: Request, call_next):
 
     # Skip auth for health, docs, static files
     path = request.url.path
-    if path in ("/health", "/v1/health", "/docs", "/redoc", "/openapi.json") \
-       or path.startswith("/assets") or not path.startswith("/v1/"):
+    if (
+        path in ("/health", "/v1/health", "/docs", "/redoc", "/openapi.json")
+        or path.startswith("/assets")
+        or not path.startswith("/v1/")
+    ):
         return await call_next(request)
 
     # Protected endpoints require API key
@@ -257,51 +271,87 @@ async def api_key_middleware(request: Request, call_next):
 # NESTED RESPONSE MODELS
 # =============================================================================
 
+
 class DiagnosticsBlock(BaseModel):
     """Per-request diagnostics and traceability."""
+
     trace_id: str = Field(default="", description="Request trace ID")
-    timings_ms: dict[str, float] = Field(default_factory=dict, description="Per-stage timings")
-    mode_flags: list[str] = Field(default_factory=list, description="Processing mode indicators")
+    timings_ms: dict[str, float] = Field(
+        default_factory=dict, description="Per-stage timings"
+    )
+    mode_flags: list[str] = Field(
+        default_factory=list, description="Processing mode indicators"
+    )
     warnings: list[str] = Field(default_factory=list, description="Processing warnings")
 
 
 class VoiceBlock(BaseModel):
     """ASR diagnostics for voice-input requests."""
+
     transcript: str = Field(default="", description="Raw transcript from STT")
     asr_language: str = Field(default="", description="Detected language code")
     asr_confidence: float = Field(default=0.0, description="ASR confidence 0-1")
-    asr_warnings: list[str] = Field(default_factory=list, description="ASR-specific warnings")
-    needs_confirmation: bool = Field(default=False, description="True if transcript needs user confirmation")
-    transcript_suspected: str = Field(default="", description="Suspected transcript for user review")
-    suggested_actions: list[str] = Field(default_factory=list, description="Actions user can take")
+    asr_warnings: list[str] = Field(
+        default_factory=list, description="ASR-specific warnings"
+    )
+    needs_confirmation: bool = Field(
+        default=False, description="True if transcript needs user confirmation"
+    )
+    transcript_suspected: str = Field(
+        default="", description="Suspected transcript for user review"
+    )
+    suggested_actions: list[str] = Field(
+        default_factory=list, description="Actions user can take"
+    )
 
 
 class ImageBlock(BaseModel):
     """Image analysis diagnostics."""
-    pipeline_used: str = Field(default="ocr_baseline", description="Analysis pipeline: ocr_baseline|classifier_assisted|ocr_fallback")
-    analysis_summary: dict = Field(default_factory=dict, description="Structured analysis result")
-    limitations: list[str] = Field(default_factory=list, description="Analysis limitations")
-    possible_conditions: list[dict] = Field(default_factory=list, description="Top-K conditions [{label, confidence}]")
+
+    pipeline_used: str = Field(
+        default="ocr_baseline",
+        description="Analysis pipeline: ocr_baseline|classifier_assisted|ocr_fallback",
+    )
+    analysis_summary: dict = Field(
+        default_factory=dict, description="Structured analysis result"
+    )
+    limitations: list[str] = Field(
+        default_factory=list, description="Analysis limitations"
+    )
+    possible_conditions: list[dict] = Field(
+        default_factory=list, description="Top-K conditions [{label, confidence}]"
+    )
 
 
 class ChatResponseV1(BaseModel):
     """Chat response with bilingual answer, evidence, and nested diagnostics."""
+
     answer: str = Field(default="", description="English answer")
     answer_bn: str = Field(default="", description="Bengali translation")
     citations: list[str] = Field(default_factory=list, description="Source citations")
-    kg_entities: list[dict] = Field(default_factory=list, description="Linked KG entities")
+    kg_entities: list[dict] = Field(
+        default_factory=list, description="Linked KG entities"
+    )
     evidence_grade: str = Field(default="N/A", description="Evidence quality grade")
-    is_verified: bool = Field(default=False, description="Whether answer passed verification")
+    is_verified: bool = Field(
+        default=False, description="Whether answer passed verification"
+    )
     verification_reason: str = Field(default="", description="Verification details")
     retry_count: int = Field(default=0, description="Number of retrieval retries")
     input_mode: str = Field(default="text", description="Input mode used")
     grounding_action: str = Field(default="pass", description="Grounding policy action")
-    follow_up_suggestions: list[str] = Field(default_factory=list, description="Follow-up queries")
+    follow_up_suggestions: list[str] = Field(
+        default_factory=list, description="Follow-up queries"
+    )
     parsed_query: str = Field(default="", description="The query sent to RAG")
     # --- Nested blocks ---
     diagnostics: DiagnosticsBlock = Field(default_factory=DiagnosticsBlock)
-    voice: Optional[VoiceBlock] = Field(default=None, description="Voice ASR diagnostics (only for voice input)")
-    image: Optional[ImageBlock] = Field(default=None, description="Image analysis diagnostics (only for image input)")
+    voice: Optional[VoiceBlock] = Field(
+        default=None, description="Voice ASR diagnostics (only for voice input)"
+    )
+    image: Optional[ImageBlock] = Field(
+        default=None, description="Image analysis diagnostics (only for image input)"
+    )
 
 
 # Backward-compatible alias
@@ -310,13 +360,24 @@ ChatResponse = ChatResponseV1
 
 class ChatRequest(BaseModel):
     """Text-based chat request, also used for voice-confirmed re-submission."""
-    query: str = Field(..., min_length=1, max_length=2000, description="User query in English or Bengali")
-    input_mode: str = Field(default="text", description="Input mode: text|voice_confirmed")
-    trace_id: str = Field(default="", description="Original trace_id for voice-confirmed linkage")
+
+    query: str = Field(
+        ...,
+        min_length=1,
+        max_length=2000,
+        description="User query in English or Bengali",
+    )
+    input_mode: str = Field(
+        default="text", description="Input mode: text|voice_confirmed"
+    )
+    trace_id: str = Field(
+        default="", description="Original trace_id for voice-confirmed linkage"
+    )
 
 
 class HealthResponse(BaseModel):
     """System health status."""
+
     status: str
     chunk_count: int
     kg_entities: int
@@ -329,12 +390,16 @@ class HealthResponse(BaseModel):
 
 class KGSearchResponse(BaseModel):
     """Knowledge graph search results."""
+
     entities: list[dict]
 
 
 class TTSRequest(BaseModel):
     """Text-to-speech request."""
-    text: str = Field(..., min_length=1, max_length=5000, description="Text to synthesize")
+
+    text: str = Field(
+        ..., min_length=1, max_length=5000, description="Text to synthesize"
+    )
     language: str = Field(default="en", description="Language: 'en' or 'bn'")
 
 
@@ -342,7 +407,10 @@ class TTSRequest(BaseModel):
 # HELPER
 # =============================================================================
 
-def _build_initial_state(query: str, input_mode: str = "text", trace_id: str = "") -> dict:
+
+def _build_initial_state(
+    query: str, input_mode: str = "text", trace_id: str = ""
+) -> dict:
     """Build the initial agent state for a query."""
     return {
         "query_original": query,
@@ -479,11 +547,13 @@ def _validate_upload_size(content: bytes, max_mb: int, file_type: str):
     if len(content) > max_bytes:
         raise HTTPException(
             status_code=413,
-            detail=f"{file_type} file too large ({len(content)/1024/1024:.1f}MB). Max: {max_mb}MB",
+            detail=f"{file_type} file too large ({len(content) / 1024 / 1024:.1f}MB). Max: {max_mb}MB",
         )
 
 
-def _validate_content_type(content_type: str | None, allowed: list[str], file_type: str):
+def _validate_content_type(
+    content_type: str | None, allowed: list[str], file_type: str
+):
     """Validate upload content type."""
     if content_type and not any(content_type.startswith(a) for a in allowed):
         raise HTTPException(
@@ -520,7 +590,9 @@ async def v1_health():
             "vosk_fallback": settings.VOSK_FALLBACK_ENABLED,
             "vosk_model_ready": _services.get("vosk_model_ready", False),
             "tts": _services.get("tts") is not None,
-            "image_classifier": classifier is not None and classifier.is_available if classifier else False,
+            "image_classifier": classifier is not None and classifier.is_available
+            if classifier
+            else False,
             "vlm": False,  # Honest: VLM not implemented
         },
         grounding_mode=settings.GROUNDING_MODE,
@@ -539,7 +611,9 @@ async def v1_chat(request: ChatRequest):
 
 
 @v1.post("/chat/voice", response_model=ChatResponseV1)
-async def v1_chat_voice(audio: UploadFile = File(..., description="Audio file (WAV/MP3)")):
+async def v1_chat_voice(
+    audio: UploadFile = File(..., description="Audio file (WAV/MP3)"),
+):
     """
     Process a voice-based query via Whisper transcription.
 
@@ -569,11 +643,14 @@ async def v1_chat_voice(audio: UploadFile = File(..., description="Audio file (W
         preprocess_start = time.perf_counter()
         try:
             from agribot.voice.audio_preprocess import preprocess_audio
+
             canonical_path, preprocess_info = preprocess_audio(
                 tmp_path,
                 max_duration_s=settings.VOICE_MAX_DURATION_SECONDS,
             )
-            extra_timings["audio_preprocess"] = round((time.perf_counter() - preprocess_start) * 1000, 1)
+            extra_timings["audio_preprocess"] = round(
+                (time.perf_counter() - preprocess_start) * 1000, 1
+            )
             preprocess_warnings.extend(preprocess_info.get("warnings", []))
         except ValueError as e:
             raise HTTPException(status_code=400, detail=str(e))
@@ -662,7 +739,8 @@ async def v1_chat_voice(audio: UploadFile = File(..., description="Audio file (W
         if needs_confirmation:
             logger.info(
                 "Low confidence (%.2f < %.2f), requesting confirmation",
-                asr_confidence, settings.ASR_CONFIDENCE_THRESHOLD,
+                asr_confidence,
+                settings.ASR_CONFIDENCE_THRESHOLD,
             )
             voice_block.needs_confirmation = True
             voice_block.transcript_suspected = transcript
@@ -711,7 +789,7 @@ async def v1_chat_voice(audio: UploadFile = File(..., description="Audio file (W
         raise HTTPException(status_code=500, detail=f"Voice processing error: {e}")
     finally:
         Path(tmp_path).unlink(missing_ok=True)
-        if 'canonical_path' in dir() and canonical_path != Path(tmp_path):
+        if "canonical_path" in dir() and canonical_path != Path(tmp_path):
             Path(canonical_path).unlink(missing_ok=True)
         structlog.contextvars.unbind_contextvars("trace_id")
 
@@ -740,7 +818,9 @@ async def v1_chat_image(
             async with asyncio.timeout(15):
                 await _image_semaphore.acquire()
         except asyncio.TimeoutError:
-            raise HTTPException(status_code=429, detail="Image analysis busy, try again.")
+            raise HTTPException(
+                status_code=429, detail="Image analysis busy, try again."
+            )
 
         try:
             from agribot.vision.image_processor import get_image_processor
@@ -756,10 +836,14 @@ async def v1_chat_image(
             loop = asyncio.get_event_loop()
             analysis_result = await loop.run_in_executor(
                 None,
-                lambda: processor.describe_image_structured(tmp_path, classifier=classifier),
+                lambda: processor.describe_image_structured(
+                    tmp_path, classifier=classifier
+                ),
             )
 
-            extra_timings["image_analysis"] = round((time.perf_counter() - analysis_start) * 1000, 1)
+            extra_timings["image_analysis"] = round(
+                (time.perf_counter() - analysis_start) * 1000, 1
+            )
         finally:
             _image_semaphore.release()
 
@@ -771,7 +855,9 @@ async def v1_chat_image(
             pipeline_used=analysis_result.pipeline_used,
             analysis_summary=analysis_result.to_dict(),
             limitations=analysis_result.limitations,
-            possible_conditions=[c.to_dict() for c in analysis_result.possible_conditions],
+            possible_conditions=[
+                c.to_dict() for c in analysis_result.possible_conditions
+            ],
         )
 
         logger.info(
@@ -884,6 +970,7 @@ app.include_router(v1)
 # LEGACY ENDPOINTS (wrappers → v1, deprecated)
 # =============================================================================
 
+
 @app.get("/health", response_model=HealthResponse, tags=["legacy"], deprecated=True)
 async def health_check():
     """Legacy health endpoint — use /v1/health instead."""
@@ -896,13 +983,17 @@ async def chat(request: ChatRequest):
     return await v1_chat(request)
 
 
-@app.post("/chat/voice", response_model=ChatResponseV1, tags=["legacy"], deprecated=True)
+@app.post(
+    "/chat/voice", response_model=ChatResponseV1, tags=["legacy"], deprecated=True
+)
 async def chat_voice(audio: UploadFile = File(...)):
     """Legacy voice endpoint — use /v1/chat/voice instead."""
     return await v1_chat_voice(audio)
 
 
-@app.post("/chat/image", response_model=ChatResponseV1, tags=["legacy"], deprecated=True)
+@app.post(
+    "/chat/image", response_model=ChatResponseV1, tags=["legacy"], deprecated=True
+)
 async def chat_image(
     image: UploadFile = File(...),
     query: str = Form(default=""),
@@ -923,7 +1014,9 @@ async def kg_stats():
     return await v1_kg_stats()
 
 
-@app.get("/kg/search", response_model=KGSearchResponse, tags=["legacy"], deprecated=True)
+@app.get(
+    "/kg/search", response_model=KGSearchResponse, tags=["legacy"], deprecated=True
+)
 async def kg_search(q: str):
     """Legacy KG search — use /v1/kg/search instead."""
     return await v1_kg_search(q)
@@ -936,7 +1029,9 @@ async def kg_search(q: str):
 _FRONTEND_DIR = PROJECT_ROOT / "frontend" / "dist"
 
 if _FRONTEND_DIR.exists():
-    app.mount("/assets", StaticFiles(directory=str(_FRONTEND_DIR / "assets")), name="assets")
+    app.mount(
+        "/assets", StaticFiles(directory=str(_FRONTEND_DIR / "assets")), name="assets"
+    )
 
     @app.get("/{full_path:path}", tags=["static"])
     async def serve_spa(full_path: str):
@@ -953,6 +1048,7 @@ if _FRONTEND_DIR.exists():
 
 if __name__ == "__main__":
     import uvicorn
+
     uvicorn.run(
         "api:app",
         host="0.0.0.0",

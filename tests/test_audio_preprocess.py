@@ -16,6 +16,7 @@ import pytest
 # Helpers: Create minimal WAV files for testing
 # ---------------------------------------------------------------------------
 
+
 def _make_wav_bytes(
     n_channels: int = 1,
     sample_rate: int = 16000,
@@ -44,6 +45,7 @@ def _write_wav_file(path: Path, **kwargs) -> Path:
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
+
 
 class TestPreprocessStdlib:
     """Test the stdlib (wave+audioop) fallback path."""
@@ -176,6 +178,7 @@ class TestCheckFfmpeg:
 
         # Reset cache
         import agribot.voice.audio_preprocess as ap
+
         ap._ffmpeg_cache = None
 
         assert _ffmpeg_available() is True
@@ -187,6 +190,7 @@ class TestCheckFfmpeg:
         from agribot.voice.audio_preprocess import _ffmpeg_available
 
         import agribot.voice.audio_preprocess as ap
+
         ap._ffmpeg_cache = None
 
         assert _ffmpeg_available() is False

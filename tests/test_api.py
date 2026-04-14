@@ -17,16 +17,19 @@ class TestAPIModels:
 
     def test_chat_request_validation(self):
         from api import ChatRequest
+
         req = ChatRequest(query="What is rice blast?")
         assert req.query == "What is rice blast?"
 
     def test_chat_request_rejects_empty(self):
         from api import ChatRequest
+
         with pytest.raises(Exception):
             ChatRequest(query="")
 
     def test_chat_response_defaults(self):
         from api import ChatResponse
+
         resp = ChatResponse(answer="Rice blast is a fungal disease.")
         assert resp.answer == "Rice blast is a fungal disease."
         assert resp.answer_bn == ""
@@ -35,6 +38,7 @@ class TestAPIModels:
 
     def test_health_response(self):
         from api import HealthResponse
+
         resp = HealthResponse(
             status="ok",
             chunk_count=100,
@@ -47,6 +51,7 @@ class TestAPIModels:
 
     def test_initial_state_builder(self):
         from api import _build_initial_state
+
         state = _build_initial_state("test query", "voice")
         assert state["query_original"] == "test query"
         assert state["input_mode"] == "voice"

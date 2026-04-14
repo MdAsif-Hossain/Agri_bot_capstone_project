@@ -8,7 +8,6 @@ All tests use mocks — no actual models or images required.
 from unittest.mock import MagicMock, patch
 
 
-
 class TestImageAnalysisResult:
     """Test the ImageAnalysisResult data class."""
 
@@ -79,8 +78,14 @@ class TestImageAnalysisResult:
 class TestImageProcessorStructured:
     """Test describe_image_structured (mock OCR + symptoms)."""
 
-    @patch("agribot.vision.image_processor.ImageProcessor._ocr_extract", return_value="Leaf Disease")
-    @patch("agribot.vision.image_processor.ImageProcessor._analyze_symptoms", return_value="yellowing detected; brown spots")
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._ocr_extract",
+        return_value="Leaf Disease",
+    )
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._analyze_symptoms",
+        return_value="yellowing detected; brown spots",
+    )
     def test_baseline_no_classifier(self, mock_symptoms, mock_ocr, tmp_path):
         from agribot.vision.image_processor import ImageProcessor
 
@@ -96,8 +101,13 @@ class TestImageProcessorStructured:
         assert len(result.symptom_hints) == 2
         assert result.possible_conditions == []
 
-    @patch("agribot.vision.image_processor.ImageProcessor._ocr_extract", return_value="")
-    @patch("agribot.vision.image_processor.ImageProcessor._analyze_symptoms", return_value="")
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._ocr_extract", return_value=""
+    )
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._analyze_symptoms",
+        return_value="",
+    )
     def test_no_features_extracted(self, mock_symptoms, mock_ocr, tmp_path):
         from agribot.vision.image_processor import ImageProcessor
 
@@ -109,8 +119,14 @@ class TestImageProcessorStructured:
 
         assert "no_features_extracted" in result.quality_flags
 
-    @patch("agribot.vision.image_processor.ImageProcessor._ocr_extract", return_value="text")
-    @patch("agribot.vision.image_processor.ImageProcessor._analyze_symptoms", return_value="spots")
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._ocr_extract",
+        return_value="text",
+    )
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._analyze_symptoms",
+        return_value="spots",
+    )
     def test_classifier_assisted_path(self, mock_symptoms, mock_ocr, tmp_path):
         from agribot.vision.image_processor import ImageProcessor
         from agribot.vision.schema import PossibleCondition
@@ -133,8 +149,14 @@ class TestImageProcessorStructured:
         assert len(result.possible_conditions) == 2
         assert result.possible_conditions[0].label == "rice_blast"
 
-    @patch("agribot.vision.image_processor.ImageProcessor._ocr_extract", return_value="text")
-    @patch("agribot.vision.image_processor.ImageProcessor._analyze_symptoms", return_value="spots")
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._ocr_extract",
+        return_value="text",
+    )
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._analyze_symptoms",
+        return_value="spots",
+    )
     def test_classifier_error_fallback(self, mock_symptoms, mock_ocr, tmp_path):
         from agribot.vision.image_processor import ImageProcessor
 
@@ -151,8 +173,14 @@ class TestImageProcessorStructured:
         assert result.pipeline_used == "ocr_fallback"
         assert any("error" in limitation.lower() for limitation in result.limitations)
 
-    @patch("agribot.vision.image_processor.ImageProcessor._ocr_extract", return_value="text")
-    @patch("agribot.vision.image_processor.ImageProcessor._analyze_symptoms", return_value="spots")
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._ocr_extract",
+        return_value="text",
+    )
+    @patch(
+        "agribot.vision.image_processor.ImageProcessor._analyze_symptoms",
+        return_value="spots",
+    )
     def test_classifier_unavailable_falls_back(self, mock_symptoms, mock_ocr, tmp_path):
         from agribot.vision.image_processor import ImageProcessor
 

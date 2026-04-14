@@ -31,7 +31,7 @@ RISK_PATTERNS: list[re.Pattern] = [
     re.compile(p, re.IGNORECASE)
     for p in [
         # English patterns
-        r"\b\d+\s*(?:ml|mg|gm?|kg|l|cc|ppm)\b",      # numeric dose units
+        r"\b\d+\s*(?:ml|mg|gm?|kg|l|cc|ppm)\b",  # numeric dose units
         r"\bdos(?:age|e)\b",
         r"\bspray\s+(?:rate|schedule|amount)\b",
         r"\bapply\s+\d+",
@@ -43,10 +43,10 @@ RISK_PATTERNS: list[re.Pattern] = [
         r"\binsecticide\s+(?:amount|quantity|rate)\b",
         r"\bper\s+(?:acre|hectare|bigha|liter|litre)\b",
         # Bengali patterns (মাত্রা = dosage, কীটনাশক = pesticide, etc.)
-        r"মাত্রা",          # dosage
-        r"কীটনাশক",        # pesticide
-        r"ছত্রাকনাশক",     # fungicide
-        r"আগাছানাশক",      # herbicide
+        r"মাত্রা",  # dosage
+        r"কীটনাশক",  # pesticide
+        r"ছত্রাকনাশক",  # fungicide
+        r"আগাছানাশক",  # herbicide
         r"কতটুকু.*দিতে হবে",  # "how much to apply"
         r"\d+\s*(?:মিলি|গ্রাম|কেজি|লিটার)",  # Bengali numeric units
         r"প্রতি\s*(?:একর|হেক্টর|বিঘা|লিটার)",  # per acre/hectare/bigha
@@ -97,7 +97,6 @@ ESCALATION_BN = (
 )
 
 
-
 def is_risky_query(query: str) -> bool:
     """Check if a query involves high-risk dosage/chemical advice."""
     return any(pat.search(query) for pat in RISK_PATTERNS)
@@ -112,12 +111,12 @@ def _extract_cited_facts(answer: str, evidence_texts: str) -> str:
         return ""
 
     evidence_lower = evidence_texts.lower()
-    sentences = re.split(r'(?<=[.!?])\s+', answer)
+    sentences = re.split(r"(?<=[.!?])\s+", answer)
     supported = []
 
     for sentence in sentences:
         # A sentence is "supported" if it shares significant keyword overlap
-        words = set(re.findall(r'\b\w{4,}\b', sentence.lower()))
+        words = set(re.findall(r"\b\w{4,}\b", sentence.lower()))
         if not words:
             continue
         overlap = sum(1 for w in words if w in evidence_lower)
@@ -196,8 +195,7 @@ def make_enforce_policy_node(
                     action = "cited_facts_only"
                     cited = _extract_cited_facts(answer, evidence_texts)
                     answer = (
-                        f"Based on verified sources only:\n\n{cited}"
-                        f"{DISCLAIMER_EN}"
+                        f"Based on verified sources only:\n\n{cited}{DISCLAIMER_EN}"
                     )
                     follow_ups = [
                         "Would you like more details on a specific point?",
@@ -230,7 +228,8 @@ def make_enforce_policy_node(
 
         logger.info(
             "Grounding policy applied: action=%s, risky=%s",
-            action, risky,
+            action,
+            risky,
             extra={"trace_id": state.get("trace_id", "")},
         )
         return result

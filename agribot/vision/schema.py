@@ -14,6 +14,7 @@ from typing import Literal
 @dataclass
 class PossibleCondition:
     """A predicted disease/condition with confidence score."""
+
     label: str
     confidence: float  # 0.0 - 1.0
 
@@ -36,14 +37,18 @@ class ImageAnalysisResult:
         possible_conditions: Predicted conditions (from classifier, if enabled).
     """
 
-    pipeline_used: Literal["ocr_baseline", "classifier_assisted", "ocr_fallback"] = "ocr_baseline"
+    pipeline_used: Literal["ocr_baseline", "classifier_assisted", "ocr_fallback"] = (
+        "ocr_baseline"
+    )
     ocr_text: str = ""
     symptom_hints: list[str] = field(default_factory=list)
     quality_flags: list[str] = field(default_factory=list)
-    limitations: list[str] = field(default_factory=lambda: [
-        "Heuristic color analysis only; not a clinical diagnosis",
-        "Accuracy depends on image quality and lighting",
-    ])
+    limitations: list[str] = field(
+        default_factory=lambda: [
+            "Heuristic color analysis only; not a clinical diagnosis",
+            "Accuracy depends on image quality and lighting",
+        ]
+    )
     keywords: list[str] = field(default_factory=list)
     possible_conditions: list[PossibleCondition] = field(default_factory=list)
 

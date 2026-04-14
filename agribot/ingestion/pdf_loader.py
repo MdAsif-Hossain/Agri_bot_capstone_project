@@ -18,6 +18,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class PageData:
     """A single extracted PDF page with metadata."""
+
     source_file: str
     page_num: int
     text: str
@@ -53,16 +54,20 @@ def _extract_with_marker(pdf_path: Path) -> list[PageData]:
         raw_pages = _split_marker_output_by_pages(full_text, pdf_path)
 
         for i, page_text in enumerate(raw_pages):
-            pages.append(PageData(
-                source_file=source_name,
-                page_num=i + 1,
-                text=page_text,
-                extraction_method="marker",
-            ))
+            pages.append(
+                PageData(
+                    source_file=source_name,
+                    page_num=i + 1,
+                    text=page_text,
+                    extraction_method="marker",
+                )
+            )
 
         logger.info(
             "Marker extracted %d pages from %s (%d chars total)",
-            len(pages), source_name, len(full_text),
+            len(pages),
+            source_name,
+            len(full_text),
         )
 
     except ImportError:
@@ -73,7 +78,9 @@ def _extract_with_marker(pdf_path: Path) -> list[PageData]:
         )
         return _extract_with_fallback(pdf_path)
     except Exception as e:
-        logger.error("Marker extraction failed for %s: %s. Using fallback.", source_name, e)
+        logger.error(
+            "Marker extraction failed for %s: %s. Using fallback.", source_name, e
+        )
         return _extract_with_fallback(pdf_path)
 
     return pages
@@ -112,6 +119,7 @@ def _get_pdf_page_count(pdf_path: Path) -> int:
     """Get the number of pages in a PDF (lightweight check)."""
     try:
         from pypdf import PdfReader
+
         reader = PdfReader(str(pdf_path))
         return len(reader.pages)
     except Exception:
@@ -142,12 +150,14 @@ def _extract_with_ocr(pdf_path: Path) -> list[PageData]:
             # OCR with Bengali + English
             text = pytesseract.image_to_string(img, lang="eng+ben")
 
-            pages.append(PageData(
-                source_file=source_name,
-                page_num=i + 1,
-                text=text.strip(),
-                extraction_method="ocr",
-            ))
+            pages.append(
+                PageData(
+                    source_file=source_name,
+                    page_num=i + 1,
+                    text=text.strip(),
+                    extraction_method="ocr",
+                )
+            )
 
         doc.close()
         logger.info("OCR extracted %d pages from %s", len(pages), source_name)
@@ -172,21 +182,26 @@ def _extract_with_fallback(pdf_path: Path) -> list[PageData]:
 
     try:
         from pypdf import PdfReader
+
         reader = PdfReader(str(pdf_path))
 
         for i, page in enumerate(reader.pages):
             try:
                 text = page.extract_text() or ""
             except Exception as e:
-                logger.warning("Failed to extract page %d from %s: %s", i + 1, source_name, e)
+                logger.warning(
+                    "Failed to extract page %d from %s: %s", i + 1, source_name, e
+                )
                 text = ""
 
-            pages.append(PageData(
-                source_file=source_name,
-                page_num=i + 1,
-                text=text,
-                extraction_method="fallback",
-            ))
+            pages.append(
+                PageData(
+                    source_file=source_name,
+                    page_num=i + 1,
+                    text=text,
+                    extraction_method="fallback",
+                )
+            )
 
         logger.info("Fallback extracted %d pages from %s", len(pages), source_name)
 
@@ -224,7 +239,8 @@ def _detect_repeated_lines(
             line_page_count[line] += 1
 
     repeated = {
-        line for line, count in line_page_count.items()
+        line
+        for line, count in line_page_count.items()
         if count / total_pages >= freq_threshold
     }
 
@@ -275,9 +291,7 @@ def _classify_page_type(text: str, toc_keywords: list[str]) -> tuple[str, float]
         r"^\s*\[\d+\]",  # [1] style references
         r"^\s*\d+\.\s+[A-Z]",  # 1. Author style
     ]
-    ref_matches = sum(
-        len(re.findall(p, text, re.MULTILINE)) for p in ref_patterns
-    )
+    ref_matches = sum(len(re.findall(p, text, re.MULTILINE)) for p in ref_patterns)
     if ref_matches > 5:
         return "reference", 0.3
 
@@ -290,7 +304,8 @@ def _ocr_empty_pages(pages: list[PageData], pdf_path: Path) -> list[PageData]:
     attempt OCR to recover scanned content.
     """
     empty_indices = [
-        i for i, p in enumerate(pages)
+        i
+        for i, p in enumerate(pages)
         if len(p.text.strip()) < 30 and p.extraction_method == "marker"
     ]
 
@@ -299,7 +314,8 @@ def _ocr_empty_pages(pages: list[PageData], pdf_path: Path) -> list[PageData]:
 
     logger.info(
         "Attempting OCR on %d empty/low-text pages from %s",
-        len(empty_indices), pdf_path.name,
+        len(empty_indices),
+        pdf_path.name,
     )
 
     try:
@@ -324,7 +340,8 @@ def _ocr_empty_pages(pages: list[PageData], pdf_path: Path) -> list[PageData]:
                 pages[idx].extraction_method = "ocr"
                 logger.info(
                     "OCR recovered %d chars for page %d",
-                    len(ocr_text), pages[idx].page_num,
+                    len(ocr_text),
+                    pages[idx].page_num,
                 )
 
         doc.close()
@@ -362,8 +379,12 @@ def load_pdfs(
     """
     if toc_keywords is None:
         toc_keywords = [
-            "table of contents", "contents", "index",
-            "bibliography", "references", "appendix",
+            "table of contents",
+            "contents",
+            "index",
+            "bibliography",
+            "references",
+            "appendix",
         ]
 
     pdf_files = sorted(pdf_dir.glob("*.pdf"))
@@ -401,7 +422,10 @@ def load_pdfs(
     ocr_count = sum(1 for p in all_pages if p.extraction_method == "ocr")
     logger.info(
         "Loaded %d total pages (%d content, %d marker, %d ocr, %d filtered/downweighted)",
-        len(all_pages), content_count, marker_count, ocr_count,
+        len(all_pages),
+        content_count,
+        marker_count,
+        ocr_count,
         len(all_pages) - content_count,
     )
 

@@ -61,6 +61,7 @@ class BanglaTranslator:
         self._normalizer = None
         try:
             from bnunicodenormalizer import Normalizer
+
             self._normalizer = Normalizer()
             logger.info("BN Unicode normalizer loaded")
         except ImportError:
@@ -164,7 +165,9 @@ class BanglaTranslator:
                 translated_parts.append(output)
 
             except Exception as e:
-                logger.warning("Translation failed for sentence: %s — %s", sentence[:50], e)
+                logger.warning(
+                    "Translation failed for sentence: %s — %s", sentence[:50], e
+                )
                 translated_parts.append(sentence)  # Fallback to original
 
         translated = " ".join(translated_parts)
@@ -216,9 +219,7 @@ class BanglaTranslator:
                 early_stopping=True,
             )
 
-            output = self.bn_en_tokenizer.decode(
-                generated[0], skip_special_tokens=True
-            )
+            output = self.bn_en_tokenizer.decode(generated[0], skip_special_tokens=True)
             logger.info("BN→EN translation: '%s' → '%s'", text[:50], output[:50])
             return output.strip()
 

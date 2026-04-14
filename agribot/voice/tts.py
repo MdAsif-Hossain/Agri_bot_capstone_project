@@ -67,24 +67,26 @@ class TextToSpeech:
 
                 for voice in voices:
                     voice_name = voice.name.lower()
-                    voice_langs = [lang.lower() if isinstance(lang, str)
-                                   else str(lang).lower()
-                                   for lang in (voice.languages or [])]
+                    voice_langs = [
+                        lang.lower() if isinstance(lang, str) else str(lang).lower()
+                        for lang in (voice.languages or [])
+                    ]
 
                     # Detect Bengali voice
                     if (
                         "bengali" in voice_name
                         or "bangla" in voice_name
                         or "bn" in voice_name
-                        or any("bn" in lang or "bengali" in lang for lang in voice_langs)
+                        or any(
+                            "bn" in lang or "bengali" in lang for lang in voice_langs
+                        )
                     ):
                         self._voices["bn"] = voice.id
                         logger.info("Found Bengali voice: %s", voice.name)
 
                     # Detect English voice
-                    if (
-                        "english" in voice_name
-                        or any("en" in lang for lang in voice_langs)
+                    if "english" in voice_name or any(
+                        "en" in lang for lang in voice_langs
                     ):
                         if "en" not in self._voices:
                             self._voices["en"] = voice.id
@@ -111,8 +113,7 @@ class TextToSpeech:
 
             except ImportError:
                 raise ImportError(
-                    "pyttsx3 is not installed. "
-                    "Install it with: pip install pyttsx3"
+                    "pyttsx3 is not installed. Install it with: pip install pyttsx3"
                 )
 
     def list_voices(self) -> list[dict]:

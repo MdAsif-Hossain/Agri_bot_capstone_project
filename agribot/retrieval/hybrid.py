@@ -19,6 +19,7 @@ logger = logging.getLogger(__name__)
 @dataclass
 class EvidenceChunk:
     """A retrieved chunk with relevance scoring and provenance."""
+
     chunk: Chunk
     dense_score: float = 0.0
     sparse_score: float = 0.0
@@ -60,9 +61,9 @@ class HybridRetriever:
 
     def _dense_search(self, query: str) -> list[tuple[int, float]]:
         """Search FAISS index, return (chunk_idx, score) pairs."""
-        query_vec = self.model.encode(
-            [query], normalize_embeddings=True
-        ).astype(np.float32)
+        query_vec = self.model.encode([query], normalize_embeddings=True).astype(
+            np.float32
+        )
         scores, indices = self.index.faiss_index.search(query_vec, self.dense_top_k)
         results = []
         for idx, score in zip(indices[0], scores[0]):
@@ -76,11 +77,9 @@ class HybridRetriever:
         scores = self.index.bm25_index.get_scores(tokenized_query)
 
         # Get top-k indices
-        top_indices = np.argsort(scores)[::-1][:self.sparse_top_k]
+        top_indices = np.argsort(scores)[::-1][: self.sparse_top_k]
         results = [
-            (int(idx), float(scores[idx]))
-            for idx in top_indices
-            if scores[idx] > 0
+            (int(idx), float(scores[idx])) for idx in top_indices if scores[idx] > 0
         ]
         return results
 
@@ -99,14 +98,24 @@ class HybridRetriever:
         # Dense RRF scores
         for rank, (idx, score) in enumerate(dense_results):
             if idx not in chunk_scores:
-                chunk_scores[idx] = {"dense": 0.0, "sparse": 0.0, "dense_raw": 0.0, "sparse_raw": 0.0}
+                chunk_scores[idx] = {
+                    "dense": 0.0,
+                    "sparse": 0.0,
+                    "dense_raw": 0.0,
+                    "sparse_raw": 0.0,
+                }
             chunk_scores[idx]["dense"] = self.dense_weight / (self.rrf_k + rank + 1)
             chunk_scores[idx]["dense_raw"] = score
 
         # Sparse RRF scores
         for rank, (idx, score) in enumerate(sparse_results):
             if idx not in chunk_scores:
-                chunk_scores[idx] = {"dense": 0.0, "sparse": 0.0, "dense_raw": 0.0, "sparse_raw": 0.0}
+                chunk_scores[idx] = {
+                    "dense": 0.0,
+                    "sparse": 0.0,
+                    "dense_raw": 0.0,
+                    "sparse_raw": 0.0,
+                }
             chunk_scores[idx]["sparse"] = self.sparse_weight / (self.rrf_k + rank + 1)
             chunk_scores[idx]["sparse_raw"] = score
 
@@ -145,15 +154,20 @@ class HybridRetriever:
         # 4. Build evidence chunks
         evidences = []
         for idx, fused_score, dense_score, sparse_score in fused[:top_n]:
-            evidences.append(EvidenceChunk(
-                chunk=self.index.chunks[idx],
-                dense_score=dense_score,
-                sparse_score=sparse_score,
-                fused_score=fused_score,
-            ))
+            evidences.append(
+                EvidenceChunk(
+                    chunk=self.index.chunks[idx],
+                    dense_score=dense_score,
+                    sparse_score=sparse_score,
+                    fused_score=fused_score,
+                )
+            )
 
         logger.info(
             "Retrieved %d evidences for query (dense=%d, sparse=%d, fused=%d)",
-            len(evidences), len(dense_results), len(sparse_results), len(fused),
+            len(evidences),
+            len(dense_results),
+            len(sparse_results),
+            len(fused),
         )
         return evidences
