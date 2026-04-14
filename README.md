@@ -8,7 +8,7 @@ Farmers and extension officers in rural Bangladesh often lack timely access to r
 This project proposes **AgriBot**, a **production-grade, offline-first** decision-support system that accepts **multimodal inputs**—**voice, text, and images**—and produces **bilingual outputs (Bengali + English)** with **traceable citations** (source + page). AgriBot uses **Retrieval-Augmented Generation (RAG)**, strengthened by three mandatory reliability pillars:
 
 1. **Strict Hardware-Isolated Vision Architecture (CPU-Bound CNN + Heuristics)**
-   To adhere to strict edge hardware limits (e.g., RTX 3050 4GB VRAM) and prevent memory-out errors, AgriBot deliberately avoids heavy Vision Language Models (VLMs). Instead, it uses a lightweight, CPU-bound Convolutional Neural Network (MobileNetV3 via ONNX) paired with deterministic color-math heuristics. The entire GPU is strictly reserved for the LLM inference engine. 
+   To adhere to strict edge hardware limits (e.g., RTX 3050 4GB VRAM) and prevent memory-out errors, AgriBot deliberately avoids heavy Vision Language Models (VLMs). Instead, it uses a lightweight, CPU-bound Convolutional Neural Network (MobileNetV3 + CBAM attention module via ONNX) paired with deterministic color-math heuristics to extract disease keywords. The entire GPU is strictly reserved for the LLM inference engine. 
 
 2. **Dialect Knowledge Graph (KG) beyond a Lexicon**  
    AgriBot maintains a versioned, offline **knowledge graph** (stored in **SQLite graph tables** for portability) mapping dialect terms to canonical Bengali/English/scientific entities, and representing relations such as symptom→disease and disease→treatment. The KG is used for entity linking, query expansion, and disambiguation.
@@ -16,7 +16,7 @@ This project proposes **AgriBot**, a **production-grade, offline-first** decisio
 3. **Agentic Context-Gathering and Self-Correction (LangGraph)**  
    To compensate for the lack of a generalized VLM, AgriBot relies on conversational intelligence. If the CNN detects a disease but lacks context (e.g., severity or crop stage), the LangGraph agent pauses the RAG loop to proactively ask the farmer follow-up questions. The loop ensures: **Retrieve → Grade → Rewrite/Expand → Verify → Respond (or Ask Follow-up)**.
 
-AgriBot is designed for real deployment: a laptop/desktop runs the offline models and indexes in “kiosk mode,” while a **mobile thin client** connects over local Wi‑Fi/LAN—delivering usability without forcing on-device inference on the farmer's phone.
+AgriBot is designed for real deployment: a centralized machine runs the offline models and indexes via FastAPI, while a **multi-platform ecosystem (Web, Mobile App, and Desktop App)** connects over local Wi‑Fi/LAN—delivering high accessibility without forcing heavy on-device inference.
 
 ---
 
@@ -75,12 +75,12 @@ AgriBot targets the following field-real constraints:
 ## 5. System Overview
 AgriBot combines:
 - **Offline ASR/TTS** (CPU) for voice interaction,
-- **CPU-Bound Vision** (MobileNetV3 ONNX + OpenCV color heuristics),
+- **CPU-Bound Vision** (MobileNetV3 + CBAM ONNX classifier + OpenCV color heuristics) generating contextual keywords,
 - **Hybrid retrieval** (CPU-based FAISS + BM25 + ms-marco reranker),
 - **Dialect Knowledge Graph** (SQLite) for term alignment,
 - **LangGraph bounded self-correct loop** with evidence grading and verification,
 - **Offline local LLM** (Qwen 2.5 1.5B via `llama-cpp-python`) running strictly on the GPU,
-- **Kiosk web UI + mobile thin client**.
+- **Multi-platform ecosystem** (Web Kiosk, Mobile, Desktop) communicating with a unified FastAPI orchestrator.
 
 ---
 
@@ -94,9 +94,11 @@ AgriBot combines:
 6. **Vision Service (`classifier.py`):** ONNX-based PyTorch model for top-K disease classification.
 7. **LLM Engine (`engine.py`):** Singleton `llama-cpp-python` instance with thread locks to guarantee GPU stability.
 
-### 6.2 Client Applications
-- **React web kiosk UI** for desktop/laptop (Glassmorphism design).
-- **Diagnostic Drawer** transparently rendering LLM verification reasoning and timings.
+### 6.2 Client Ecosystem (Multi-Platform)
+- **Web App:** React/Vite kiosk UI for desktop/laptop (Glassmorphism design).
+- **Mobile App:** Native client tailored for farmers in the field (optimized for camera and voice capture).
+- **Desktop App:** Standalone application for agricultural researchers requiring heavy offline deep dives.
+- **Diagnostic Drawer:** transparently rendering LLM verification reasoning, citations, and node timings across all clients.
 
 ---
 
@@ -109,7 +111,7 @@ AgriBot combines:
 |---|---|---|---|
 | Text Generation (RAG) | **llama-cpp-python (Qwen 1.5B)** | **GPU (VRAM)** | BN+EN answer + citations |
 | Voice → text | **faster-whisper** | **CPU (RAM)** | BN transcript + confidence |
-| Image Classification | **MobileNetV3 (ONNX Runtime)** | **CPU (RAM)** | Top-K Disease classes |
+| Image Classification | **MobileNetV3 + CBAM (ONNX Runtime)** | **CPU (RAM)** | Top-K Disease classes / Keywords |
 | Symptom Extraction | **PIL/NumPy Color Heuristics** | **CPU (RAM)** | Symptom hints (e.g. "Yellowing") |
 | Translation | **BanglaT5** | **CPU (RAM)** | EN/BN translations |
 | Dense retrieval | **FAISS + sentence-transformers** | **CPU (RAM)** | Semantic evidence candidates |

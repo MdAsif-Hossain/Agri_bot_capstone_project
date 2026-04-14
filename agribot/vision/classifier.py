@@ -26,12 +26,12 @@ _classifier_lock = Lock()
 
 class CropClassifier:
     """
-    Lightweight crop disease classifier.
+    Lightweight crop disease classifier using MobileNetV3 + CBAM.
 
-    Loads a model (ONNX or torchvision) at runtime if available.
-    Currently implemented as a stub interface — the model loading
-    and inference logic must be filled in when a trained model
-    is available at the configured path.
+    Loads a model (ONNX format) at runtime if available.
+    To adhere to edge-hardware constraints, this network is strictly CPU-bound.
+    The CBAM (Convolutional Block Attention Module) spatial and channel attention
+    layers help the network focus on disease lesions and ignore background noise/soil.
     """
 
     def __init__(
@@ -131,12 +131,12 @@ class CropClassifier:
         """
         Internal prediction implementation.
 
-        Uses ONNX Runtime for .onnx models.
+        Uses ONNX Runtime for .onnx models (MobileNetV3 + CBAM architecture).
         """
         import numpy as np
         from PIL import Image
 
-        # Preprocess image (standard ImageNet-style)
+        # Preprocess image (standard ImageNet-style for MobileNetV3)
         img = Image.open(image_path).convert("RGB").resize((224, 224))
         arr = np.array(img, dtype=np.float32) / 255.0
 
