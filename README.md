@@ -2,6 +2,7 @@
 
 **📚 Quick Navigation Links:**
 - [🖼️ Visual System Workflow Diagram](README_WORKFLOW.md)
+- [⚙️ Multimodal Pipelines Deep Dive](docs/PIPELINES_DEEP_DIVE.md)
 - [🏗️ Detailed Architecture](docs/ARCHITECTURE.md)
 - [🤖 Local Models & Transformers](docs/MODELS.md)
 - [📄 Data Sources & Ingestion](docs/DATA_SOURCES.md)
