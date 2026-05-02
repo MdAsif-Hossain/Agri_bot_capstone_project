@@ -1,7 +1,7 @@
 ﻿# AgriBot: A Production-Grade Offline Multimodal Agentic RAG System with Dialect Knowledge Graph and CPU-Bound Vision for Bilingual Agricultural Decision Support
 
 **📚 Quick Navigation Links:**
-- [🎬 Video Presentation Demo](presentation.mp4)
+- [🎬 Video Presentation Demo](https://youtu.be/pouhnGJOhFM)
 - [🖼️ Visual System Workflow Diagram](README_WORKFLOW.md)
 - [⚙️ Multimodal Pipelines Deep Dive](docs/PIPELINES_DEEP_DIVE.md)
 - [🏗️ Detailed Architecture](docs/ARCHITECTURE.md)
@@ -13,9 +13,13 @@
 
 ## 🎬 System Demo
 
-<video controls src="presentation.mp4" width="100%">
-  Your browser does not support the video tag.
-</video>
+<div align="center">
+  <a href="https://youtu.be/pouhnGJOhFM">
+    <img src="https://img.youtube.com/vi/pouhnGJOhFM/maxresdefault.jpg" alt="AgriBot System Demo Video" width="100%" style="border-radius: 10px; box-shadow: 0 4px 8px rgba(0,0,0,0.1);">
+  </a>
+</div>
+
+> 🎥 **[Click the image above or here to watch the full video presentation on YouTube](https://youtu.be/pouhnGJOhFM)**
 
 ---
 
