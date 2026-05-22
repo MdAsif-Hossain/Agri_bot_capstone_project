@@ -72,10 +72,8 @@ class CropClassifier:
         Load the classification model.
 
         Supported formats:
-          - .onnx: uses onnxruntime
-          - .pt/.pth: uses torchvision (if available)
-
-        Stub implementation — replace with actual model loading.
+          - .onnx: uses onnxruntime (with optional companion .onnx.data
+            for external weights, auto-discovered next to the .onnx).
         """
         suffix = self.model_path.suffix.lower()
 

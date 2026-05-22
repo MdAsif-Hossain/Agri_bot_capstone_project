@@ -1,0 +1,574 @@
+                                        Trustful LLMs: Customizing and Grounding Text Generation with
+                                                           Knowledge Bases and Dual Decoders
+
+                                                    Xiaofeng Zhu                                  Jaya Krishna Mandivarapu
+                                        Microsoft Corporation / WA, USA                         Microsoft Corporation / GA, USA
+                                         Xiaofeng.Zhu@microsoft.com                              jmandivarapu@microsoft.com
+
+arXiv:2411.07870v6 [cs.CL] 20 Dec 2024                        Abstract                          like Retrieval-Augmented Generation (RAG) (Li
+                                                                                                et al., 2024), which retrieves relevant grounding
+                                             Although people are impressed by the content       context and feeds it to an LLM for text generation,
+                                             generation skills of large language models, the    we address hallucinations in generated texts from
+                                             use of LLMs, such as ChatGPT, is limited by        two aspects: 1) Post-editing based on knowledge
+                                             the domain grounding of the content. The cor-      graphs extracted from the context, and 2) Infusing
+                                             rectness and groundedness of the generated         guided context that contains important knowledge
+                                             content need to be based on a verified con-        triplets into a generic LLM. Our proposed methods
+                                             text, such as results from Retrieval-Augmented     also provide reasoning and create consistent results
+                                             Generation (RAG). One important issue when         from generative LLMs, benefiting from both the
+                                             adapting LLMs to a customized domain is that       generation and extraction capabilities of decoder-
+                                             the generated responses are often incomplete,      only LLMs and the groundedness of RAG via the
+                                             or the additions are not verified and may even     second decoder on the guidance (Le et al., 2020;
+                                             be hallucinated. Prior studies on hallucination    Wang et al., 2022b).
+                                             detection have focused on evaluation metrics,
+                                             which are not easily adaptable to dynamic do-         In this work, we elaborate on our real-world
+                                             mains and can be vulnerable to attacks like jail-  commercial application scenario of using LLMs
+                                             breaking. In this work, we propose 1) a post-      to support customers with Microsoft product
+                                             processing algorithm that leverages knowledge      inquiries in copilots, where groundedness is key to
+                                             triplets in RAG context to correct hallucina-      success. Pre-trained LLMs often lack the relevant
+                                             tions and 2) a dual-decoder model that fuses       knowledge or cannot adapt promptly to changes in
+                                             RAG context to guide the generation process.       the product database updates. Different variants
+                                                                                                of large language models (LLMs), such as Phi-3.5
+                                        1 Introduction                                          (Abdin and et al, 2024), ChatGPT (Mohamadi
+                                                                                                et al., 2023), LLama-3 (Dubey and et al, 2024),
+                                        Adapting an LLM to a specific domain is challeng-       and Gemma (Team, 2024), are proficient at
+                                        ing for several reasons: 1) Pre-trained LLMs cover      producing fluent outputs for diverse user queries.
+                                        general knowledge and cannot access private data        Despite their human-like fluency in generating text
+                                        (even during fine-tuning) due to privacy, copyright,    across a wide range of prompts, large language
+                                        and policy constraints. 2) The grounding of gen-        models suffer from hallucinations (see examples
+                                        erated texts can change depending on specific con-      in Figures 2, 3, 4), where parts or the entirety of
+                                        texts, such as domain or timestamp. Recent studies      the generated text lack faithfulness, factuality, or
+                                        mostly focus on detecting hallucinations and using      reasoning, yet are presented with a confident tone
+                                        multiple LLMs when hallucinations occur. 3) Busi-       Ji et al., 2023.
+                                        ness logic and structured data, such as databases
+                                        and private knowledge bases, are required when             To mitigate and correct hallucinations, we lever-
+                                        integrating customized LLMs into production sys-        age guided text generation. Grounding guidance
+                                        tems and presenting them to customers or users.         (Socher et al., 2013; Nickel et al., 2011; Lin et al.,
+                                                                                                2015; Wang et al., 2014; Bordes et al., 2013; Wang
+                                           We offer two methods for correcting hallucina-       et al., 2022a; Grover and Leskovec, 2016), such
+                                        tions (beyond merely detecting them (Wan et al.,        as knowledge graphs (KGs), has been shown to
+                                        2024; Li et al., 2023a; Ji et al., 2023)): 1) Apply-    significantly improve the reliability and factual-
+                                        ing post-processing to generated texts using knowl-
+                                        edge triplets, and 2) Proposing guided generation
+                                        via Dual Decoders. Inspired by common practices
+ity of LLMs in recent studies, e.g., KELM (Agar-           from segments of RAG results, our proposed
+wal et al., 2020; Lu et al., 2021), SKILL (Moiseev         TrustfulLLM model reduces irrelevant entities
+et al., 2022), K-DLM (Zou et al., 2023), KEPLET            and tokens in generated texts to demonstrate its
+(Li et al., 2023b), and LUKE-Graph (Foolad and             efficiency.
+Kiani, 2023). Knowledge graphs typically consist
+of factual information represented explicitly in a         2.2 Hallucination
+semi-structured format, generally as [subject entity,
+relation, object entity] triples, e.g., (Bill Gates, was,  Hallucination is considered one of the most promi-
+the CEO of Microsoft) (Han et al., 2019; Gard-             nent drawbacks of Large Language Models, as it
+ner et al., 2017). We collect and maintain such            leads models to generate inaccurate or false infor-
+knowledge triplets and grounded context offline for        mation (Ji et al., 2023; Wan et al., 2024). Model-
+RAG.                                                       generated texts may not match the true source con-
+                                                           tent, and the facts presented by the model cannot
+   Our contributions are as follows.                       always be verified from the source. These draw-
+1) We correct hallucinations and out-of-domain             backs remain significant hurdles in applying large
+outputs in generated texts from LLMs by leverag-           language models (LLMs) to real-world, business-
+ing a graph algorithm and provide reasoning using          critical, and vitally important applications.
+knowledge triplets extracted from both the guided
+context and the generated texts.                           Algorithm 1 Hallucination Correction
+2) We propose a dual-decoder model that fuses
+guided context with natural language generation            1: Input: Y^ , G
+models, in which the decoders share the weights of
+a pre-trained LLM.                                         2: Output: Y 
+3) The proposed algorithm and model reduce the
+constraints on the maximum output length, in               3: Construct knowledge graph g = {ti} from Y^
+addition to correcting hallucinations, by returning
+or generating only outputs related to the prompt           4: for knowledge triplet ti = (vis, vio, ri) in g do
+and the guided context.                                    5: if vis not in G then
+
+2 Background and Related Work                              6:  Eliminate ti from g and the associated
+
+Unlike document summarization, RAG, or tradi-                  sentence in Y^
+tional question answering, our approach benefits
+from both domain knowledge bases--particularly             7: else
+for groundedness--and the language understand-
+ing and generalization capabilities of various pre-        8:  Replace/keep ti in Y^ based on g and G
+trained or customized LLMs. By iterating over
+the knowledge triplets extracted from the gener-           9: end if
+ated text and comparing them to the knowledge
+triplets extracted from the given context (e.g., re-       10: end for
+sults from RAG), we can correct hallucinations             11: Assume G^ is the subgraph of G, and G^ con-
+(and generated phrases that lack references) using
+our proposed post-processing algorithm.                        tains all the verified entities (nodes) in Y^
+                                                           12: Y  = Y^
+2.1 Guided Natural Language Generation
+                                                           13: while Y  contains cycles do
+Prior studies have attempted multiple guidance             14: Prune Y^ to Y  till Y  is a minimum span-
+frameworks, particularly with encoder-decoder
+models (See et al., 2017; Dou et al., 2020; Hokamp             ning tree of G^.
+and Liu, 2017; Beurer-Kellner et al., 2024;
+Zhu et al., 2023; Zhu and et al., 2024). Unlike            15: end while
+GraphRAG (Edge et al., 2024), which utilizes
+multiple LLM calls to combine knowledge triplets           3 Methodology
+
+                                                           Whether the generated text is factual is determined
+                                                           by the domain source and the given guided context.
+                                                           In our copilot scenario, we always retrieve related
+                                                           context for a user prompt/query and then utilize this
+                                                           context to generate the final response presented to
+                                                           users. The guided context can be a mix of offline or
+                                                           web articles and database records, from which we
+                                                           generate knowledge triplets (Gardner et al., 2017)
+                                                           for groundedness verification and hallucination cor-
+                                                           rection. We propose a post-processing algorithm
+                                                           for correcting hallucinations that can be applied
+                                                       Figure 1: TrustfulLLM
+The dual decoder module can be adapted to any generic LLM, and the weights are shared for the guided
+
+                                             context and the prompt input.
+
+to any LLM outputs, as discussed in Section 3.1.      relation; i.e., we can easily locate and replace the
+Additionally, we propose a dual-decoder text gener-   third component when the entity or relation is incor-
+ation model that takes both the prompt and guided     rect in ti, which is composed of subject vis, object
+context leveraging the RAG result content as inputs,  vio, and the relation ri. This algorithm can verify, re-
+described in Section 3.2.                             place, and prune triplets in Y^ but does not increase
+                                                      the number of nodes/entities. For instance, given
+3.1 Post-processing text generation by                a sentence in RAG result content: "Microsoft 365
+      Correcting Knowledge Triplets                   Business Basic is $7.2 dollars per user per month.",
+                                                      we obtain knowledge triplet ti: (vis, vio, ri) is (Mi-
+For generated texts from an LLM, we identify and      crosoft 365 Business Basic, is, $7.2 dollars per
+correct potential hallucinations using knowledge      user per month). Since LLM outputs can omit/add
+triplets extracted from the RAG context and the       entities, we propose a second method: guided gen-
+generated text output. Specifically, we convert the   eration via dual decoders, which fundamentally
+extracted knowledge triplets from the guided con-     alters the text generation process.
+text and the LLM output into graphs G and g, re-
+spectively, where each node vi represents either      3.2 TrustfulLLM and Guided Generation via
+a subject or an object, and the relations between           Dual Decoders
+the subject and object serve as bi-directional edges
+connecting the two nodes(Zhu et al., 2017). Al-       In addition to the contextual embeddings used in
+gorithm 1 explains the hallucination detection and    Transformers, we embed the guidance text and
+correction process for a given generated text Y^ and  apply a cross-attention calculation using the hid-
+the knowledge graph G extracted from the guided       den states of the two decoders. In this way, we
+context. In the end, we obtain a corrected/verified   have the grounding/context source embeddings in
+output Y . A knowledge triplet t can be identified    one decoder and the user prompt in the other de-
+given a subject and a relation, or an object and a    coder, with both decoders sharing weights. We
+apply cross-attention CROSSATTN(Hp, Hg) by            language models to evaluate the quality of the gen-
+taking the hidden state Hp of the prompt module as    erated text on a deeper, contextual level. Together,
+the `query' and the hidden state Hg of the guided     these metrics provide a comprehensive assessment
+context module as the `key' and `value.' The di-      of our model performance.
+agram of the TrustfulLLM is shown in Figure 1,
+and the pre-trained LLM component is generic.            We show the results of our methods, pre-trained
+Only the prompt inputs are generated token by to-     LLMs, RAG, and Trustful LLMs on domain
+ken, while the guided context contributes to the      datasets M365 in Table 1, where boldface indicates
+CROSSATTN(Hp, Hg) only. The fine-tuned trans-         the best scores, HC indicates applying the halluci-
+former block components (the grey boxes in Figure     nation correction post-processsing algorithm, and
+1) are derived from the Phi-3 and model architec-     TrustfulLLM indicates fine-tuning from the pre-
+ture (Abdin and et al, 2024; Dubey and et al, 2024;   trained model on the domain data. Leveraging the
+Vaswani et al., 2023).                                proposed HC can largely boost the groundedness
+                                                      score, and utilizing the TrustfulLLM dual-decoder
+   During the inference stage, the guided context     framework and HC yield the best performance
+is the same as the RAG context. We augment the        among all metrics. In particular, the percentage of
+RAG context by randomly adding additional con-        eliminated entities when HC is applied to Phi-3.5
+tent (shuffled from other RAG results from dif-       decreases from 18% to 6.9% when HC is applied
+ferent prompts) as the guided context during fine-    to TrustfulLLM + Phi-3.5, further supporting the
+tuning, as shown in the Appendix A.2.                 effectiveness of TrustfulLLM. We also explored
+                                                      the performance of the models on a general sum-
+4 Experiments and Results                             marization task in Appendix A.3.
+
+4.1 Tasks and Datasets                                4.3 Effects of Applying HC and TrustfulLLM
+
+We elaborate the results from the public Microsoft    We take a incorrect & incomplete statement from
+learn.microsoft.com articles and product from         an LLM as a straightforward example: "Domain
+www.microsoft.com 1. The M365 dataset com-            registrar that support all DNS records required
+prises approximately 10,000 question-and-answer       for Microsoft 365 are GoDaddy and Oray." After
+pairs, including the context from which these ques-   we apply HC, HC corrects this output as follows:
+tion and answers were derived. We conducted our       "Domain registrars that support all DNS records
+experiments based on that the RAG results (knowl-     required for Microsoft 365 are Oray , HiChina ,
+ege bases and/or domain articles) that are trustwor-  east.net, and BIZCN."
+thy. For fine-tuned LLMs, we leverage LoRA (Hu
+et al., 2021) and set the number of epochs to be         In our production systems, we convert the nodes
+over 400, which is relatively higher than in regular  at Line 4 of Algorithm 1 into embeddings using
+LoRA fine-tuning.                                     a pre-trained transformer model, allowing us to
+                                                      find semantically related subjects/objects using the
+4.2 Metrics and Baseline Models                       cosine similarity and a heuristic similarity thresh-
+                                                      old. For example, "M365 Business Basic" can
+We use a combination of metrics including             be mapped to "Microsoft 365 Business Basic".
+ROUGE-L, METEOR, GPT-Similarity, Grounded-            When offline & pre-calibrated knowledge triplets
+ness (Appendix A.4), and BERTScore. ROUGE-L           are available, especially for user prompts related
+assesses the longest common subsequence between       to Microsoft product information, we store the em-
+the generated and reference texts, capturing flu-     beddings using the FAISS(Douze et al., 2024) 2
+ency and coherence. METEOR goes further by            and combine them with the knowledge triplets ex-
+considering synonyms, stemming, and word order,       tracted in the real-time RAG context.
+providing a more nuanced evaluation. Grounded-
+ness rated 1-5 by GPT-4 ensures that the generated       LLMs can generate content that does not origi-
+content is closely aligned with the source material.  nate from the RAG context, which may not always
+GPT-Similarity rated 1-5 by GPT-4 measures the        be a hallucination. However, HC can make the
+semantic similarity between generated and refer-      outputs more consistent and better aligned with the
+ence texts, while BERT Score leverages pre-trained    RAG & guided context. For instance, given a user
+                                                      prompt:
+    1https://github.com/MicrosoftDocs/
+microsoft-365-docs                                        2https://github.com/facebookresearch/faiss
+                                          M365
+
+Models                                    ROUGE-L METEOR      Groundedness      GPT-Similarity     BERTScore
+TrustfulLLM + HC + Phi-3.5-mini-instruct                                  5.00               4.68           0.93
+TrustfulLLM + Phi-3.5-mini-instruct       0.55          0.51              3.98               4.30           0.90
+HC + Phi-3.5-mini-instruct                                                5.00               4.52           0.91
+RAG + Phi-3.5-mini-instruct               0.50          0.50              3.72               3.49           0.89
+RAG + Mistral-NeMo-Minitron-8B-Instruct                                   3.77               3.76           0.88
+RAG + Llama-3.1-8B-Instruct               0.46          0.48              3.74               3.34           0.89
+RAG + GPT-3.5 Turbo                                                       3.81               3.58           0.90
+RAG + GPT-4o                              0.41          0.45              3.77               3.52           0.91
+Phi-3.5-mini-instruct                                                     3.33               3.60           0.84
+Mistral-NeMo-Minitron-8B-Instruct         0.38          0.46              3.50               4.05           0.82
+Llama-3.1-8B-Instruct                                                     3.44               3.82           0.84
+GPT-3.5 Turbo                             0.40          0.46              3.70               4.10           0.85
+GPT-4o                                                                    3.64               3.97           0.83
+                                          0.45          0.48
+
+                                          0.42          0.48
+
+                                          0.17          0.26
+
+                                          0.16          0.24
+
+                                          0.19          0.26
+
+                                          0.23          0.31
+
+                                          0.16          0.25
+
+Table 1: Question Answering Benchmarking Results
+
+   How much is M365 Business Basic?                     groundedness and correctness of the retrieval re-
+   and RAG context:                                     sults, i.e, phrases in AI generated texts that cannot
+   "Microsoft 365 Business Basic is $7.2 dollars        be referenced from the RAG results are eliminated.
+per user per month. If you commit yearly the            For phrases that are semantically equivalent to the
+price is $6 dollars per user per month. Microsoft       RAG results we still do a replacement using the
+365 Business Standard is $15 dollars per user per       knowledge triplet correction to keep consistent re-
+month ...",                                             sponses. We have also thoroughly conducted Red
+   a LLM can respond with:                              Teaming evaluations on various Responsible AI
+   Microsoft 365 Business Basic is priced at $7.2       metrics such as harmful content, IP infringement,
+dollars for each user on a monthly basis. However,      jailbreaking, groundedness, etc. Though we high-
+if you choose to commit to a yearly plan, the price     ligh our proposed halluciation correction algorithm
+decreases to $6 dollars per user per month.             and the dual decoder architecture, the upstream
+   after adding the below RAG context to the            RAG and intent detection models can be combined
+prompt:                                                 in a multi-task modeling process.
+   Please answer using the exact following context
+"Microsoft 365 Business Basic is $7.2 dollars per       5 Conclusion
+user per month. If you commit yearly the price is $6
+dollars per user per month. Microsoft 365 Business      We have addressed grounding issues in LLMs and
+Standard is $15 dollars per user per month ...".        proposed task-agnostic hallucination correction
+   Utilizing TrustfulLLM and HC, we can obtain          methods for real-world applications from two per-
+the following outputs:                                  spectives: post-processing to refine LLM outputs
+   "Microsoft 365 Business Basic is $7.2 dollars        and trustful LLM fine-tuning via dual encoders. We
+per user per month. If you commit yearly the price      have discussed hallucination correction and trust-
+is $6 dollars per user per month."                      worthy text generation, demonstrating the robust-
+   Apparently, TrustfulLLM and HC tends to use          ness and resilience of our methods. In the future,
+the knowledge triplets and exact sub-sentences          we plan to explore heterogeneous modalities, such
+from the verified RAG context for grounded gener-       as structured and spatio-temporal data, knowledge-
+ation. This also makes (human) evaluations more         enriched representations of input tokens (Grover
+effective in production systems.                        and Leskovec, 2016; Yu et al., 2022; Pan et al.,
+                                                        2023; Gao et al., 2022; Ye et al., 2021), hierarchi-
+4.4 Commercial Application and Constraints              cal relation graphs, and accountability (Li et al.,
+                                                        2023a). We also plan to study model bias, aggre-
+In our commercial system, we first apply an intent      gation for federated learning (Zheng et al., 2023;
+detection to user prompts to filter out enquiries that  Hashemi et al., 2021), and privacy-preserving is-
+are not related to our business then apply a retrieval  sues (Hashemi et al., 2021). Additionally, we
+model to obtain most relevant internal documents,       aim to reduce the complexity of LLMs through
+records in product databases. We only reply on the      parameter-efficient fine-tuning.
+6 Acknowledgments                                        Aditya Grover and Jure Leskovec. 2016. node2vec:
+                                                            Scalable feature learning for networks. In Proceed-
+We greatly appreciate the help from Dr. Cheng Wu            ings of the 22nd ACM SIGKDD international con-
+at Microsoft, especially regarding the productiza-          ference on Knowledge discovery and data mining,
+tion feedback and computational resource support.           pages 855­864.
+
+References                                               Xu Han, Tianyu Gao, Yuan Yao, Deming Ye, Zhiyuan
+                                                            Liu, and Maosong Sun. 2019. OpenNRE: An open
+Marah Abdin and et al. 2024. Phi-3 technical report:        and extensible toolkit for neural relation extraction.
+   A highly capable language model locally on your          In Proceedings of EMNLP-IJCNLP: System Demon-
+   phone. Preprint, arXiv:2404.14219.                       strations, pages 169­174.
+
+Oshin Agarwal, Heming Ge, Siamak Shakeri, and            Hanieh Hashemi, Yongqin Wang, Chuan Guo, and Mu-
+   Rami Al-Rfou. 2020. Knowledge graph based syn-           rali Annavaram. 2021. Byzantine-robust and privacy-
+   thetic corpus generation for knowledge-enhanced          preserving framework for fedml. arXiv preprint
+   language model pre-training. arXiv preprint              arXiv:2105.02295.
+   arXiv:2010.12688.
+                                                         Chris Hokamp and Qun Liu. 2017. Lexically con-
+Luca Beurer-Kellner, Marc Fischer, and Martin Vechev.       strained decoding for sequence generation using grid
+   2024. Guiding llms the right way: Fast, non-invasive     beam search. Preprint, arXiv:1704.07138.
+   constrained generation. Preprint, arXiv:2403.06988.
+                                                         Edward J. Hu, Yelong Shen, Phillip Wallis, Zeyuan
+Antoine Bordes, Nicolas Usunier, Alberto Garcia-            Allen-Zhu, Yuanzhi Li, Shean Wang, Lu Wang, and
+   Duran, Jason Weston, and Oksana Yakhnenko.               Weizhu Chen. 2021. Lora: Low-rank adaptation of
+   2013. Translating embeddings for modeling multi-         large language models. Preprint, arXiv:2106.09685.
+   relational data. Advances in neural information pro-
+   cessing systems, 26.                                  Ziwei Ji, Nayeon Lee, Rita Frieske, Tiezheng Yu, Dan
+                                                            Su, Yan Xu, Etsuko Ishii, Ye Jin Bang, Andrea
+Zi-Yi Dou, Pengfei Liu, Hiroaki Hayashi, Zhengbao           Madotto, and Pascale Fung. 2023. Survey of halluci-
+   Jiang, and Graham Neubig. 2020. Gsum: A general          nation in natural language generation. ACM Comput.
+   framework for guided neural abstractive summariza-       Surv., 55(12).
+   tion. arXiv preprint arXiv:2010.08014.
+                                                         Hang Le, Juan Pino, Changhan Wang, Jiatao Gu, Di-
+Matthijs Douze, Alexandr Guzhva, Chengqi Deng, Jeff         dier Schwab, and Laurent Besacier. 2020. Dual-
+   Johnson, Gergely Szilvasy, Pierre-Emmanuel Mazaré,       decoder transformer for joint automatic speech recog-
+   Maria Lomeli, Lucas Hosseini, and Hervé Jégou.           nition and multilingual speech translation. Preprint,
+   2024. The faiss library.                                 arXiv:2011.00747.
+
+Abhimanyu Dubey and et al. 2024. The llama 3 herd of     Bo Li, Peng Qi, Bo Liu, Shuai Di, Jingen Liu, Jiquan Pei,
+   models. Preprint, arXiv:2407.21783.                      Jinfeng Yi, and Bowen Zhou. 2023a. Trustworthy
+                                                            ai: From principles to practices. ACM Computing
+Darren Edge, Ha Trinh, Newman Cheng, Joshua                 Surveys, 55(9):1­46.
+   Bradley, Alex Chao, Apurva Mody, Steven Truitt,
+   and Jonathan Larson. 2024. From local to global: A    Yichuan Li, Jialong Han, Kyumin Lee, Chengyuan
+   graph rag approach to query-focused summarization.       Ma, Benjamin Yao, and Derek Liu. 2023b. Ke-
+   Preprint, arXiv:2404.16130.                              plet: Knowledge-enhanced pretrained language
+                                                            model with topic entity awareness. arXiv preprint
+Shima Foolad and Kourosh Kiani. 2023. Luke-graph:           arXiv:2305.01810.
+   A transformer-based approach with gated relational
+   graph attention for cloze-style reading comprehen-    Zhuowan Li, Cheng Li, Mingyang Zhang, Qiaozhu
+   sion. arXiv preprint arXiv:2303.06675.                   Mei, and Michael Bendersky. 2024. Retrieval aug-
+                                                            mented generation or long-context llms? a compre-
+Hanning Gao, Lingfei Wu, Hongyun Zhang, Zhi-                hensive study and hybrid approach. arXiv preprint
+   hua Wei, Po Hu, Fangli Xu, and Bo Long.                  arXiv:2407.16833.
+   2022. Triples-to-text generation with reinforcement
+   learning based graph-augmented neural networks.       Yankai Lin, Zhiyuan Liu, Maosong Sun, Yang Liu, and
+   Preprint, arXiv:2111.10545.                              Xuan Zhu. 2015. Learning entity and relation embed-
+                                                            dings for knowledge graph completion. In Proceed-
+Matt Gardner, Joel Grus, Mark Neumann, Oyvind               ings of the AAAI conference on artificial intelligence,
+   Tafjord, Pradeep Dasigi, Nelson F. Liu, Matthew          volume 29.
+   Peters, Michael Schmitz, and Luke S. Zettlemoyer.
+   2017. Allennlp: A deep semantic natural language      Yinquan Lu, Haonan Lu, Guirong Fu, and Qun Liu.
+   processing platform.                                     2021. Kelm: knowledge enhanced pre-trained
+                                                            language representations with message passing on
+                                                            hierarchical relational graphs. arXiv preprint
+                                                            arXiv:2109.04223.
+Salman Mohamadi, Ghulam Mujtaba, Ngan Le, Gi-              Changlong Yu, Tianyi Xiao, Lingpeng Kong, Yangqiu
+   anfranco Doretto, and Donald A. Adjeroh. 2023.             Song, and Wilfred Ng. 2022. An empirical revisiting
+   Chatgpt in the age of generative ai and large              of linguistic knowledge fusion in language under-
+   language models: A concise survey. Preprint,               standing tasks. In Proceedings of the 2022 Confer-
+   arXiv:2307.04251.                                          ence on Empirical Methods in Natural Language
+                                                              Processing, pages 10064­10070, Abu Dhabi, United
+Fedor Moiseev, Zhe Dong, Enrique Alfonseca, and               Arab Emirates. Association for Computational Lin-
+   Martin Jaggi. 2022. Skill: structured knowledge            guistics.
+   infusion for large language models. arXiv preprint
+   arXiv:2205.08184.                                       Longfei Zheng, Yingting Liu, Xiaolong Xu, Chaochao
+                                                              Chen, Yuzhou Tang, Lei Wang, and Xiaolong Hu.
+Maximilian Nickel, Volker Tresp, Hans-Peter Kriegel,          2023. Fedpse: Personalized sparsification with
+   et al. 2011. A three-way model for collective learning     element-wise aggregation for federated learning. In
+   on multi-relational data. In Icml, volume 11, pages        Proceedings of the 32nd ACM International Confer-
+   3104482­3104584.                                           ence on Information and Knowledge Management,
+                                                              pages 3514­3523.
+Shirui Pan, Linhao Luo, Yufei Wang, Chen Chen, Ji-
+   apu Wang, and Xindong Wu. 2023. Unifying large          Xiaofeng Zhu and et al. 2024. Training a learning-to-
+   language models and knowledge graphs: A roadmap.           rank model using a linear difference vector. US-
+   arXiv preprint arXiv:2306.08302.                           20240193196-A1.
+
+Abigail See, Peter J Liu, and Christopher D Man-           Xiaofeng Zhu, Diego Klabjan, and Patrick N. Bless.
+   ning. 2017. Get to the point: Summarization                2017. Unsupervised terminological ontology learn-
+   with pointer-generator networks. arXiv preprint            ing based on hierarchical topic modeling. In 2017
+   arXiv:1704.04368.                                          IEEE International Conference on Information Reuse
+                                                              and Integration (IRI), pages 32­41.
+Richard Socher, Danqi Chen, Christopher D Manning,
+   and Andrew Ng. 2013. Reasoning with neural tensor       Xiaofeng Zhu, Thomas Lin, Vishal Anand, Matthew
+   networks for knowledge base completion. Advances           Calderwood, Eric Clausen-Brown, Gord Lueck, Wen-
+   in neural information processing systems, 26.              Wai Yim, and Cheng Wu. 2023. Explicit and implicit
+                                                              semantic ranking framework. In Companion Pro-
+Gemma Team. 2024. Gemma.                                      ceedings of the ACM Web Conference 2023, WWW
+                                                              '23 Companion, page 326­330, New York, NY, USA.
+Ashish Vaswani, Noam Shazeer, Niki Parmar, Jakob              Association for Computing Machinery.
+   Uszkoreit, Llion Jones, Aidan N. Gomez, Lukasz
+   Kaiser, and Illia Polosukhin. 2023. Attention is all    Jiaxin Zou, Zuotong Xie, Junhua Chen, Jiawei Hou,
+   you need. Preprint, arXiv:1706.03762.                      Qiang Yan, and Hai-Tao Zheng. 2023. K-dlm: A
+                                                              domain-adaptive language model pre-training frame-
+David Wan, Koustuv Sinha, Srini Iyer, Asli Celikyil-          work with knowledge graph. In International Confer-
+   maz, Mohit Bansal, and Ramakanth Pasunuru. 2024.           ence on Artificial Neural Networks, pages 447­459.
+   Acueval: Fine-grained hallucination evaluation and         Springer.
+   correction for abstractive summarization. In Find-
+   ings of the Association for Computational Linguistics   A Appendix
+   ACL 2024, pages 10036­10056.
+                                                           A.1 Hallucination Examples
+Xintao Wang, Qianyu He, Jiaqing Liang, and Yanghua
+   Xiao. 2022a. Language models as knowledge embed-        We show examples where various LLMs generate
+   dings. arXiv preprint arXiv:2206.12617.                 hallucinations.
+
+Ying Wang, Yuexing Peng, Wei Li, George C. Alexan-         A.2 Examples of Prompt, RAG Context, and
+   dropoulos, Junchuan Yu, Daqing Ge, and Wei Xiang.              Guided Context
+   2022b. Ddu-net: Dual-decoder-u-net for road ex-
+   traction using high-resolution remote sensing images.   Prompt: "... <|user|> How much is Microsoft 365
+   IEEE Transactions on Geoscience and Remote Sens-        Business Basic? <|end|> <|assistant|> Microsoft
+   ing, 60:1­12.                                           365 Business Basic is $7.2 dollars per user per
+                                                           month. <|end|>".
+Zhen Wang, Jianwen Zhang, Jianlin Feng, and Zheng
+   Chen. 2014. Knowledge graph embedding by trans-            RAG context: "Microsoft 365 Business Basic is
+   lating on hyperplanes. In Proceedings of the AAAI       $7.2 dollars per user per month. Microsoft 365
+   conference on artificial intelligence, volume 28.       Business Basic ...".
+
+Hongbin Ye, Ningyu Zhang, Shumin Deng, Mosha                  Guided context: "Microsoft 365 Business Basic
+   Chen, Chuanqi Tan, Fei Huang, and Huajun Chen.          is $7.2 dollars per user per month. Microsoft 365
+   2021. Contrastive triple extraction with generative     Business Basic ... Microsoft 365 Business Standard
+   transformer. In Proceedings of the AAAI conference      is ... <|end|>". We add additional content about,
+   on artificial intelligence, volume 35, pages 14257­
+   14265.
+                                                      tences where the most frequent subjects are asso-
+                                                      ciated with. We show the comparison of Trust-
+                                                      fulLLM + HC + Phi-3.5-mini-instruct, where HC
+                                                      extract knowledge triplets from the articles and the
+                                                      generated texts in the inference stage, and LLM
+                                                      baselines in Table 2.
+
+            Figure 2: Hallucination Example 1         A.4 Prompt Template for GPT Metrics
+GPT-4o returns the wrong pricing information of
+Microsoft 365 Business Basic.                         We show the prompts of GPT-Similarity and
+                                                      Groundedness addressed in Section 4.
+            Figure 3: Hallucination Example 2
+GPT-3.5 Turbo cannot answer questions related to         Prompt for Groundedness
+Microsoft Teams Essential.                               System:
+                                                        You are an AI assistant. You will be given
+                                                         the definition of an evaluation metric for as-
+                                                         sessing the quality of an answer in a question-
+                                                         answering task. Your job is to compute an
+                                                         accurate evaluation score using the provided
+                                                         evaluation metric. You should return a single
+                                                         integer value between 1 to 5 representing the
+                                                         evaluation metric. You will include no other
+                                                         text or information.
+                                                         User:
+                                                        You will be presented with a CONTEXT and
+                                                         an ANSWER about that CONTEXT. You need
+                                                         to decide whether the ANSWER is entailed by
+                                                         the CONTEXT by choosing one of the follow-
+                                                         ing rating:
+
+                                                           1. 5: The ANSWER follows logically from
+                                                               the information contained in the CON-
+                                                              TEXT.
+
+                                                      2. 1: The ANSWER is logically false from
+                                                         the information contained in the CON-
+                                                         TEXT.
+
+            Figure 4: Hallucination Example 3           3. An integer score between 1 and 5, and if
+Phi-3 answered incorrectly about the price of Mi-           such an integer score does not exist, use 1:
+crosoft Teams Essential.                                    It is not possible to determine whether the
+                                                           ANSWER is true or false without further
+such as "Microsoft 365 Business Standard", which            information.
+is similar to the product "Microsoft 365 Business
+Basic" to the RAG context. This is for mimicking         Read the passage of information thoroughly
+the potentially noisy RAG context in the retrieval    and select the correct answer from the three an-
+stage.                                                swer labels. Read the CONTEXT thoroughly
+                                                      to ensure you know what the CONTEXT en-
+A.3 Summarization Task                                tails. Note that the ANSWER is generated by
+                                                      a computer system, so it can contain certain
+A summarization task does not have the retrieval      symbols, which should not be a negative factor
+component as in RAG. We utilize the graph build-      in the evaluation.
+ing step of HC to select the salient sentences from   Independent Examples:
+the articles as the guided context. We first extract  Example Task #1 Input:
+knowledge triplets from the articles then keep sen-
+                                          CNN DailyMail
+
+Models                                    ROUGE-L METEOR  Groundedness      GPT-Similarity     BERTScore
+TrustfulLLM + HC + Phi-3.5-mini-instruct                              5.00               4.12           0.89
+TrustfulLLM + Phi-3.5-mini-instruct       0.41   0.39                 4.68               4.12           0.88
+HC + Phi-3.5-mini-instruct                                            5.00               3.82           0.88
+Phi-3.5-mini-instruct                     0.40   0.39                 4.29               3.79           0.86
+Mistral-NeMo-Minitron-8B-Instruct                                     3.32               3.87           0.86
+Llama-3.1-8B-Instruct                     0.35   0.36                 4.61               4.10           0.87
+GPT-3.5 Turbo                                                         4.50               3.79           0.87
+GPT-4o                                    0.17   0.34                 4.42               4.10           0.87
+
+                                          0.20   0.35
+
+                                          0.32   0.37
+
+                                          0.24   0.38
+
+                                          0.18   0.36
+
+Table 2: Summarization Benchmarking Results
+
+{"CONTEXT": "Some are reported as not hav-       should be correctly formatted as an integer
+ing been wanted at all.", "QUESTION": "",        between 1 and 5. Do not repeat the context
+"ANSWER": "All are reported as being com-        and question.
+pletely and fully wanted."}
+Example Task #1 Output:                             Actual Task Output:
+1
+Example Task #2 Input:                           Prompt for GPT-Similarity]
+{"CONTEXT": "Ten new television shows ap-        System:
+peared during the month of September. Five of    You are an AI assistant. You will be given
+the shows were sitcoms, three were hourlong      the definition of an evaluation metric for as-
+dramas, and two were news-magazine shows.        sessing the quality of an answer in a question-
+By January, only seven of these new shows        answering task. Your job is to compute an
+were still on the air. Five of the shows that    accurate evaluation score using the provided
+remained were sitcoms.", "QUESTION": "",         evaluation metric. You should return a single
+"ANSWER": "At least one of the shows that        integer value between 1 to 5 representing the
+were cancelled was an hourlong drama."}          evaluation metric. You will include no other
+Example Task #2 Output:                          text or information.
+5                                                User:
+Example Task #3 Input:                           Equivalence, as a metric, measures the simi-
+{"CONTEXT": "In Quebec, an allophone is a        larity between the predicted answer and the
+resident, usually an immigrant, whose mother     correct answer. If the information and content
+tongue or home language is neither French nor    in the predicted answer is similar or equiva-
+English.", "QUESTION": "", "ANSWER":             lent to the correct answer, then the value of
+"In Quebec, an allophone is a resident, usually  the Equivalence metric should be high, else
+an immigrant, whose mother tongue or home        it should be low. Given the question, correct
+language is not French."}                        answer, and predicted answer, determine the
+Example Task #3 Output:                          value of the Equivalence metric using the fol-
+5                                                lowing rating scale:
+Example Task #4 Input:
+{"CONTEXT": "Some are reported as not hav-          · One star: the predicted answer is not at
+ing been wanted at all.", "QUESTION": "",              all similar to the correct answer
+"ANSWER": "All are reported as being com-
+pletely and fully wanted."}                         · Two stars: the predicted answer is mostly
+Example Task #4 Output:                                not similar to the correct answer
+1
+                                                    · Three stars: the predicted answer is some-
+   Actual Task Input:                                  what similar to the correct answer
+{"CONTEXT": {{context}}, "QUESTION":
+"", "ANSWER": {{response}}}                         · Four stars: the predicted answer is mostly
+Reminder: The return values for each task              similar to the correct answer
+   · Five stars: the predicted answer is com-    Question: {{query}}
+      pletely similar to the correct answer      Correct answer: {{ground_truth}}
+                                                 Predicted answer: {{response}}
+   This rating value should always be an inte-   Stars:
+ger between 1 and 5. So the rating produced
+should be 1, 2, 3, 4, or 5. The examples below
+show the Equivalence score for a question, a
+correct answer, and a predicted answer.
+
+   Question: What is the role of ribosomes?
+Correct answer: Ribosomes are cellular
+structures responsible for protein synthesis.
+They interpret the genetic information carried
+by messenger RNA (mRNA) and use it to
+assemble amino acids into proteins.
+Predicted answer: Ribosomes participate
+in carbohydrate breakdown by removing
+nutrients from complex sugar molecules.
+Stars: 1
+
+   Question: Why did the Titanic sink?
+Correct answer: The Titanic sank after it
+struck an iceberg during its maiden voyage
+in 1912. The impact caused the ship's hull
+to breach, allowing water to flood into the
+vessel. The ship's design, lifeboat shortage,
+and lack of timely rescue efforts contributed
+to the tragic loss of life.
+Predicted answer: The sinking of the Titanic
+was a result of a large iceberg collision.
+This caused the ship to take on water and
+eventually sink, leading to the death of many
+passengers due to a shortage of lifeboats and
+insufficient rescue attempts.
+Stars: 2
+
+   Question: What are the health benefits of
+regular exercise?
+Correct answer: Regular exercise can help
+maintain a healthy weight, increase muscle
+and bone strength, and reduce the risk of
+chronic diseases. It also promotes mental
+well-being by reducing stress and improving
+overall mood.
+Predicted answer: Routine physical activity
+can contribute to maintaining ideal body
+weight, enhancing muscle and bone strength,
+and preventing chronic illnesses. In addition,
+it supports mental health by alleviating stress
+and augmenting general mood.
+Stars: 5
+

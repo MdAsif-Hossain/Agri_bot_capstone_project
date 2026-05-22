@@ -1,0 +1,469 @@
+     Implementing Retrieval Augmented Generation Technique on
+Unstructured and Structured Data Sources in a Call Center of a Large
+
+                                Financial Institution
+
+   Syed Shariyar Murtaza1, Yifan Nie1, Elias Avan1, Utkarsh Soni1, Wanyu Liao1,
+        Adam Carnegie2, Cyril John Mathias2, Junlin Jiang2 and Eugene Wen1
+                  1Manulife, 200 Bloor St E, Toronto, ON M4W 1E5, Canada
+                       2John Hancock , 200 Berkeley St, MA 02116, USA
+          1{syed_shariyar_murtaza,yifan_nie,elias_abdollahnejad}@manulife.com
+                   1{utkarsh_soni,vanessa_liao,eugene_wen}@manulife.com
+                    2 {acarnegie,cyril_mathias,junlin_jiang}@jhancock.com
+
+                      Abstract                        call a database function to retrieve relevant facts
+                                                      (LangChain, 2024b,a). This approach increases
+     The retrieval-augmented generation (RAG)         the number of calls to LLM (incurring cost and
+     technique enables generative AI models to ex-    delay) and sometimes it doesn't translate queries
+     tract accurate facts from external unstructured  correctly.
+     data sources. For structured data, RAG is
+     further augmented by function calls to query        In this paper, we present a case study on apply-
+     databases. This paper presents an industrial     ing the RAG technique to a call center of a busi-
+     case study that implements RAG in a large        ness unit of a very large financial institution. The
+     financial institution's call center. The study   call center has been in business for many decades.
+     showcases experiences and architecture for a     Its data span various structured and unstructured
+     scalable RAG deployment. It also introduces      sources. When a customer calls, a customer ser-
+     enhancements to RAG for retrieving facts from    vice representative (CSR) answers the questions by
+     structured data sources using data embeddings,   looking up information from unstructured policy
+     achieving low latency and high reliability. Our  documents or structured data sources. Some of
+     optimized production application demonstrates    these sources can overlap and complicate the ef-
+     an average response time of only 7.33 seconds.   forts of a CSR to respond to queries promptly. Our
+     Additionally, the paper compares various open-   RAG application converts structured and unstruc-
+     source and closed-source models for answer       tured data into chunks and vectorizes them using
+     generation in an industrial context.             embedding models during the ingestion phase. This
+                                                      optimization improves latency (fewer LLM calls)
+1 Introduction                                        and accuracy at inference time.
+
+With the rapid development of Generative AI tech-        We implement our approach by converting head-
+nologies (et al., 2020), the retrieval-augmented      ers and rows of structured data (database tables)
+generation (RAG) (Chen et al., 2024; Zhang            into JSON strings and grouping them by business
+et al., 2024) technique has become popular in         concepts. These JSON chunks are transformed
+academia and industrial applications (Zhu et al.,     into embeddings and stored in a vector database
+2024; Lashinin et al., 2023; Shahin et al., 2024).    index. Similarly, we convert unstructured policy
+RAG involves two phases: ingestion, where doc-        documents into chunks and store them in a sepa-
+ument chunks are vectorized and stored in vector      rate index. During inference, we retrieve the top
+databases, and inference, where relevant chunks       k relevant chunks from both indexes based on the
+are retrieved to answer questions using a Large       input query, combine them into a prompt, and use
+Language Model (LLM). Although RAG is ef-             GPT-3.5 to generate a grounded answer. An inde-
+fective with unstructured data, industrial applica-   pendent model (Llama 3 or GPT-4) validates the
+tions often involve structured data. A common         answer's quality with a confidence rating. We mon-
+approach in the literature to retrieve structured     itor performance by capturing confidence ratings,
+data is to leverage LLM to translate a text query     human feedback and response times.
+into a database-specific query (such as SQL), then
+
+                                                                             598
+
+Proceedings of the 2025 Conference of the Nations of the Americas Chapter of the Association for Computational Linguistics: Human Language Technologies
+                                                                            (Industry Track), pages 598­606
+
+                                                        April 30, 2025 ©2025 Association for Computational Linguistics
+   Our production application has consistently gen-     The encoder transforms natural language into vec-
+erated accurate, grounded answers without halluci-      tors, while the decoder generates SQL queries, ei-
+nations since May 2024. We observed occasional          ther through sketch-based methods (breaking down
+errors due to missing data or ambiguous contexts.       SQL clauses) or end-to-end generation (produc-
+These were fixed through updates to data pipelines      ing entire SQL queries). Text-to-SQL systems are
+and prompt revisions. We also optimized response        user-friendly, eliminating the need for program-
+times from an initial launch of an average of 21.91s    ming skills (Ahkouk et al., 2021). Modern Large
+to an average of 7.33 seconds. We present a com-        Language Models (LLMs) can convert text to SQL.
+parison study of popular LLMs in the RAG applica-       This means that we can use an LLM to convert
+tion to facilitate model selection. Finally, we also    a query to SQL in the RAG technique and then
+present our application architecture, which will        make a function call to a database to retrieve data
+help the community in developing industrial-scale       (LangChain, 2024c). However, these models can be
+RAG applications.                                       sensitive to input variations and may struggle with
+                                                        queries outside their training domain (Qin et al.,
+2 Background and Related Work                           2022). This approach also increases the number of
+                                                        calls to an LLM, resulting in increased latency.
+To develop a RAG (retrieval-augmented genera-
+tion) application, documents are first divided into        Training table embedding model: Other ap-
+smaller chunks (Finardi et al., 2024). These chunks     proaches such as TaPas (Herzig et al., 2020) use
+can be created using a sliding window approach          transformer-based architectures to pretrain tabular
+with some overlaps of words between chunks              embedding models by flattening tables into 1-D
+(Zhong et al., 2024), or through advance methods        sequences and adding various positional embed-
+such as semantic chunking to keep semantically co-      dings to understand table structures. The pretrain-
+herent text together in one chunk (Qu et al., 2024).    ing employs a masked language model loss func-
+Later, each chunk is indexed with its corresponding     tion (Devlin et al., 2019), followed by fine-tuning
+vector representation using an embedding model.         with questions, tables, and answers. However, this
+During inference, these chunks are retrieved based      method has limitations: it requires the full table in-
+on their semantic similarity with a question and are    put, which is impractical for large tables, and often
+passed as part of the prompt to an LLM to generate      only a subset of the table is relevant to the query,
+an answer (Monir et al., 2024). If data is in a struc-  leading to noise and confusion.
+tured format like a relational database, then below
+are some of the methods to process the data for a       3 Methodology
+RAG application.
+                                                        The architecture of our application is shown in Fig-
+   Raw SQL Query: SQL is widely used for query-         ure 1, with four major components: ingestion and
+ing structured data due to its rapid query processing   indexing, inference, monitoring, and user interface.
+capabilities for real-time data analysis and simple
+syntax for SQL queries (Balkesen et al., 2018).         3.1 Ingestion and Indexing
+(Faroult and Robson, 2006). SQL queries can be
+used to retrieve structured data in the RAG tech-       We collaborated with business partners to consoli-
+nique, and then LLM can generate the answer using       date the data into three main sources: (a) general
+the prompt created from the retrieved data. How-        insurance policy documents for US states, (b) CSR
+ever, the raw SQL query approach could not be di-       notes, and (c) a structured database with specific
+rectly applied with a user's natural language query.    customer policy information. Those sources are
+The Text-to-SQL method is proposed to bridge this       shown on the top right of Figure 1. Policy docu-
+gap.                                                    ments and CSR notes are stored in PDFs on Mi-
+                                                        crosoft SharePoint and ingested into Azure Data
+   Text-to-SQL: To bridge the gap between natu-         Lake Storage (ADLS) upon updates, while struc-
+ral language queries and SQL queries, the Text-to-      tured data are ingested daily into Azure Synapse
+SQL (Qin et al., 2022) approach converts natural        Lake for big data analysis. To implement the RAG
+language queries into SQL using encoder-decoder         technique for efficient answer generation, we vec-
+models, typically based on LSTM (Yu et al., 2018;       torized (Karpukhin et al., 2020) both structured
+Stower and Krechel, 2019) or Transformer archi-         and unstructured data. Vectorization helps retrieve
+tectures (Hwang et al., 2019; Lei et al., 2020).        semantically relevant information more precisely
+
+599
+Figure 1: Application Architecture
+
+than a keyword search, particularly for structured              as a chunk for vectorization. The maximum length
+data. It also facilitates in keeping latency low at             of the JSON string (chunk) was 1300 tokens.
+inference time.
+                                                                Table 1: Sample Tabular Data
+   We indexed unstructured data (PDF files) by
+chunking text into 400-token segments with over-                Policy Number  Section Name    Product Rule  Benefit Amount
+laps and vectorizing into 1536-dimensional vectors
+using the text-embedding-ada-002 model1.These                     0000-0001    Policy Feature     ABC...          123.45
+vectors are subsequently stored in an Azure AI                    0000-0007    Policy Feature      DEF...         345.67
+Search 2 index using AI Search SDK.
+                                                                JSON representation for row 1: {`Policy
+   Our structured data consists of large database               Number':`0000-0001', `Section Name': `Policy Feature' ,
+tables that contain detailed information about each             `Product Rule':`ABC...', `Benefit Amount': `123.45' }
+policy and client. These tables contain numeri-
+cal, categorical, and textual information. An illus-               The JSON strings from all tables are vector-
+trative example is shown in Table 1. We imple-                  ized using the text-embedding-ada-002 model and
+mented an innovative method to index structured                 stored in one Azure AI Search index. This index
+data. Specifically, we de-normalized multiple ta-               was separate from the unstructured index. We also
+bles in our structured database and also aggregated             store metadata, such as policy numbers, state, city,
+them by concepts; e.g., `Comfort Keepers', `Care                page numbers, and file locations, with each JSON
+Champions', etc. There were three distinct tables               string. This meta-information facilitates precise
+after our processing. There were 4.5 million rows               and relevant information retrieval for queries (e.g.,
+in these tables after our processing compared to 50             retrieving chunks relevant only to questions related
+million rows before processing them. Each row of                to a specific policy number). It also provides refer-
+each table is then converted into a JSON string with            ences to sources (i.e., file locations) for validation
+table headers as keys and cells as values. This is              of answers during inference.
+also shown in Table 13. We used this JSON string
+                                                                   The customer-specific policy values are updated
+    1https://learn.microsoft.com/en-us/azure/ai-                regularly in the structured database. It is inefficient
+services/openai/concepts/models                                 to re-index the entire dataset in AI Search database.
+                                                                We run a nightly job that detects updated policy
+    2https://azure.microsoft.com/en-ca/products/ai-             numbers, indexes new records, and replaces exist-
+services/ai-search                                              ing vectors with updated ones. The new records are
+                                                                inserted into the existing index along with vectors.
+    3This is an illustrative table with synthetic data to show
+how the structured data are indexed, real data has more fields  and due to its confidentiality, not presented here.
+
+600
+In addition, we optimize the speed of indexing by               To avoid hallucinations in generated answers, in
+using parallelization in code and a higher through-          addition to the guardrails and source references, we
+put tier of Azure AI Search.                                 also validate answers with a secondary LLM (GPT-
+                                                             4 in our application). A special prompt rates the
+3.2 Inference                                                groundedness of answers on a scale of 1 to 5, em-
+                                                             ploying few-shot prompting techniques with exam-
+Inference is an important part of our implemen-              ples of both good, partially good, and bad answers
+tation. We developed the inference application               provided in JSON format. This final validation pro-
+with Promptflow framework1 in Python. The in-                cess reduces hallucinations and informs users about
+ference application is deployed on an Azure Ku-              confidence ratings (groundedness) and rationales.
+bernetes Service (AKS)2 cluster (see Figure 1).              An illustrative validation prompt is shown below.
+When a user inputs a question, the inference appli-
+cation processes it. The application first employs            System: You are an answer validation assistant.
+a query_rewording function to replace acronyms               You will be given a CONTEXT and an ANSWER.
+with their full forms, avoiding ambiguities in the           The CONTEXT is composed of various source
+query (e.g., D.C. to Death Certificate). The ex-              pieces .....
+panded query is then formatted for Azure AI vector            User: Your evaluation should be based on the
+search to retrieve the relevant top K chunks from             following rating scale: ......
+both unstructured and structured indexes, which               Independent Examples:
+are combined in the prompt as context for further             Example 1 Input: {"CONTEXT": '{"policy num-
+use (see Figure 1). Here K is subjective, we chose            ber": "***", "Type": "Regular", "lifetime value":
+K values based on priority of our data sources in            *******}', "ANSWER": "Your benefit type is "Su-
+the range of 2-4. An example prompt is shown                  perCare".}
+below.                                                        Example 1 Output: {answer: 1, reason: "The an-
+                                                              swer contains information not present in the con-
+ System: You are a call center agent answering                text."} ......
+ customer questions. Answer the following question
+ based on the information provided in the following          3.3 Monitoring and LLM Operations
+ CONTEXT.
+ -If the CONTEXT is EMPTY, please state "I cannot            To ensure efficient operation of our application, we
+ answer this question based on the available infor-          automated its deployment and incorporated com-
+ mation"                                                     prehensive monitoring functionalities, including
+ -If the CONTEXT in NOT EMPTY, MAKE SURE                     application logging, data monitoring, continuous
+ to consider all the sources to answer the question.         integration and deployment (CI/CD), and model
+ Indicate in parentheses the source numbers for each         monitoring (see Figure 1). Application logs are
+ answer bullet point.                                        sent to a Devo server to aid in debugging issues
+ -For answers with a single word or number, answer           such as crashes or latency. Data monitoring in-
+ within a brief sentence.                                    volves versioning data sources upon ingestion and
+ #CONTEXT { "Source":1, "Policy Number":                     assessing their quality using checks for null val-
+ "******", "Section Name":"***", "Product Rules":            ues, data types, and parsability. We also version
+ "...covered by policy rules...", ...... }                   prompts to maintain consistency and reliability as
+ User: {{#QUESTION: What are the product                     the prompts(or LLM) evolve. For CI/CD, TeamC-
+ rules for this policy?}}                                    ity 4is used to automatically deploy the application
+ {{#Output_format: Answer in bullet points}}                 on an AKS cluster upon code changes in Git repos-
+                                                             itories.
+   We engineered our prompt with the RACE frame-
+work (Liu et al., 2023) to ensure accurate answer               Model monitoring includes content logging on
+generation, adding instructions to prevent hallu-            the user interface, where we capture CSRs' ques-
+cinations, expanding one-word answers into full              tions, generated answers, and confidence ratings
+sentences, and identifying the source of each an-            from the secondary LLM. This is supplemented
+swer from the context. Users can choose output               with optional CSRs' feedback on answer accu-
+formats such as paragraphs or bullet points, with            racy and completeness. A statistics dashboard in
+sources listed at the end of bullet points to trace an-      PowerBI analyzes this data, identifying trends and
+swers and mitigate hallucinations. We used Azure             quality issues in generated answers. This helps
+OpenAI's GPT-3.5-turbo model3 for this process.              maintain high customer satisfaction by addressing
+
+    1https://microsoft.github.io/promptflow/                 services/openai/concepts/models
+    2https://azure.microsoft.com/en-us/products/kubernetes-      4https://www.jetbrains.com/teamcity/
+service
+    3https://learn.microsoft.com/en-us/azure/ai-
+
+601
+low-feedback and low-confidence answers.
+
+3.4 User Interface
+
+The user interface for CSRs is easy-to-use, featur-                Figure 2: Weekly Average of Metrics over Week 1-26
+ing a text box for questions and a list of frequently
+asked questions (see Figure 4 in Appendix). CSRs                      In Figure 2, we observe that the accuracy and
+can type questions or select from the list and must                completeness rating dropped between week 12 and
+provide a policy number or related information to                  week 14. This occurred when CSRs were searching
+receive customer-specific answers. The interface                   for answers on a policy that was not present in the
+displays answers with source lists, summaries, and                 index, and the prompt also needed an adjustment
+clickable URLs for quick navigation. The source                    to avoid the generation of an ambiguous answer
+numbers are cited in the answer for easy validation                from another source. Once the missing data was
+as shown in Figure 5 in the appendix. We present                   ingested, the accuracy and completeness feedback
+both structured and unstructured data sources and                  improved again.
+users can submit feedback on answer quality.
+                                                                      We further analyzed the data and observed that
+4 Evaluation and Discussion                                        52.07% of the responses received 5-star ratings
+                                                                   for accuracy and 53.69% of the answers received
+4.1 Evaluation                                                     5-star ratings for completeness. The confidence rat-
+                                                                   ings are 5 stars 77.83% of the times; showing that
+In this study, to demonstrate the effectiveness of our             majority of the times secondary LLM was having
+proposed methodology, we performed evaluations                     the same opinion as the primary LLM.
+by surveying users' feedback on answers' accuracy
+and completeness. The business users are either                       Higher scores on the metrics throughout the pro-
+CSRs or their managers who are familiar with the                   duction evaluation period demonstrates that the
+products and are considered as subject matter ex-                  answers are consistently reliable and that business
+perts. We implemented a feedback mechanism                         users could adopt them confidently. Our applica-
+where users could rate each answer's accuracy and                  tion reduces CSRs' workload and minimizes the
+completeness on a scale of 1-5 by clicking one                     risk of overlooking information, a significant im-
+of the five stars on the user interface. Meanwhile,                provement over the previous system, where CSRs
+our validation model depicted in Section 3 rates                   were required to sift through multiple knowledge
+confidence on the same scale. We also evaluate                     bases on different screens and read policy docu-
+the response latency of our inference pipeline to                  ments.
+highlight the rapid response time of our applica-
+tion. To perform this evaluation, we extract users'                   Response Time: We also monitored the weekly
+activity data for 26 weeks from May 13 to Nov 10,                  average response time during the same evaluation
+2024 with a total of 27471 queries, among which                    period (measured in seconds) as shown in Figure
+1302 received feedback. We plotted the weekly                      2. We can observe that during week 1 to week
+averaged metrics 1 in Figure 2.                                    13, the average response time hovers around 20
+                                                                   seconds with an average of 21.91s. To reduce re-
+   User Feedback Evaluation: Figure 2 shows                        sponse time, on Week 14, we improved the retrieval
+the weekly average feedback from users on accu-                    step from the database index by discarding vectors
+racy and completeness. It also shows the weekly                    (embeddings) from the retrieved results and only
+average response times and the weekly average                      retrieved text of the relevant chunks with metadata
+confidence ratings of the secondary LLM. It can                    for prompt generation. This optimization signifi-
+be observed that weekly averages for accuracy and                  cantly improved the response time. Note that we
+completeness remained high (3 to 4 star ratings) in
+most of the weeks, except for weeks 12 to 14. The
+confidence ratings of the secondary LLM remained
+greater than 4 in all weeks.
+
+    1We exclude the cases with null response times from all
+analyses. Additionally, for the response time analyses, any
+outliers falling outside the Inter-Quartile Range are also re-
+moved. Due to the limited space in the paper, we plot weekly
+averaged metric, instead of individual log record in this figure.
+
+                                          602
+already implemented multi-threading for data re-          lecting user feedback on the answer generated by
+trieval and switched to higher tier subscription of       GPT 3.5 model. We picked those answers where
+Azure AI Search (vector database). After week 14,         the user generated a feedback rating of 5 star on
+our weekly average response time ranges between           both accuracy and completeness. These are about
+6.56s and 9.19s, with an average of 7.33s. This is        35 questions and their answers. We then gener-
+a significant improvement in response time.               ated the same answer using other popular open
+                                                          source LLMs and GPT family's LLMs. Our list of
+   To further illustrate, our application achieves        LLMs include: GPT-4, GPT-4o, LLama-3, Mistal-
+such low latency in generating a response during in-      large, Mistral-small, Micorosoft's Phi128-small.
+ference time, we pick 35 random execution records         Although this is not a comprehensive list, it pro-
+between August 2024 and November 2024 from                vides a good understanding of industrial study. We
+our execution log and calculate the average the ex-       also tried some other models not in this list but they
+ecution time for each step. The averaged step-wise        hallucinated in preliminary tests so we excluded
+latency is presented in Figure 3.                         them from our comparison, such as Dolly-v2, and
+                                                          Cohere's LLM. We used three metrics to compare
+       Figure 3: Latency Decomposition by Steps           them: ROUGE (Briman and Yildiz, 2024), BLEU
+                                                          (Reiter, 2018) and cosine similarity (Dehak et al.,
+   In Figure 3, we can observe that user queries          2010) scores. These three metrics are popular met-
+received a valid response within 7.20s. This is           rics in the literature for comparing generative text
+an impressive response time considering the num-          against a bench mark. Our results are shown in
+ber of steps in the entire RAG pipeline. The first        Table 2. It can be observed from Table 2, LLama-3
+few steps of query pre-processing take a few mil-         and GPT-4o are closest to answer generation com-
+liseconds, then question embedding and document           pared to GPT 3.5. Mistral-small also shows some
+retrieval take 1.3s and 1.1s respectively. The re-        impressive performance despite its smaller model
+trieved snippets of context are then passed to the        size (22B). Those results demonstrate that quality
+answer generation step, which takes 1.5s, and the fi-     of answer generation is not dependent on the model
+nal groundedness (confidence) validation step takes       size but on the type of data it was trained/fine-tuned
+2s in the execution of the whole pipeline. It is to       on. This comparison also helped us to decide which
+be noted that we have used higher tier of Azure           models can be used to replace the other ones for
+AI Search (tier L2, 12 partitions, 24 search units)       answer generation and helped us control the cost.
+and Azure Open AI PTU (Provisioned Throughput
+Unit)1 and optimized the retrieval step by retain-        Table 2: LLM Comparison Results
+ing only the metadata and text chunk for improved
+performance in a production application.                      Model      Avg Bleu   Avg Rouge  Avg Cossim
+                                                                         Score      Score      Score
+   Comparison of LLMs on Answer Generation:               Llama-3-70B
+We also compared multiple LLMs for answer gen-            Mistral-Large      0.279      0.421      0.838
+eration. Our method of comparison is as follows.          Phi128-Small       0.101      0.333      0.698
+We first labeled the ground truth answers by col-         Mistral-Small      0.193      0.283      0.700
+                                                                             0.207      0.376      0.785
+    1https://learn.microsoft.com/en-us/azure/ai-             GPT-4o          0.397      0.492      0.784
+services/openai/how-to/provisioned-throughput-onboarding
+                                                          4.2 Discussion and Limitations
+
+                                                          Although our framework achieves high accuracy,
+                                                          low latency, and strong groundedness in question-
+                                                          answering on a large structured dataset, it does have
+                                                          its limitations. One limitation is the time required
+                                                          for the offline indexing step compared with the text-
+                                                          to-SQL method with an LLM function call. This
+                                                          text-to-SQL method can directly leverage existing
+                                                          structured data stored in the databases at inference
+                                                          time without indexing. Our method requires an
+                                                          offline embedding and indexing step to convert
+
+603
+the structured data into a searchable vector index.     References
+This step may take longer if the size of the data
+is large. This is a trade-off between the higher        Karam Ahkouk, Mustapha Machkour, Khadija Majhadi,
+accuracy and lower response time at inference time         and Rachid Mama. 2021. A review of the text to
+versus the delay at the data ingestion stage. We           SQL frameworks. In NISS2021: The 4th Interna-
+mitigated this impact by aggregating our structured        tional Conference on Networking, Information Sys-
+data to reduce the number of calls for embedding           tems & Security, KENITRA, Morocco, April 1 - 2,
+model. We also improved our data indexing method           2021, pages 45:1­45:6. ACM.
+by using parallelization in the code. In addition,
+when structured data changed, we identified the         Cagri Balkesen, Nitin Kunal, Georgios Giannikis, Pit
+change using keys and only updated vectors for             Fender, Seema Sundara, Felix Schmidt, Jarod Wen,
+the changes. In case of aggregation level questions        Sandeep R. Agrawal, Arun Raghavan, Venkatanathan
+(count, sum, group by) for this approach, it is better     Varadarajan, Anand Viswanathan, Balakrishnan
+to list them in advance and index data in a way that       Chandrasekaran, Sam Idicula, Nipun Agarwal, and
+it can be answered faster at inference time.               Eric Sedlar. 2018. RAPID: in-memory analytical
+                                                           query processing engine with extreme performance
+5 Conclusion and Future Work                               per watt. In Proceedings of the 2018 International
+                                                           Conference on Management of Data, SIGMOD Con-
+In this paper, we presented an industrial case study       ference 2018, Houston, TX, USA, June 10-15, 2018,
+on the implementation of RAG technique. We pre-            pages 1407­1419. ACM.
+sented a novel enhancement to the RAG technique
+by transforming structured data to JSON format          Mohammed Khalid Hilmi Briman and Beytullah Yildiz.
+and then embedding it in the same way as unstruc-          2024. Beyond ROUGE: A comprehensive evalua-
+tured data for faster and accurate answer gener-           tion metric for abstractive summarization leveraging
+ation. We also showed a comparison of popular              similarity, entailment, and acceptability. Int. J. Artif.
+open-source and closed-source LLMs on answer               Intell. Tools, 33(5):2450017:1­2450017:23.
+generation in our business case. We conclude that
+lower response time and highly accurate answers         Jiawei Chen, Hongyu Lin, Xianpei Han, and Le Sun.
+can be retrieved using our approach combined with          2024. Benchmarking large language models in
+scalable infrastructure. We also conclude that LL-         retrieval-augmented generation. In Thirty-Eighth
+MOps is important for industrial applications and          AAAI Conference on Artificial Intelligence, AAAI
+helps in maintaining the high quality of answer gen-       2024, Thirty-Sixth Conference on Innovative Applica-
+eration. We also conclude that LLama-3, GPT-4o             tions of Artificial Intelligence, IAAI 2024, Fourteenth
+and Mistral small are as good as GPT-3.5 in answer         Symposium on Educational Advances in Artificial
+generation.                                                Intelligence, EAAI 2014, February 20-27, 2024, Van-
+                                                           couver, Canada, pages 17754­17762. AAAI Press.
+   Our proposed methodology is highly generaliz-
+able and could be easily applied to other business      Najim Dehak, Réda Dehak, James R. Glass, Douglas A.
+use cases, where both structured and unstructured          Reynolds, and Patrick Kenny. 2010. Cosine similar-
+data are queried to generate a grounded answer.            ity scoring without score normalization techniques.
+In the future, we will expand the application to           In Odyssey 2010: The Speaker and Language Recog-
+serve other business lines such as presale consult-        nition Workshop, Brno, Czech Republic, June 28 -
+ing services, where sales agents need access to both       July 1, 2010, page 15. ISCA.
+unstructured knowledge articles and product speci-
+fications stored in structured databases. In addition   Jacob Devlin, Ming-Wei Chang, Kenton Lee, and
+to serving financial institutions, our application         Kristina Toutanova. 2019. BERT: pre-training of
+can be readily adapted for other industries, such          deep bidirectional transformers for language under-
+as healthcare institutions where a large amount of         standing. In Proceedings of the 2019 Conference of
+structured and unstructured medical data needs to          the North American Chapter of the Association for
+be leveraged to answer a complex question. We              Computational Linguistics: Human Language Tech-
+hope that this work can provide insights into the          nologies, NAACL-HLT 2019, Minneapolis, MN, USA,
+use of both structured and unstructured data in an         June 2-7, 2019, Volume 1 (Long and Short Papers),
+end-to-end manner in RAG applications and inspire          pages 4171­4186. Association for Computational
+new advanced RAG applications in industry.                 Linguistics.
+
+                                                        Tom B. Brown et al. 2020. Language models are few-
+                                                           shot learners. In Advances in Neural Information
+                                                           Processing Systems 33: Annual Conference on Neu-
+                                                           ral Information Processing Systems 2020, NeurIPS
+                                                           2020, December 6-12, 2020, virtual.
+
+                                                        Stephane Faroult and Peter Robson. 2006. The art of
+                                                           SQL. O'Reilly.
+
+604
+Paulo Finardi, Leonardo Avila, Rodrigo Castaldoni, Pe-   Bowen Qin, Binyuan Hui, Lihan Wang, Min Yang,
+   dro Gengo, Celio Larcher, Marcos Piau, Pablo B.          Jinyang Li, Binhua Li, Ruiying Geng, Rongyu Cao,
+   Costa, and Vinicius Fernandes Caridá. 2024. The          Jian Sun, Luo Si, Fei Huang, and Yongbin Li. 2022.
+   chronicles of RAG: the retriever, the chunk and the      A survey on text-to-sql parsing: Concepts, methods,
+   generator. CoRR, abs/2401.07883.                         and future directions. CoRR, abs/2208.13629.
+
+Jonathan Herzig, Pawel Krzysztof Nowak, Thomas           Renyi Qu, Ruixuan Tu, and Forrest Sheng Bao. 2024.
+   Müller, Francesco Piccinno, and Julian Martin Eisen-     Is semantic chunking worth the computational cost?
+   schlos. 2020. Tapas: Weakly supervised table parsing     CoRR, abs/2410.13070.
+   via pre-training. In Proceedings of the 58th Annual
+   Meeting of the Association for Computational Lin-     Ehud Reiter. 2018. A structured review of the validity
+   guistics, ACL 2020, Online, July 5-10, 2020, pages       of BLEU. Comput. Linguistics, 44(3).
+   4320­4333. Association for Computational Linguis-
+   tics.                                                 Mohammad Shahin, F. Frank Chen, and Ali Hossein-
+                                                            zadeh. 2024. Harnessing customized AI to create
+Wonseok Hwang, Jinyeung Yim, Seunghyun Park, and            voice of customer via GPT3.5. Adv. Eng. Informat-
+   Minjoon Seo. 2019. A comprehensive exploration           ics, 61:102462.
+   on wikisql with table-aware word contextualization.
+   CoRR, abs/1902.01069.                                 Kevin Stower and Dirk Krechel. 2019. Seq2sql - evalu-
+                                                            ating different deep learning architectures using word
+Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick         embeddings. In Machine Learning and Data Mining
+   S. H. Lewis, Ledell Wu, Sergey Edunov, Danqi Chen,       in Pattern Recognition, 15th International Confer-
+   and Wen-tau Yih. 2020. Dense passage retrieval for       ence on Machine Learning and Data Mining, MLDM
+   open-domain question answering. In Proceedings of        2019, New York, NY, USA, July 20-25, 2019, Proceed-
+   the 2020 Conference on Empirical Methods in Nat-         ings, Volume I, pages 343­354. ibai Publishing.
+   ural Language Processing, EMNLP 2020, Online,
+   November 16-20, 2020, pages 6769­6781. Associa-       Tao Yu, Zifan Li, Zilin Zhang, Rui Zhang, and
+   tion for Computational Linguistics.                      Dragomir R. Radev. 2018. Typesql: Knowledge-
+                                                            based type-aware neural text-to-sql generation. In
+LangChain. 2024a. Build a question answering applica-       Proceedings of the 2018 Conference of the North
+   tion over a graph database.                              American Chapter of the Association for Computa-
+                                                            tional Linguistics: Human Language Technologies,
+LangChain. 2024b. Build a question/answering system         NAACL-HLT, New Orleans, Louisiana, USA, June
+   over sql data.                                           1-6, 2018, Volume 2 (Short Papers), pages 588­594.
+                                                            Association for Computational Linguistics.
+LangChain. 2024c. Tool calling.
+Oleg Lashinin, Kirill Bykov, Marina Ananyeva, and        Zihan Zhang, Meng Fang, and Ling Chen. 2024. Re-
+                                                            trievalqa: Assessing adaptive retrieval-augmented
+   Sergey Kolesnikov. 2023. Gpt3recbot: a universal         generation for short-form open-domain question an-
+   chatbot recommender of movies, books and music           swering. In Findings of the Association for Compu-
+   in telegram. In Proceedings of the Fifth Knowledge-      tational Linguistics, ACL 2024, Bangkok, Thailand
+   aware and Conversational Recommender Systems             and virtual meeting, August 11-16, 2024, pages 6963­
+   Workshop co-located with 17th ACM Conference on          6975. Association for Computational Linguistics.
+   Recommender Systems (RecSys 2023), Singapore,
+   September 19th, 2023, volume 3560 of CEUR Work-       Zijie Zhong, Hanwen Liu, Xiaoya Cui, Xiaofan Zhang,
+   shop Proceedings, pages 35­43. CEUR-WS.org.              and Zengchang Qin. 2024. Mix-of-granularity:
+Wenqiang Lei, Weixin Wang, Zhixin Ma, Tian Gan, Wei         Optimize the chunking granularity for retrieval-
+   Lu, Min-Yen Kan, and Tat-Seng Chua. 2020. Re-            augmented generation. CoRR, abs/2406.00456.
+   examining the role of schema linking in text-to-sql.
+   In Proceedings of the 2020 Conference on Empirical    Kun Zhu, Xiaocheng Feng, Xiyuan Du, Yuxuan Gu,
+   Methods in Natural Language Processing, EMNLP            Weijiang Yu, Haotian Wang, Qianglong Chen, Zheng
+   2020, Online, November 16-20, 2020, pages 6943­          Chu, Jingchang Chen, and Bing Qin. 2024. An in-
+   6954. Association for Computational Linguistics.         formation bottleneck perspective for effective noise
+Xiaoxia Liu, Jingyi Wang, Jun Sun, Xiaohan Yuan, Guo-       filtering on retrieval-augmented generation. In Pro-
+   liang Dong, Peng Di, Wenhai Wang, and Dongxia            ceedings of the 62nd Annual Meeting of the Associa-
+   Wang. 2023. Prompting frameworks for large lan-          tion for Computational Linguistics (Volume 1: Long
+   guage models: A survey. CoRR, abs/2311.12785.            Papers), ACL 2024, Bangkok, Thailand, August 11-
+Solmaz Seyed Monir, Irene Lau, Shubing Yang, and            16, 2024, pages 1044­1069. Association for Compu-
+   Dongfang Zhao. 2024. Vectorsearch: Enhancing             tational Linguistics.
+   document retrieval with semantic embeddings and
+   optimized search. CoRR, abs/2409.17383.
+
+605
+A Appendix
+
+The user interface of the application is shown in Figure 4 and Figure 5.
+
+                                       Figure 4: GUI of the Application: Input Section
+
+                                 Figure 5: GUI of the Application: Answer and References
+                                                             606
+

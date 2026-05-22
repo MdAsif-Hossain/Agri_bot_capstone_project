@@ -78,10 +78,8 @@ class AgriConfig(BaseSettings):
     # --- Vision / Image ---
     VLM_ENABLED: bool = False  # Enable offline VLM captioning (placeholder)
     VLM_MODEL_PATH: Optional[str] = None  # Path to VLM GGUF model
-    IMAGE_CLASSIFIER_ENABLED: bool = (
-        False  # Enable optional classifier-assisted analysis
-    )
-    IMAGE_CLASSIFIER_MODEL_PATH: Optional[str] = None  # Path to classifier model
+    IMAGE_CLASSIFIER_ENABLED: bool = True  # Enable CBAM CNN classifier-assisted analysis
+    IMAGE_CLASSIFIER_MODEL_PATH: Optional[str] = None  # Resolved in model_post_init
     IMAGE_CLASSIFIER_TOP_K: int = 3  # Top-K conditions to return
     IMAGE_CLASSIFIER_CONFIDENCE_THRESHOLD: float = 0.3  # Min confidence for conditions
 
@@ -125,6 +123,10 @@ class AgriConfig(BaseSettings):
             )
         if not self.VOSK_BN_MODEL_PATH:
             self.VOSK_BN_MODEL_PATH = str(self.BASE_DIR / "models" / "vosk-bn")
+        if not self.IMAGE_CLASSIFIER_MODEL_PATH:
+            self.IMAGE_CLASSIFIER_MODEL_PATH = str(
+                self.BASE_DIR / "models" / "vision" / "rice_disease_mobilenetv3_cbam.onnx"
+            )
 
     model_config = ConfigDict(
         env_prefix="AGRIBOT_",

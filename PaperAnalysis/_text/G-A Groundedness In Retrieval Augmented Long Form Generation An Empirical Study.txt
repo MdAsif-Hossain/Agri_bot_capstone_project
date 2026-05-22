@@ -1,0 +1,991 @@
+Groundedness in Retrieval-augmented Long-form Generation:
+                           An Empirical Study
+
+                                     Alessandro Stolfo
+                                         ETH Zürich
+
+                                     stolfoa@ethz.ch
+
+Abstract                                                                                      Retrieve-then-read Pipeline
+
+     We present an empirical study of grounded-          What bodies of                       [...] Cabo San   
+     ness in long-form question answering (LFQA)         water surround                       Lucas where the
+     by retrieval-augmented large language models        Cabo San            Retrieval        Pacific Ocean    Frozen LM
+     (LLMs). In particular, we evaluate whether          Lucas?               Corpus          and Gulf of
+     every generated sentence is grounded in the re-                                                               M
+     trieved documents or the model's pre-training          Query q             D       1 California meet.
+     data. Across 3 datasets and 4 model fami-                                                                       2
+     lies, our findings reveal that a significant frac-                                             R(q)
+     tion of generated sentences are consistently un-
+     grounded, even when those sentences contain           gR(q)(s) = 0      4                [...] The Sea of Cortez is
+     correct ground-truth answers. Additionally, we                              Attribution  part of the Pacific Ocean,
+     examine the impacts of factors such as model        i.e., not grounded                   which is connected to the
+     size, decoding strategy, and instruction tun-                                  Model     Atlantic Ocean via the Gulf
+     ing on groundedness. Our results show that               in R(q)                         of California.
+     while larger models tend to ground their out-                                   G
+     puts more effectively, a significant portion of       gRC(s)(s) = 0                                 s  M(p)
+     correct answers remains compromised by hal-
+     lucinations. This study provides novel insights     i.e., not grounded                        3 
+     into the groundedness challenges in LFQA and
+     underscores the necessity for more robust mech-          in RC(s)                                 Pre-Training
+     anisms in LLMs to mitigate the generation of                                                         Corpus
+     ungrounded content.                                                     Compared to the
+                                                                             west side, the Sea             C
+1 Introduction                                                               of Cortez has
+                                                                             warmer weather [...]
+One of the most significant challenges to the safe
+deployment of large language models (LLMs) is                                    RC(s)
+their propensity to generate hallucinated content
+(Bubeck et al., 2023; Alkaissi and McFarlane, 2023;                          Groundedness Verification Procedure
+Ji et al., 2023). The risk of hallucinating increases
+when LLMs are tasked with generating long con-           Figure 1: Our experimental setup. Using a set of re-
+tent (i.e., more than a single sentence) (Shuster        trieved documents (1), an LLM generates an answer in
+et al., 2021; Maynez et al., 2020). This is problem-     an LFQA setting (2). Then, the model's pre-training
+atic because generating long-form text is a critical     corpus is searched for documents related to the genera-
+component of a number of important tasks, such as        tion (3).  rFeisnpaollnys,eDaPiTgs(rsso)uu=pn{pddoiP(nr1T)tg,e...dm, bdoPy(dlT)}ealnvyeoriffitehsewchoentshiderertehde
+disambiguating complex topics, explicit problem          model's
+decomposition and reasoning, question answering,         documents (4).
+and synthesis of information from multiple sources.
+                                                         Li et al., 2023). In these studies, a sentence is con-
+   As a step towards mitigating hallucination, a         sidered to be grounded in a document if the text
+number of studies have measured the grounded-            of the document supports the claim made in the
+ness of LLM generations (for a recent survey, see        sentence. However, many of these efforts focus
+                                                         on short LLM generations (i.e., a single word or
+     Work partially carried out while at Oracle Labs.    phrase) rather than long generations (Bohnet et al.,
+                                                         2022). Others rely on Google searches for exact
+                                                         string match as a heuristic for evaluating or improv-
+                                                         ing groundedness (Agrawal et al., 2023; Athaluri
+                                                         et al., 2023; Gao et al., 2023a).
+
+                                                            In this work, we focus on long-form question
+                                                         answering (LFQA) due to its generality and rele-
+                                                         vance. Our research addresses two central ques-
+                                                         tions: 1. how frequently do LLMs generate un-
+                                                         grounded sentences in LFQA? and, 2. how do
+                                                         model size, family, pre-training recipe, and decod-
+
+                                           1537
+
+Findings of the Association for Computational Linguistics: NAACL 2024, pages 1537­1552
+              June 16-21, 2024 ©2024 Association for Computational Linguistics
+ing style affect this rate? We address these ques-       2 Background
+tions by studying the provenance of the information
+contained in the model's generations.                    Hallucination & Factuality. Before describing
+                                                         our experimental setup, we more precisely define
+   LFQA is typically aided by retrieval augmenta-        hallucination. Following previous work, we define
+tion (Karpukhin et al., 2020; Izacard et al., 2022,      a hallucination as text that is not grounded in the
+inter alia). By harnessing external data sources,        data provided to the model at either training or in-
+these models incorporate information pertinent to        ference time (Ji et al., 2023; Agrawal et al., 2023).
+the query, reducing the likelihood of hallucinations     Such hallucinations are sometimes characterized as
+and incorrect outputs (Shuster et al., 2021). How-       open-domain hallucinations in order to distinguish
+ever, there is no guarantee that models consistently     them from semantic deviations of the generated
+utilize the retrieved information in their outputs (Kr-  output in, e.g., machine translation--referred to as
+ishna et al., 2021). This setting presents additional    closed-domain hallucination (Ji et al., 2023). It is
+challenges in measuring groundedness: the gener-         important to distinguish factuality from hallucina-
+ated text is likely influenced by both the inference-    tion. Specifically, factuality, or the factual correct-
+time context (i.e., the retrieved information) and       ness of (generated) text, refers to the quality of be-
+the extensive pre-training of the model. While           ing based on a fact, i.e., world knowledge (Maynez
+groundedness relative to the retrieved information       et al., 2020). Note that a model might output text
+is well-studied, we also attempt to ground model-        that is grounded in its pre-training or inference-time
+generated text in specific pre-training documents.       data, yet is factually incorrect. While the number of
+                                                         grounded, factual errors may be reduced by improv-
+   In particular, we measure whether the text gen-       ing the factuality of the data, preventing a model
+erated in a retrieval-augmented fashion contains         from generating text that is neither grounded nor
+information that is grounded in the retrieved doc-       factually accurate is a challenging problem with no
+uments or in the model's pre-training corpus (our        known solution.
+procedure is illustrated in Figure 1). We employ a
+groundedness-verification model (Honovich et al.,        Setting. We consider the task of open-domain
+2022) that determines whether a portion of the           LFQA in a few-show setting. We adopt the retrieve-
+model's output can be attributed to a given text         then-read paradigm, in which a language model
+passage. We analyze four different families of pre-      performs question answering using passages re-
+trained language models on three datasets. We            trieved from a corpus at inference time (Lewis et al.,
+discover that, even when containing ground-truth         2020; Izacard and Grave, 2021). This approach, al-
+answers, a significant portion of the generated sen-     though simple, was shown to improve the few-shot
+tences are not grounded in the retrieved or pre-         performance of pre-trained LLMs on multiple QA
+training documents and may include fabricated            benchmarks (Si et al., 2022; Mallen et al., 2023).
+claims. This trend persists across the range of mod-
+els and datasets examined.                               3 Experimental Procedure
+
+   Additionally, we study the impact of model size,      In this section, we detail our experimental setup,
+decoding strategy, and instruction tuning on the         including how correctness and groundedness are
+rate of correct and hallucinated content. We find        measured, as well as the datasets used. We begin
+that the larger models are generally more adept at       by defining notation.
+grounding their outputs in the given sources. How-
+ever, even for the largest models analyzed (Falcon       3.1 Notation
+180B; Penedo et al., 2023), approximately 25%
+of the outputs that contain ground-truth answers         Let Q be a collection of questions and D be
+are not grounded. Interestingly, we observe that         a corpus of documents. Consider a question
+instruction tuning and beam search decoding strate-      q  Q, which is annotated with a set Y of
+gies contribute to a reduction in the generation of      ground-truth string answers. A retrieve-then-read
+ungrounded content. These methods appear to help         system proceeds in 3 steps. First, a retriever,
+models better utilize training and inference-time        R : Q  D, returns a set of k documents,
+documents, thereby mitigating the tendency to pro-       R(q) = {d(1), . . . , d(k)}. Second, the question
+duce fabricated information.                             and documents are combined to form a prompt,
+                                                         p. Finally, the question-answering model, M ,
+
+1538
+consumes the prompt and produces an answer,                      in Z that grounds s. For example, for the retrieved
+M (p) = s1, s2, . . . , which is comprised of sen-               documents, R(q),
+tences si's. We denote by S the set of all generated
+sentences. In a few-shot scenario, the prompt p                  gR(q)(s) =  1   d  R(q) : G(d, s) = 1 (1)
+additionally contains a set of question-documents-                           0  otherwise.
+answer triples, which include manually annotated
+answers from a held-out dataset.                                 In words, the function gR(q)(s) returns 1 if at least
+                                                                 one of the documents in R(q) grounds s, and 0
+3.2 Measuring Correctness                                        otherwise.
+
+Like previous work (Gao et al., 2023b), we adopt                 Groundedness in the pre-training data. While
+a definition of correctness based on exact match                 retrieval-augmented text-generation models have
+(EM). Specifically, for a question-answer pair                   been shown to draw on the retrieved documents,
+(q, Y), The accuracy of a model output, M (p), is                they also produce sentences that are not grounded
+computed as the fraction of elements from Y that                 in the text provided to them during inference.
+are substrings of M (p), i.e.,                                   Though some of these sentences may not be
+                                                                 grounded in any of the data ever provided to the
+EM(M (p),  Y)  =  |{y    Y  :  substr(y,  M (p))}| ,             model, others may be grounded in the model's pre-
+                                   m                             training data. Ideally, we would compute gC(s),
+                                                                 i.e., whether the model-generated sentence, s, is
+where substr(y, M (p)) := 1{ s  M (p) :                          grounded in any pre-training document. Since
+                                                                 this computation is prohibitively expensive, we
+y  s} indicates whether y is a substring of the                  approximate gC(s) by performing post-generation
+                                                                 retrieval from the model's pre-training corpus, C,
+model output, and m = |Y|. Concretely, in the                    and then testing whether s can be grounded in
+                                                                 the retrieved documents. In practice, we compute
+example illustrated in Figure 1, the set of ground-              the dense representation of s and of each docu-
+                                                                 ment in the corpus using the MiniLM-v2 (Wang
+truth answers is Y = { Pacific Ocean, Gulf of                    et al., 2020b) sentence-Transformer (Reimers and
+                                                                 Gurevych, 2019). We perform an exact search
+California, Sea of Cortez }. Since the model                     for the top 5 pre-training documents RC(s) clos-
+                                                                 est to s in terms of cosine similarity using the
+output includes the strings Pacific Ocean and                    FAISS library (Johnson et al., 2019). The ground-
+                                                                 ing gRC(s)(s) of s is checked against each retrieved
+Gulf of California, the accuracy of the model                    document, as in Eq. 1. We report additional experi-
+                                                                 mental details in Appendix B.
+on this example is EM(M (p), Y      )=   g23r.ouAnsdwedenaerses
+interested in separately analyzing  the
+
+of long-form outputs that contain correct answers
+
+and those that contain no correct answers, we refer
+
+to the set of model outputs with an exact match of 0
+
+as EM0, and all other model outputs as belonging
+
+to EM+.
+
+3.3 Measuring Groundedness
+
+In our work, we assume that the question-                        Groundedness scores. To quantify the ground-
+answering model, M , is pre-trained on a corpus, C.              edness of statements generated by the model, we
+We measure the extent to which each model out-                   calculate the fraction of sentences in the set S that
+put is grounded in the retrieved documents, R(q),                are grounded in the retrieved or pre-training doc-
+as well as the training corpus, C. Since we focus                uments. Specifically, we compute the following
+on LFQA, we follow previous work and measure                     expression:
+the groundedness of each sentence of each model
+output independently (Gao et al., 2023a).                         1          {s  S  : condition(s)}
+                                                                 |S |
+Groundedness in the retrieved documents. For-
+mally, let S be the set of all sentences and G :                 where condition denotes the grounding condition
+D × S  {0, 1} be a grounding model, which                        applied to each statement s. Based on this formula-
+takes a document and a sentence and outputs 1 if                 tion, we compute groundedness scores for:
+the sentence is grounded in the document. Then, a
+model-generated sentence, s, is grounded in a col-               · the retrieved documents only, considering s
+lection of documents, Z, if there exists a document                for which gR(q)(s) = 1 and gRC(s)(s) = 0,
+
+                                                      1539
+ · the pre-training corpus only, s meeting the            Grounding. Similar to prior work (Bohnet et al.,
+    condition gR(q)(s) = 0 and gRC(s)(s) = 1,             2022; Gao et al., 2023b), we assess groundedness
+                                                          using a natural language inference-based approach,
+ · both (gR(q)(s) = 1 and gRC(s)(s) = 1),                 which was shown to have a strong correlation with
+                                                          human judgment (Rashkin et al., 2023; Gao et al.,
+ · none (gR(q)(s) = 0 and gRC(s)(s) = 0).                 2023b; Chen et al., 2023). In particular, we use
+                                                          TRUE (Honovich et al., 2022), a T5-11B (Raf-
+3.4 Experimental Setup                                    fel et al., 2020) model trained on a set of natural
+                                                          language inference datasets to automatically deter-
+Datasets. We perform experiments on three                 mine whether a generated statement is supported
+datasets:                                                 by a given text passage. We carry out a manual
+                                                          validation of the TRUE model, in which we pro-
+  1. ASQA (Stelmakh et al., 2022) - ambiguous             vide a small set of annotators with 100 instances
+      factual questions that have multiple correct an-    of (q, s, R(q), RC(s), gR(q)(s), gRC(s)(s)). The an-
+      swers. The desired model behavior includes          notators are asked to judge whether the grounding
+      providing a long-form generation that dis-          model's predictions gR(q)(s) and gRC(s)(s) are cor-
+      cusses all the correct answers.                     rect (i.e., whether the generated statement is cor-
+                                                          rectly determined to be grounded or ungrounded
+  2. HotpotQA (Yang et al., 2018) - multi-hop             with respect to the considered sources). We observe
+      question answering that requires reasoning          that the annotators agree with the model in 82%
+      over multiple entities in Wikipedia. The de-        of the cases overall and in 98% of the correct but
+      sired model behavior includes explicitly pro-       ungrounded cases. We provide additional details
+      viding its reasoning in addition to the correct     about the groundedness verification procedure and
+      answer.                                             its manual validation in Appendix C.
+
+  3. StrategyQA (Geva et al., 2021) - multi-hop           4 How Frequently are Generations
+      question answering, similar to HotpotQA. The            Grounded?
+      correct answers to questions in this dataset are
+      either True or False.                               We begin our analysis by measuring the rate at
+                                                          which models of various sizes and families gen-
+On ASQA, for each question, we perform dense re-          erate sentences that are grounded in the retrieved
+trieval (using GTR; Ni et al., 2022) from Wikipedia       documents as well as the pre-training data. As an
+and include k = 3 retrieved paragraphs in the             example, consider Figure 2, which provides a visu-
+model's prompt (example provided in Appendix              alization of the sentences generated by the Pythia
+A). For HotpotQA and StrategyQA, instead of per-          12B model on the ASQA dataset divided into 8
+forming retrieval, we supply the model with the           sectors. Each sector represents one group in the
+documents from which the correct answer can be            cross-product of the following categories:
+determined (i.e., R is an oracle function that re-
+trieves necessary and sufficient information). We            · whether a sentence could be grounded in the
+do this to mitigate the effects of poor retrieval, since        retrieved documents, the pre-training data,
+the reasoning over multiple documents required by               both, or neither;
+these datasets makes correct retrieval necessary for
+reasonable performance.                                      · and whether the sentence was part of a long-
+                                                                form generation that was deemed incorrect
+Models. We experiment with four different fam-                  (EM0), or not (EM+), according to exact
+ilies of Transformer-based pre-trained language                 match.
+models: Pythia (Biderman et al., 2023), Falcon
+(Penedo et al., 2023), MPT (Team, 2023), and Silo         We expect that most sentences that are part of EM+
+(Min et al., 2023). Post-generation retrieval is car-     will be grounded in either the retrieved documents
+ried out on the whole training corpora for Pythia         or the pre-training corpus (or both), since those
+(the Pile; Gao et al., 2020) and Silo (Open-license       documents represent the source of the model's cor-
+Corpus; Min et al., 2023). For the MPT and Falcon         rectness. For sentences that are part of EM0, we
+models, we retrieve from the C4 dataset (Raffel           make no assumptions on the frequency of ground-
+et al., 2020), which represents 60% of the train-         ing. That is because incorrect answers could arise
+ing data used for MPT (in terms of # of tokens),
+and was created in a similar way to the Falcon's
+training corpus (Penedo et al., 2023).
+
+1540
+Attribution Scores for Pythia 12B on ASQA                                              Groundedness Scores on ASQA
+
+                                                                                             ASQA         HotpotQA                                      StrategyQA         None
+                                                                                  0.5              0.6                                                 0.6                 Both
+                                                                                                                                                                           Retr. Docs
+None, EM+                                  None, EM0      Fraction of Statements  0.4              0.5                                                 0.5                 PT Corpus
+                    22.7%
+
+                                    33.1%                                         0.3              0.4                                                 0.4
+
+PT Corpus, EM0 3.2%                                                                                0.3                                                 0.3
+
+PT Corpus, EM+ 2.8%                                                               0.2
+
+                4.5%                                                                               0.2                                                 0.2
+                      6.11%
+Ret. Docs, EM0                                                                    0.1              0.1                                                 0.1
+
+Ret. Docs, EM+               11.6%  15.9%                                         0 PythiaFa1l2coBnSi7loB1M.3PBT 7B 0 PythiaFa1l2coBnSi7loB1M.3PBT 7B  0    FalconMPT
+                                               Both, EM+                                                                                                           7B
+                                                                                                                                                                       7B
+                Both, EM0
+
+Figure 2: Groundedness & correctness. Each of the         Figure 3: Groundedness across datasets. The height of
+8 sectors in the chart corresponds to a specific com-     each bar represents the fraction of generated sentences
+bination of groundedness (in the retrieved documents,     that belong to partially correct generations. A significant
+pre-training data, both, or neither) and EM correctness   fraction of these sentences are not grounded in either
+(either belonging to EM0 or EM+). The area of a sec-      the retrieved or pre-training documents.
+tor corresponds to the fraction of all model-generated
+sentences over all ASQA test examples that exhibit that   Does ungrounded content appear consistently?
+groundedness-correctness combination.                     For the remainder of this analysis, we focus on out-
+                                                          puts that contain ground-truth answers (i.e., EM+),
+from the model emitting ungrounded sentences, or          as they might represent subtler and more interesting
+grounded sentences that are off-topic or otherwise        cases of undetected hallucination. Figure 3 visual-
+incorrect.                                                izes of frequency of grounded sentences in correct
+                                                          and partially correct answers on ASQA, HotPotQA,
+   Figure 2 reveals that overall, for Pythia 12B,         and StrategyQA for four models from the four fam-
+44% of the sentences generated are grounded in            ilies considered: MPT 7B, Falcon 7B, Silo 1.3B,
+at least one of the two sources considered (i.e., blue,   and Pythia 12B. Note that the height of each bar
+green, and orange sectors), and that 48% belong           represents the fraction of generated sentences that
+to EM+ (i.e., the darker-color sectors). Interest-        belong to long-form generations containing at least
+ingly, we observe that nearly half of the generated       1 ground-truth answer.
+sentences belonging to EM+ cannot be grounded
+in the retrieved documents or pre-training corpus.           On all three datasets and all models considered,
+This is unexpected since, by virtue of containing at      we observe that a substantial fraction of the outputs
+least some of the ground-truth answers, the model         in EM+ are not grounded in the retrieved docu-
+demonstrates that it may have access to relevant in-      ments or in the pre-training data.1 This consistency
+formation. Upon inspection, we find that the high         across different models and datasets indicates a
+proportion of ungrounded sentences in these an-           prevalent pattern where models are able to generate
+swers contain ground-truth named entities or text         correct answers that are found in sentences that are
+snippets that are presented in a nonsensical or fac-      not directly supported by the retrieved documents
+tually incorrect manner. We provide examples of           or pre-training data.
+such outputs in Section 6. We note that sentences
+that cannot be grounded via our methods could             5 What Factors Affect Groundedness?
+be the result of sub-optimal retrieval in the pre-
+training corpus, or errors from the TRUE (ground-         In this section, we study the interplay between
+ing) model. We elaborate more on these concerns           the tendency of models to generate grounded con-
+in Appendices B and C.                                    tent and three factors: the size of the model (Sec-
+                                                          tion 5.1), the decoding strategy (Section 5.2), and
+   Additionally, Figure 2 also shows that roughly         instruction-tuning (Section 5.3).
+one-fourth of the generations can be grounded in
+both the pre-training and retrieved document. This            1Results for Pythia and Silo are omitted for StrategyQA
+is likely due to overlap between the pre-training         due to their accuracy being marginally better than a random
+and retrieval corpora, or the appearance of common        chance, precluding meaningful analysis.
+knowledge present in both corpora.
+
+                                                          1541
+     Groundedness Scores on ASQA                                                                                  EM Recall for Different Decoding Strategies
+
+                                  None                                                                                                                     beams=10
+Fraction of Statements0.6                                                                                          0.3                                     beams=5
+                                                                                               EM Recall          0.25                                     beams=2
+                                  Both                                                                                                                     greedy
+                                                                                                                   0.2                                     p=0.3
+0.5                               Retr. Docs                                                                      0.15                                     p=0.4
+                                                                                                                                                           p=0.5
+0.4                               PT Corpus                                                                        0.1                                     p=0.6
+                                                                                                                  0.05                                     p=0.7
+0.3                                                                                                                                                        p=0.8
+                                                                                                                        0                                  p=0.9
+0.2                                                                                                                                                        p=0.95
+
+0.1                                                                                                                                                1
+
+0 PythiaP7y0thMiaP1y6th0iMaP4y1th0iMaP1yBthiaP1y.t4hBiaP2y.t8hBiaP6y.t9hBiaF1a2lcBonF7aBlconF4a0lcBon 180B                 0.2  0.4  0.6  0.8
+
+                           Model                                                                                           Groundedness Threshold
+
+Figure 4: Groundedness by size. As before, the height                                                       Figure 5: Groundedness by decoding. Exact Match
+of each bar represents the fraction of generated sen-                                                       (EM) scores against the minimum fraction of sentences
+tences that belong to partially correct generations. In-                                                    required for a model generation to be considered valid
+creased model size correlates with an increase in the                                                       (groundedness threshold). As the grounding threshold
+number of sentences in EM+, but also an increase in                                                         tightens, the EM scores for random sampling quickly
+groundedness.                                                                                               degrade. The scores for beam search, however, remain
+                                                                                                            roughly unaltered, indicating a higher level of ground-
+                                                                                                            edness. Results obtained with Pythia 12B on ASQA.
+
+5.1 Model Size                                                                                              5.2 Decoding Strategy
+
+For smaller models, particularly Pythia 70M and                                                             We measure the impact of the decoding algorithm
+Pythia 410M, the majority of generated sentences                                                            on the frequency of grounded sentences as well as
+cannot be grounded in either the retrieved docu-                                                            correctness. In particular, we test readily available
+ments or the pre-training corpus (Figure 4). Inter-                                                         decoding strategies: greedy decoding, nucleus sam-
+estingly, while they do not have a clear grounding                                                          pling (Holtzman et al., 2019), and beam search. For
+to either the documents in the context or the pre-                                                          nucleus sampling we vary the top_p parameter; for
+training corpus, the responses generated by these                                                           beam search, we test beam widths 2, 5, and 10.
+models occasionally match tokens from the ground
+truth answers. A possible interpretation of this                                                               Figure 5 illustrates the impact of employing var-
+result is that these models may rely more on in-                                                            ious decoding methods with the Pythia 12B model
+ternal heuristics or pattern-matching capabilities                                                          on the ASQA dataset. In the Figure, the x-axis
+rather than effectively using external information                                                          represents a groundedness threshold, i.e., the mini-
+or learned knowledge (Elazar et al., 2022; McCoy                                                            mum fraction of sentences in a model generation
+et al., 2019).                                                                                              that must be grounded (in either retrieved or pre-
+                                                                                                            training documents) for that generation to be con-
+   Pythia models in the range 1-12B generate an                                                             sidered valid. That is, at x = 1.0, all sentences in
+increased fraction of grounded output compared to                                                           a generation must be grounded for the generation
+their smaller counterparts. However, no stark trend                                                         to be valid. For any groundedness threshold x, the
+is observed within this size range. Conversely,                                                             corresponding y-value represents the average Ex-
+for significantly larger models (Falcon 40B and                                                             act Match (EM) score across generations, where
+180B), there is a clear increase in the proportion                                                          invalid generations automatically get a score of 0.
+of content that can be grounded to the provided
+context or the pre-training corpus. This indicates                                                             Intuitively, as the groundedness threshold be-
+that larger models are better equipped to integrate                                                         comes more stringent (i.e., as we require a higher
+and utilize external information from the provided                                                          fraction of sentences to be grounded), the EM
+context and their extensive pre-training. However,                                                          scores should decrease. Indeed, this trend is ob-
+it is important to note that even with the largest                                                          served for greedy decoding and nucleus sampling.
+models, there remains a non-negligible fraction                                                             However, an interesting deviation from this trend
+of generated sentences that are part of EM+                                                                 is observed in the case of beam search decoding.
+but cannot be grounded in either the retrieved                                                              Unlike the other strategies, the EM scores for beam
+documents or the pre-training corpus.                                                                       search do not exhibit a significant decline as the
+                                                                                                            groundedness threshold increases. In particular,
+
+                                                                                                            1542
+Extractiveness of Different Decoding Strategies                                                                                        Groundedness Scores on ASQA
+
+Avg. LCS Length / Output Length0.7b=5 b=3         AWR                                                                            0.7                                None
+                                                                                               Fraction of Statements                                               Both
+     b=10           b=2                                0.25                                                                      0.6                                Retr. Docs
+                                                                                                                                                                    PT Corpus
+0.6                                                                                                                              0.5
+
+                                                                                                                                 0.4
+
+                                p=0.5 p=0.3                                                                          0.2         0.3
+                                                                                                                     0.15
+0.5                      p=0.7 p=0.6 p=0g.4reedy                                                                     0.1
+
+                                                                                                                                 0.2
+
+0.4                      p=0.8                                                                                                   0.1
+
+                                                                                                                                 0    MPT-7BM7B+InMsPtT. -30MB30B+FIanlscto.n F77BB+InFsatl.con F4400BB+IFnaslct.on F118800BB+Inst.
+
+0.3                      p=0.9
+
+                                      p=0.95                                                                                          Model
+100 200 300 400 500 600 700
+
+                   Avg. Output Length
+
+Figure 6: Extractiveness by decoding. Average ratio                                                                        Figure 7: Effect of instruction-tuning. As before, the
+between the length of the LCS and the length of the                                                                        height of each bar represents the fraction of generated
+model output (y-axis) against the average length of the                                                                    sentences that belong to EM+. Compared to the corre-
+output (x-axis). Length is measured as the number of                                                                       sponding base models, instruction-tuned models tend to
+characters. The color scale illustrates the average ratio                                                                  exhibit greater correctness as well as a larger fraction of
+of abstracted words (AWR) for the different decoding                                                                       grounded sentences.
+strategies: beam search (b), greedy, and nucleus sam-
+pling (p). Results obtained on ASQA with Pythia 12B.                                                                       stantially smaller with beam search. These find-
+                                                                                                                           ings clarify how beam search affects groundedness
+the decline is less steep as the number of beams                                                                           and suggest a trade-off between extractiveness and
+increases. This result shows that while beam search                                                                        groundedness in retrieval-augmented generation.
+may initially show lower EM scores compared to
+nucleus sampling without considering grounded-                                                                             5.3 Instruction Tuning
+ness, its effectiveness emerges when groundedness
+is taken into account. A possible explanation for                                                                          Figure 7 illustrates the impact of instruction tuning
+this phenomenon can be identified in the tendency                                                                          on the groundedness and correctness of sentences
+of beam search to give a higher likelihood to se-                                                                          generated by various models on the ASQA dataset.
+quences that previously appeared in the model in-                                                                          For instruction-tuned models, we observe a marked
+put (Holtzman et al., 2019). Since in our setting                                                                          improvement in both the overall correctness and the
+the retrieved documents are provided as an input                                                                           fraction of grounded sentences. This trend holds
+sequence to the model, greedy and nucleus sam-                                                                             across various model families and sizes, suggesting
+pling might assign a higher probability to grounded                                                                        that instruction tuning enhances the model's ability
+sentences.                                                                                                                 to generate content that not only contains ground-
+                                                                                                                           truth answers but is also more grounded in the
+   To clarify this aspect, we carry out analyses of                                                                        provided context or pre-training data.
+the models' extractiveness (i.e., the tendency of a
+model to replicate portions of text verbatim from                                                                          6 Examples of Model Output
+the retrieved documents). The results are reported
+in Figure 6. By measuring the longest common                                                                               In Table 1, we present a handful of representative
+substring (LCS) between the model outputs and                                                                              sentences generated by the Pythia 12B model on
+the retrieved documents, and comparing this to the                                                                         the ASQA dataset. Additionally, we supply rel-
+overall length of the model outputs, we find that a                                                                        evant portions of the retrieved documents, R(q),
+larger number of beams generally result in shorter                                                                         (from Wikipedia) as well as the documents re-
+outputs, but with proportionately longer common                                                                            trieved from the pre-training corpus, after the
+substrings. Additionally, we compute the propor-                                                                           model generates an answer. Overall, the selected
+tion of abstracted words (i.e., words that do not                                                                          sentences demonstrate the model's ability to gen-
+appear in any of the documents included in the                                                                             erate content that, while sometimes correctly in-
+prompt) present in the model output and notice that                                                                        cludes ground-truth answers, showcases varying
+it decreases as the decoding becomes less random                                                                           degrees of groundedness.
+(as the parameter p in nucleus sampling decreases,
+as one would expect), but also that it becomes sub-                                                                           Consider the example in the first row of Table 1.
+                                                                                                                           In this instance, the model includes the correct
+
+                                                                                                                           1543
+Query q                 Sentence s               d  R(q)                    d  RC(s)                  gR(q)(s)  gRC (s) (s)
+What bodies of water    . . . The Sea of Cortez                             . . . compared to the         0          0
+surround Cabo San       is part of the Pacific   . . . El Arco, a natural   west side of the Baja         1          0
+Lucas?                  Ocean, which is          stone arch over ocean      Peninsula, the Sea of         0          1
+When did the            connected to the         in Cabo San Lucas          Cortez has warmer             1          1
+Brisbane Broncos last   Atlantic Ocean via the   where the Pacific          weather and a climate
+win a premiership?      Gulf of California.      Ocean and Gulf of          more in line with most
+When will they finish   The Brisbane Broncos     California meet . . .      people's. . .
+building the Sagrada    last won a                                          . . . The Broncos did
+Familia?                premiership in 2006.     . . . having endured       not start the 2006 sea-
+Names of the rivers in                           twelve completed           son well, suffering a
+the garden of Eden?     . . . The construction   seasons without            36­4 defeat by the pre-
+                        of this building began   winning the                vious year's runners-
+                        in 1882 and it will be   premiership since          up, the North Queens-
+                        finished in 2026.        their most recent          land. . .
+                        The rivers in Eden       success in 2006.
+                        were the Pishon, the     . . . is large unfinished  . . . 's still being
+                        Gihon, and the Tigris,   Roman Catholic             worked into today a
+                        and Euphrates.           church in Barcelona,       goal of completion in
+                                                 designed by Catalan        2026 a century after
+                                                 architect Antoni           Gaudi's death. . .
+                                                 Gaudí (1852­1926).
+                                                 Gaudí's . . .              . . . leaving the garden
+                                                 . . . divided into four    branching out into
+                                                 branches: the Pishon,      four streams, the
+                                                 where the gold is; the     Euphrates, Gihon,
+                                                 Gihon; the Tigris; and     Pison, and the Tigris.
+                                                 the Euphrates. . . .
+
+Table 1: Examples of generations by Pythia 12B on ASQA, along with relevant portions of the retrieved documents
+and the predictions from the groundedness-verification model (gR(q)(s) and gRC(s)(s)). The sentences were selected
+among the generations containing one or more ground-truth answers (reported in bold), i.e., they belong to EM+.
+
+named entities within its generated text. How-         a question-answering task in which the goal is to
+ever, it also produces an ungrounded (and incorrect)   generate--rather than extract--the correct answer
+claim that the Pacific Ocean is "connected to the At-  to a question, usually by drawing from provided
+lantic Ocean via the Gulf of California." This state-  passages. The majority of the work in LFQA in-
+ment is factually incorrect and represents a clear     volves a human evaluation process aimed at mea-
+case of the model generating a plausible-sounding      suring the factual correctness of generated answers
+but erroneous connection between entities.             (Su et al., 2022; Nakano et al., 2021; Krishna et al.,
+                                                       2021). In the absence of human evaluation, the
+   Inspecting the model-generated answers, we ob-      quality of an answer is typically evaluated using
+served a common trend in which models blend            automatic metrics such as ROUGE (Lin, 2004).
+fabricated content with factually correct statements.  However, these metrics require human-annotated
+This trend is still present in larger models, whose    answers, and, more importantly, they fail to pick
+generations are overall more grounded than small       up hallucinated content (Xu et al., 2023; Ji et al.,
+models but might feature a melding of fact and         2023; Krishna et al., 2021). Other approaches, such
+hallucination that can be more subtle. In Table 2,     as factual consistency (Durmus et al., 2020; Wang
+we provide some examples obtained with Falcon          et al., 2020a), are used to measure the faithful-
+180B. These instances illustrate the models' ability   ness of a generated summary to a corresponding
+to accurately retrieve and use specific terms from     set of source documents. Similar strategies were
+the training data or the retrieved documents while     subsequently applied to evaluate dialogue systems
+also highlighting the challenge of ensuring that the   (Honovich et al., 2021) and to edit and improve
+relationships and contexts it generates are factual.   the output of retrieval-augmented language models
+                                                       (Gao et al., 2023a).
+7 Related Work
+
+Long-form Question Answering. LFQA (also Groundedness & Attribution. In light of the
+referred to as generative QA) (Fan et al., 2019) is importance of mitigating hallucination, work on
+
+                                                            1544
+Query q                    Generated Sentence s           factuality, and relevance of internet search results.
+How many times did Brazil  Brazil has won the World          Another line of work explores the relationship
+win the FIFA World Cup?    Cup 5 times. They won
+                           in 1958, 1962, 1970, 1994,     between a model's generated text and its pre-
+Who did the artwork for    and 2002. The only other       training data. For example, one study measures
+Pink Floyd's wall?         country that has won as        how often models repeat content verbatim from
+The director of the        many times as Brazil is        their pre-training corpora (McCoy et al., 2023).
+romantic comedy "Big       Germany (also known as         Similarly, other works study the provenance of the
+Stone Gap" is based in     West Germany).                 model-generated content within pre-training cor-
+what New York city?        The artwork for Pink           pora but rely on gradient-based methods (Han and
+                           Floyd's Wall was created       Tsvetkov, 2022) or metrics based on n-gram over-
+                           by Gerald Scarfe. The          lap (Weller et al., 2024). Others analyze model
+                           artwork on the cover of        generations with the intent to characterize the ex-
+                           The Wall features a uni-       tent to which they can be attributed to a model's
+                           form row of white bricks       parametric memory vs. additional information pro-
+                           with a hammer in the           vided at inference. However, this is measured by
+                           foreground.                    either constructing prompts that contain sentences
+                           Adriana Trigiani is the        that conflict with information in the pre-training
+                           writer of the romantic com-    data (Longpre et al., 2021), or by drawing on corre-
+                           edy Big Stone Gap. She         lations with respect to the rarity of the entities pro-
+                           was born and raised in         duced in model generations (Mallen et al., 2023).
+                           New York City. She works       Unlike these works, we verify whether the model
+                           in Greenwich Village, New      output can be supported by passages retrieved from
+                           York City.                     the pre-training corpus, as well as the context sup-
+                                                          plied during inference.
+Table 2: Examples of generations by Falcon 180B on
+ASQA (first two rows) and HotpotQA (last row). The        8 Conclusion
+generated content features a mixture of correct and fab-
+ricated content (the latter highlighted in red): Germany  This study analyzes the rate at which the long-form
+won the World Cup 4 times, not 5, The Wall's album        output produced by retrieval-augmented LLMs is
+cover does not feature a hammer in the foreground, and    grounded in retrieved documents and pre-training
+Adriana Trigiani was actually born in Virginia.           data. Through empirical analysis across various
+                                                          models and datasets, we highlight the propensity
+evaluating groundedness has enjoyed significant           of LLMs to blend correct information with hal-
+attention (Li et al., 2023). Initial work develops        lucinated content. Our findings indicate that this
+the attributable to identified sources (AIS) score,       tendency is prevalent across different model sizes
+which represents a human evaluation quantifying           and persists even in the largest models available.
+the degree to which generated text adheres to its         Our analyses reveal that while larger models gen-
+cited sources (Rashkin et al., 2023). Later work          erally produce more grounded content, they are
+demonstrates that AIS can be well-approximated            not immune to generating ungrounded informa-
+using a model trained for predicting entailment,          tion. We observed that instruction tuning and beam
+as in natural language inference (Honovich et al.,        search decoding reduce ungrounded sentence gen-
+2022). However, in these studies, groundedness is         eration. Aligned with the results of concurrent
+often computed against provided passages (Bohnet          research (Choi et al., 2023), our findings point to
+et al., 2022; Gao et al., 2023b; Yue et al., 2023).       specialized decoding algorithms being good candi-
+In contrast to previous studies that treat the accu-      dates for significantly reducing hallucination.
+racy of correct entities and output groundedness as
+distinct aspects (Gao et al., 2023b), our research        Limitations
+delves into exploring their interconnection.
+                                                          We identify a handful of limitations of our work
+   More similar to our work are those that measure        below.
+groundedness against documents retrieved by a
+web search API (Liu et al., 2023; Gao et al., 2023a;      Imperfect Retrieval from Pre-training Corpus.
+Chen et al., 2023). In some cases, such as checking       Given the size of pre-training corpora, it is pos-
+the existence of a generated reference, this is an        sible for our approach to exhibit false negatives.
+appropriate strategy (Agrawal et al., 2023). But in
+the general case, we argue that such an approach
+can be problematic because of the varying quality,
+
+                                                        1545
+That is, when attempting to retrieve passages in the      References
+pre-training corpus that ground a model-generated
+sentence, we may incorrectly conclude that the gen-       Ayush Agrawal, Lester Mackey, and Adam Tauman
+erated sentence is not grounded in the pre-training          Kalai. 2023. Do language models know when
+corpus. This is a result of retrieval being imperfect.       they're hallucinating references? arXiv preprint
+Despite this, we suspect that the rate of these false        arXiv:2305.18248.
+negatives is low given: a) manual inspection of
+the ungrounded sentences and b) the relatively high       Hussam Alkaissi and Samy I McFarlane. 2023. Ar-
+true positive rate, i.e., that rate at which we success-     tificial hallucinations in ChatGPT: Implications in
+fully ground generated sentences in pre-training             scientific writing. Cureus, 15(2).
+documents.
+                                                          Sai Anirudh Athaluri, Sandeep Varma Manthena, VSR
+Scattered Correct Information. When attempt-                 Krishna Manoj Kesapragada, Vineel Yarlagadda,
+ing to ground a model-generated sentence, our ap-            Tirth Dave, and Rama Tulasi Siri Duddumpudi. 2023.
+proach considers each source document indepen-               Exploring the boundaries of reality: Investigating
+dently. However, this is limited when a generated            the phenomenon of artificial intelligence hallucina-
+sentence amalgamates information from multiple               tion in scientific writing through ChatGPT references.
+sources, in a way no single source fully supports.           Cureus, 15(4).
+An enhanced method, potentially examining the
+concatenation of multiple source documents, could         Stella Biderman, Hailey Schoelkopf, Quentin Gregory
+address this issue, and we propose this as an area           Anthony, Herbie Bradley, Kyle O'Brien, Eric Hal-
+for future research. A related--and more general--           lahan, Mohammad Aflah Khan, Shivanshu Purohit,
+limitation is our reliance on a grounding model,             USVSN Sai Prashanth, Edward Raff, et al. 2023.
+which is also imperfect.                                     Pythia: A suite for analyzing large language mod-
+                                                             els across training and scaling. In International
+Dependence on Pre-training Data Availability.                Conference on Machine Learning, pages 2397­2430.
+Our methodology relies on accessing the pre-                 PMLR.
+training corpus or a dataset containing most of the
+documents contained therein. This dependence is a         Bernd Bohnet, Vinh Q Tran, Pat Verga, Roee Aharoni,
+significant limitation, especially for models where          Daniel Andor, Livio Baldini Soares, Jacob Eisenstein,
+the pre-training data is not readily available or is         Kuzman Ganchev, Jonathan Herzig, Kai Hui, et al.
+incomplete. Indeed, this requirement significantly           2022. Attributed question answering: Evaluation and
+limits the family of models we use in our experi-            modeling for attributed large language models. arXiv
+ments.                                                       preprint arXiv:2212.08037.
+
+Acknowledgments                                           Sébastien Bubeck, Varun Chandrasekaran, Ronen El-
+                                                             dan, Johannes Gehrke, Eric Horvitz, Ece Kamar,
+                                                             Peter Lee, Yin Tat Lee, Yuanzhi Li, Scott Lund-
+                                                             berg, et al. 2023. Sparks of artificial general intelli-
+                                                             gence: Early experiments with gpt-4. arXiv preprint
+                                                             arXiv:2303.12712.
+
+                                                          Hung-Ting Chen, Fangyuan Xu, Shane A Arora, and
+                                                             Eunsol Choi. 2023. Understanding retrieval aug-
+                                                             mentation for long-form question answering. arXiv
+                                                             preprint arXiv:2310.12150.
+
+Alessandro would like to thank Ari Kobren for             Sehyun Choi, Tianqing Fang, Zhaowei Wang,
+providing an incredibly generous amount of feed-             and Yangqiu Song. 2023. KCTS: Knowledge-
+back, guidance, and practical support throughout             Constrained tree search decoding with token-level
+the project. He would also like to thank the whole           hallucination detection. In Proceedings of the 2023
+Machine Learning Research Group at Oracle Labs,              Conference on Empirical Methods in Natural Lan-
+most notably Adam Pocock, Qinlan Shen, and                   guage Processing, pages 14035­14053, Singapore.
+Michael Wick for providing feedback and help-                Association for Computational Linguistics.
+ing with manual annotation, Jason Peck and Jef-
+frey Alexander for the support with the comput-           Esin Durmus, He He, and Mona Diab. 2020. FEQA: A
+ing infrastructure, and Stephen Green for practical          question answering evaluation framework for faith-
+support. Alessandro is supported by armasuisse               fulness assessment in abstractive summarization. In
+Science and Technology through a CYD Doctoral                Proceedings of the 58th Annual Meeting of the Asso-
+Fellowship.                                                  ciation for Computational Linguistics, pages 5055­
+                                                             5070, Online. Association for Computational Lin-
+                                                             guistics.
+
+                                                          Yanai Elazar, Nora Kassner, Shauli Ravfogel, Amir
+                                                             Feder, Abhilasha Ravichander, Marius Mosbach,
+
+1546
+   Yonatan Belinkov, Hinrich Schütze, and Yoav Gold-         q2: Evaluating factual consistency in knowledge-
+   berg. 2022. Measuring causal effects of data statis-      grounded dialogues via question generation and ques-
+   tics on language model'sfactual'predictions. arXiv        tion answering. In Proceedings of the 2021 Confer-
+   preprint arXiv:2207.14251.                                ence on Empirical Methods in Natural Language Pro-
+Angela Fan, Yacine Jernite, Ethan Perez, David Grang-        cessing, pages 7856­7870, Online and Punta Cana,
+   ier, Jason Weston, and Michael Auli. 2019. ELI5:          Dominican Republic. Association for Computational
+   Long form question answering. In Proceedings of           Linguistics.
+   the 57th Annual Meeting of the Association for Com-    Gautier Izacard and Edouard Grave. 2021. Leveraging
+   putational Linguistics, pages 3558­3567, Florence,        passage retrieval with generative models for open do-
+   Italy. Association for Computational Linguistics.         main question answering. In Proceedings of the 16th
+Leo Gao, Stella Biderman, Sid Black, Laurence Gold-          Conference of the European Chapter of the Associ-
+   ing, Travis Hoppe, Charles Foster, Jason Phang, Ho-       ation for Computational Linguistics: Main Volume,
+   race He, Anish Thite, Noa Nabeshima, et al. 2020.         pages 874­880, Online. Association for Computa-
+   The pile: An 800gb dataset of diverse text for lan-       tional Linguistics.
+   guage modeling. arXiv preprint arXiv:2101.00027.       Gautier Izacard, Patrick Lewis, Maria Lomeli, Lu-
+Luyu Gao, Zhuyun Dai, Panupong Pasupat, Anthony              cas Hosseini, Fabio Petroni, Timo Schick, Jane
+   Chen, Arun Tejasvi Chaganty, Yicheng Fan, Vincent         Dwivedi-Yu, Armand Joulin, Sebastian Riedel, and
+   Zhao, Ni Lao, Hongrae Lee, Da-Cheng Juan, and             Edouard Grave. 2022. Few-shot learning with re-
+   Kelvin Guu. 2023a. RARR: Researching and revis-           trieval augmented language models. arXiv preprint
+   ing what language models say, using language mod-         arXiv:2208.03299.
+   els. In Proceedings of the 61st Annual Meeting of the  Ziwei Ji, Nayeon Lee, Rita Frieske, Tiezheng Yu, Dan
+   Association for Computational Linguistics (Volume 1:      Su, Yan Xu, Etsuko Ishii, Ye Jin Bang, Andrea
+   Long Papers), pages 16477­16508, Toronto, Canada.         Madotto, and Pascale Fung. 2023. Survey of halluci-
+   Association for Computational Linguistics.                nation in natural language generation. ACM Comput-
+Tianyu Gao, Howard Yen, Jiatong Yu, and Danqi Chen.          ing Surveys, 55(12):1­38.
+   2023b. Enabling large language models to generate      Jeff Johnson, Matthijs Douze, and Hervé Jégou. 2019.
+   text with citations. In Proceedings of the 2023 Con-      Billion-scale similarity search with gpus. IEEE
+   ference on Empirical Methods in Natural Language          Transactions on Big Data, 7(3):535­547.
+   Processing, pages 6465­6488, Singapore. Associa-       Vladimir Karpukhin, Barlas Oguz, Sewon Min, Patrick
+   tion for Computational Linguistics.                       Lewis, Ledell Wu, Sergey Edunov, Danqi Chen, and
+Mor Geva, Daniel Khashabi, Elad Segal, Tushar Khot,          Wen-tau Yih. 2020. Dense passage retrieval for open-
+   Dan Roth, and Jonathan Berant. 2021. Did aristotle        domain question answering. In Proceedings of the
+   use a laptop? a question answering benchmark with         2020 Conference on Empirical Methods in Natural
+   implicit reasoning strategies. Transactions of the        Language Processing (EMNLP), pages 6769­6781,
+   Association for Computational Linguistics, 9:346­         Online. Association for Computational Linguistics.
+   361.                                                   Kalpesh Krishna, Aurko Roy, and Mohit Iyyer. 2021.
+Xiaochuang Han and Yulia Tsvetkov. 2022. Orca: In-           Hurdles to progress in long-form question answering.
+   terpreting prompted language models via locating          In Proceedings of the 2021 Conference of the North
+   supporting data evidence in the ocean of pretraining      American Chapter of the Association for Computa-
+   data. arXiv preprint arXiv:2205.12600.                    tional Linguistics: Human Language Technologies,
+Ari Holtzman, Jan Buys, Li Du, Maxwell Forbes, and           pages 4940­4957, Online. Association for Computa-
+   Yejin Choi. 2019. The curious case of neural text         tional Linguistics.
+   degeneration. arXiv preprint arXiv:1904.09751.         Patrick Lewis, Ethan Perez, Aleksandra Piktus, Fabio
+Or Honovich, Roee Aharoni, Jonathan Herzig, Hagai            Petroni, Vladimir Karpukhin, Naman Goyal, Hein-
+   Taitelbaum, Doron Kukliansy, Vered Cohen, Thomas          rich Küttler, Mike Lewis, Wen-tau Yih, Tim Rock-
+   Scialom, Idan Szpektor, Avinatan Hassidim, and            täschel, et al. 2020. Retrieval-augmented generation
+   Yossi Matias. 2022. TRUE: Re-evaluating factual           for knowledge-intensive nlp tasks. Advances in Neu-
+   consistency evaluation. In Proceedings of the 2022        ral Information Processing Systems, 33:9459­9474.
+   Conference of the North American Chapter of the        Dongfang Li, Zetian Sun, Xinshuo Hu, Zhenyu Liu,
+   Association for Computational Linguistics: Human          Ziyang Chen, Baotian Hu, Aiguo Wu, and Min
+   Language Technologies, pages 3905­3920, Seattle,          Zhang. 2023. A survey of large language models
+   United States. Association for Computational Lin-         attribution. arXiv preprint arXiv:2311.03731.
+   guistics.                                              Chin-Yew Lin. 2004. ROUGE: A package for auto-
+Or Honovich, Leshem Choshen, Roee Aharoni, Ella              matic evaluation of summaries. In Text Summariza-
+   Neeman, Idan Szpektor, and Omri Abend. 2021.              tion Branches Out, pages 74­81, Barcelona, Spain.
+                                                             Association for Computational Linguistics.
+
+1547
+Nelson F Liu, Tianyi Zhang, and Percy Liang. 2023.           Guilherme Penedo, Quentin Malartic, Daniel Hesslow,
+   Evaluating verifiability in generative search engines.       Ruxandra Cojocaru, Alessandro Cappelli, Hamza
+   arXiv preprint arXiv:2304.09848.                             Alobeidli, Baptiste Pannier, Ebtesam Almazrouei,
+                                                                and Julien Launay. 2023. The RefinedWeb dataset
+Shayne Longpre, Kartik Perisetla, Anthony Chen,                 for Falcon LLM: Outperforming curated corpora
+   Nikhil Ramesh, Chris DuBois, and Sameer Singh.               with web data, and web data only. arXiv preprint
+   2021. Entity-based knowledge conflicts in question           arXiv:2306.01116.
+   answering. In Proceedings of the 2021 Conference
+   on Empirical Methods in Natural Language Process-         Colin Raffel, Noam Shazeer, Adam Roberts, Katherine
+   ing, pages 7052­7063, Online and Punta Cana, Do-             Lee, Sharan Narang, Michael Matena, Yanqi Zhou,
+   minican Republic. Association for Computational              Wei Li, and Peter J Liu. 2020. Exploring the limits
+   Linguistics.                                                 of transfer learning with a unified text-to-text trans-
+                                                                former. The Journal of Machine Learning Research,
+Alex Mallen, Akari Asai, Victor Zhong, Rajarshi Das,            21(1):5485­5551.
+   Daniel Khashabi, and Hannaneh Hajishirzi. 2023.
+   When not to trust language models: Investigating          Hannah Rashkin, Vitaly Nikolaev, Matthew Lamm,
+   effectiveness of parametric and non-parametric mem-          Lora Aroyo, Michael Collins, Dipanjan Das, Slav
+   ories. In Proceedings of the 61st Annual Meeting of          Petrov, Gaurav Singh Tomar, Iulia Turc, and David
+   the Association for Computational Linguistics (Vol-          Reitter. 2023. Measuring attribution in natural lan-
+   ume 1: Long Papers), pages 9802­9822, Toronto,               guage generation models. Computational Linguistics,
+   Canada. Association for Computational Linguistics.           pages 1­66.
+
+Joshua Maynez, Shashi Narayan, Bernd Bohnet, and             Nils Reimers and Iryna Gurevych. 2019. Sentence-
+   Ryan McDonald. 2020. On faithfulness and factu-              BERT: Sentence embeddings using Siamese BERT-
+   ality in abstractive summarization. In Proceedings           networks. In Proceedings of the 2019 Conference on
+   of the 58th Annual Meeting of the Association for            Empirical Methods in Natural Language Processing
+   Computational Linguistics, pages 1906­1919, On-              and the 9th International Joint Conference on Natu-
+   line. Association for Computational Linguistics.             ral Language Processing (EMNLP-IJCNLP), pages
+                                                                3982­3992, Hong Kong, China. Association for Com-
+R Thomas McCoy, Paul Smolensky, Tal Linzen, Jian-               putational Linguistics.
+   feng Gao, and Asli Celikyilmaz. 2023. How much do
+   language models copy from their training data? evalu-     Kurt Shuster, Spencer Poff, Moya Chen, Douwe Kiela,
+   ating linguistic novelty in text generation using raven.     and Jason Weston. 2021. Retrieval augmentation
+   Transactions of the Association for Computational            reduces hallucination in conversation. In Findings
+   Linguistics, 11:652­670.                                     of the Association for Computational Linguistics:
+                                                                EMNLP 2021, pages 3784­3803, Punta Cana, Do-
+Tom McCoy, Ellie Pavlick, and Tal Linzen. 2019. Right           minican Republic. Association for Computational
+   for the wrong reasons: Diagnosing syntactic heuris-          Linguistics.
+   tics in natural language inference. In Proceedings of
+   the 57th Annual Meeting of the Association for Com-       Chenglei Si, Zhe Gan, Zhengyuan Yang, Shuohang
+   putational Linguistics, pages 3428­3448, Florence,           Wang, Jianfeng Wang, Jordan Lee Boyd-Graber, and
+   Italy. Association for Computational Linguistics.            Lijuan Wang. 2022. Prompting GPT-3 to be reli-
+                                                                able. In The Eleventh International Conference on
+Sewon Min, Suchin Gururangan, Eric Wallace, Han-                Learning Representations.
+   naneh Hajishirzi, Noah A Smith, and Luke Zettle-
+   moyer. 2023. Silo language models: Isolating legal        Ivan Stelmakh, Yi Luan, Bhuwan Dhingra, and Ming-
+   risk in a nonparametric datastore. arXiv preprint            Wei Chang. 2022. ASQA: Factoid questions meet
+   arXiv:2308.04430.                                            long-form answers. In Proceedings of the 2022 Con-
+                                                                ference on Empirical Methods in Natural Language
+Reiichiro Nakano, Jacob Hilton, Suchir Balaji, Jeff Wu,         Processing, pages 8273­8288, Abu Dhabi, United
+   Long Ouyang, Christina Kim, Christopher Hesse,               Arab Emirates. Association for Computational Lin-
+   Shantanu Jain, Vineet Kosaraju, William Saunders,            guistics.
+   et al. 2021. Webgpt: Browser-assisted question-
+   answering with human feedback. arXiv preprint             Dan Su, Xiaoguang Li, Jindi Zhang, Lifeng Shang, Xin
+   arXiv:2112.09332.                                            Jiang, Qun Liu, and Pascale Fung. 2022. Read before
+                                                                generate! faithful long form question answering with
+Jianmo Ni, Chen Qu, Jing Lu, Zhuyun Dai, Gustavo                machine reading. In Findings of the Association for
+   Hernandez Abrego, Ji Ma, Vincent Zhao, Yi Luan,              Computational Linguistics: ACL 2022, pages 744­
+   Keith Hall, Ming-Wei Chang, and Yinfei Yang. 2022.           756, Dublin, Ireland. Association for Computational
+   Large dual encoders are generalizable retrievers. In         Linguistics.
+   Proceedings of the 2022 Conference on Empirical
+   Methods in Natural Language Processing, pages             MosaicML NLP Team. 2023. Introducing MPT-7B: A
+   9844­9855, Abu Dhabi, United Arab Emirates. As-              new standard for open-source, commercially usable
+   sociation for Computational Linguistics.                     LLMs.
+
+1548
+Alex Wang, Kyunghyun Cho, and Mike Lewis. 2020a.
+   Asking and answering questions to evaluate the fac-
+   tual consistency of summaries. In Proceedings of the
+   58th Annual Meeting of the Association for Compu-
+   tational Linguistics, pages 5008­5020, Online. Asso-
+   ciation for Computational Linguistics.
+
+Wenhui Wang, Furu Wei, Li Dong, Hangbo Bao, Nan
+   Yang, and Ming Zhou. 2020b. Minilm: Deep self-
+   attention distillation for task-agnostic compression
+   of pre-trained transformers. Advances in Neural In-
+   formation Processing Systems, 33:5776­5788.
+
+Orion Weller, Marc Marone, Nathaniel Weir, Dawn
+   Lawrie, Daniel Khashabi, and Benjamin Van Durme.
+   2024. "according to . . . ": Prompting language
+   models improves quoting from pre-training data. In
+   Proceedings of the 18th Conference of the European
+   Chapter of the Association for Computational Lin-
+   guistics (Volume 1: Long Papers), pages 2288­2301,
+   St. Julian's, Malta. Association for Computational
+   Linguistics.
+
+Fangyuan Xu, Yixiao Song, Mohit Iyyer, and Eunsol
+   Choi. 2023. A critical evaluation of evaluations for
+   long-form question answering. In Proceedings of the
+   61st Annual Meeting of the Association for Compu-
+   tational Linguistics (Volume 1: Long Papers), pages
+   3225­3245, Toronto, Canada. Association for Com-
+   putational Linguistics.
+
+Zhilin Yang, Peng Qi, Saizheng Zhang, Yoshua Bengio,
+   William Cohen, Ruslan Salakhutdinov, and Christo-
+   pher D. Manning. 2018. HotpotQA: A dataset for
+   diverse, explainable multi-hop question answering.
+   In Proceedings of the 2018 Conference on Empiri-
+   cal Methods in Natural Language Processing, pages
+   2369­2380, Brussels, Belgium. Association for Com-
+   putational Linguistics.
+
+Xiang Yue, Boshi Wang, Kai Zhang, Ziru Chen, Yu Su,
+   and Huan Sun. 2023. Automatic evaluation of at-
+   tribution by large language models. arXiv preprint
+   arXiv:2305.06311.
+
+                                                            1549
+A Prompting Details                                    stances inspected contain factually incorrect infor-
+                                                       mation. We report some examples of generations
+To elicit models to generate long-form answers         by Pythia 12B in Table 3.
+leveraging the retrieved documents, we construct
+a few-shot prompt with exemplars of question-             While the factual incorrectness of a sentence
+documents-answer triples. In particular, we use        does not definitively rule out support from pre-
+3-shot prompts on HotpotQA and StrategyQA and          training documents, it strongly suggests their ab-
+2-shot prompts on ASQA (due to the longer docu-        sence. We therefore believe that our method of
+ments used for this dataset). In Table 4, we provide   retrieving from the pre-training corpus represents a
+an example of a prompt used on ASQA.                   reasonable approximation for verifying grounded-
+                                                       ness in this context.
+
+B Pre-training Corpus Retrieval                        C Groundedness Verification Method
+
+B.1 Retrieval Details                                  We performed inference with the TRUE model
+                                                       (Honovich et al., 2022) following previous work
+The retrieval procedure from the pre-training cor-     that employed the model for attribution verification
+pora was carried out by first dividing the corpus      (Gao et al., 2023a; Bohnet et al., 2022; Gao et al.,
+into passages of 768 contiguous characters. Then,      2023b; Chen et al., 2023): the model was prompted
+each passage was embedded using the MiniLM-            with a concatenation of a potential supporting doc-
+v2 (Wang et al., 2020b) sentence-Transformer           ument (preceded by the string "premise:") and an
+(Reimers and Gurevych, 2019). This procedure           LLM-generated statement (preceded by the string
+was carried out in parallel by 12 64-CPU comput-       "hypothesis:"). If the model's output is "1", then
+ing nodes in parallel and took 24 hours for each       the generated statement is considered grounded in
+corpus. Finally, given a sentence generated by a       the supporting document, otherwise not.
+model, a search for the 5 most relevant passages
+in the corpus was performed using the FAISS li-        C.1 Evaluation of the Verification Method
+brary (Johnson et al., 2019). The search was carried
+out in parallel by 20 computing nodes on different     The validation of the model was carried
+subsets of the corpus and took 12 hours for all        out by a team of 5 annotators (consisting
+sentences generated by a model on a dataset.           of the author and collaborators), each of
+                                                       whom was assigned a set of 20 instances of
+B.2 Validation of the Retrieval Procedure              (q, s, R(q), RC(s), gR(q)(s), gRC(s)(s)), where
+
+Given the size of pre-training corpora, it is pos-         · q is a question,
+sible for our retrieval approach to produce false
+negatives. However, we believe that the rate of            · s is a statement belonging to the model-
+these false negatives is low for two main reasons.           generated answer to q,
+First, the rate of positives (i.e., the rate at which
+we successfully ground generated sentences in pre-         · R(q) are the documents retrieved to augment
+training documents) is relatively high (e.g., 34%            the LLM generation,
+and 48% of the overall statements for Pythia 12B
+and Falcon 180B, respectively). Second, when               · RC(s) are the pre-training documents re-
+manually inspecting ungrounded sentences, we no-             trieved post-generation,
+tice that a large number of them are nonsensical or
+contain fabricated information.                            · gR(q)(s) and gRC(s)(s) are the groundedness
+                                                             predictions of the TRUE model with respect
+   Moreover, we carry out an additional validation           to each of the potential supporting document.
+study. Recognizing the impracticality of conduct-
+ing a comprehensive search across the entire pre-      The 20 instances are sampled at random, mak-
+training corpus to definitively show the absence of    ing sure that an equal amount of instances comes
+supporting text for a given claim, we opt for a fo-    from each of the categories: ungrounded, grounded
+cused approach. We analyze a random subset of the      in the pre-training documents only, grounded in
+generated statements that are judged ungrounded        the pre-generation retrieved documents only, and
+and manually determine whether each sentence is        grounded in both types of documents. For each
+factually correct. We found that 40 out of 50 in-      instance, an annotator determines whether the pre-
+                                                       dictions of the groundedness model are correct or
+
+                                 1550
+Query q                                Generated Sentence s                                            Comment
+Who's the highest paid NBA player in   Kobe Bryant became the third player to                          Kobe Bryant retired in 2016.
+2017?                                  achieve the milestone of earning $40-                           Australia's first appearance in the
+How many medals did Australia win in   Million in the 2016­17 season, surpass-                         Olympics was in 1896.
+the 2000 Olympics?                     ing the record of 29-Million he had                             The last sentence is correct and
+                                       earned the previous season.                                     grounded in a retrieved document, but
+What is the oldest company in the Dow  The host nation had never entered in the                        the statement "In the early 2000s, the
+Jones index?                           Summer Olympics before, the Sydney                              Dow Jones Industrial Average was
+                                       Olympics being Australia's first appear-                        composed of the following nine
+                                       ance.                                                           companies" is hallucinated.
+                                       In the early 2000s, the Dow Jones In-
+                                       dustrial Average was composed of the
+                                       following nine companies: The com-
+                                       ponents of the DJIA have changed 52
+                                       times since its beginning on May 26,
+                                       1896. General Electric had the longest
+                                       continuous presence on the index, be-
+                                       ginning in 1907 and ending in 2018.
+
+Table 3: Examples of ungrounded generations. The generated content features hallucinated details that render the
+statements factually incorrect. The examples are obtained with Pythia 12B on ASQA.
+
+not. A score of 1 was assigned by the annotator if     Fraction of Statements     Groundedness Scores on HotpotQA                                   None
+the groundedness model accurately identified the                                                                                                    Both
+supporting document subset (which could be none,                               0.8                                                                  Retr. Docs
+in the case of ungrounded content) for the given                                                                                                    PT Corpus
+LLM-generated statement. Conversely, a score of                                0.7
+0 was given if the model failed to correctly identify
+the supporting documents.                                                      0.6
+
+D Additional Experimental Details                                              0.5
+
+Computing infrastructure. All experiments                                      0.4
+with models in the size range 70M-12B were car-
+ried out using a single 40GB Nvidia A100. Genera-                              0.3
+tions with MPT 30B and Falcon 40B were obtained
+using four 40GB Nvidia A100s, and with Falcon                                  0.2
+180B using eight 40GB Nvidia A100s. The runtime
+for each model on each dataset was 12 hours.                                   0.1
+
+Licenses. For our analyses we three QA datasets                                0 PythiaP7y0thMiaP1y6th0iMaP4y1th0iMaP1yBthiaP1y.t4hBiaP2y.t8hBiaP6y.t9hBiaF1a2lcBonF7aBlconF4a0lcBon 180B
+(ASQA, HotpotQA, and StrategyQA) and three pre-
+training corpora (the Pile, C4, and OLC). ASQA                                                         Model
+is available under the Apache 2.0 license, Strate-
+gyQA, the Pile, and OLC are available under the        Figure 8: Groundedness by size. The results are con-
+MIT license, HotpotQA is available under CC-BY,        sistent with the one obtained on ASQA.
+and C4 is released under the terms of ODC-BY.
+                                                       Fraction of Statements        Groundedness Scores on ASQA                                    None
+E Additional Results                                                                                                                                Both
+                                                                               0.8                                                                  Retr. Docs
+In Figure 8, we report the groundedness scores                                 0.6                                                                  PT Corpus
+computed for the Pythia and Falcon models with                                 0.4
+different sizes on HotpotQA. We observe similar
+trends to the ASQA setting. Figure 9 illustrates the                           0.2
+groundedness scores obtained with different Falcon
+and MPT models on StrategyQA.                                                  0    Falcon     Falcon      Falcon       MPT      MPT  MPT
+                                                                                           7B          7B+Inst.
+                                                                                                                   40B       7B       7B+Inst. 30B
+
+                                                                                                       Model
+
+                                                       Figure 9: Groundedness on StrategyQA. As in previ-
+                                                       ous figures, the size of each bar represents the fraction
+                                                       of generated sentences that belong to partially correct
+                                                       generations.
+
+                                       1551
+Instruction: Write an accurate, engaging, and concise answer for the given question, possibly using the provided search
+results (some of which might be irrelevant).
+Question: Who played galen in planet of the apes?
+Document [1](Title: Planet of the Apes): installment. Jacobs died on June 27, 1973, bringing an end to the APJAC Productions
+era of the "Planet of the Apes" franchise. Former Fox executive Stan Hough took over as producer for the television project,
+titled "Planet of the Apes". CBS picked up the series for its 1974 autumn lineup. Ron Harper and James Naughton played
+Alan Virdon and Peter Burke, two 20th-century American astronauts who pass through a time warp to a future where apes
+subjugate humans (unlike the original film, the humans can speak). Roddy McDowall returned to the franchise as Galen, a
+chimpanzee who joins the astronauts.
+Document [2](Title: Planet of the Apes (1968 film)): chimpanzees: animal psychologist Zira (Kim Hunter) and surgeon
+Galen (Wright King). While unable to speak as his throat wound is healing, called "Bright Eyes" by Zira and placed with one
+of the captive primitive humans he later names "Nova", Taylor observes the enhanced society of talking apes and in a strict
+caste system: the gorillas being the military police, hunters and workers; the orangutans overseeing the affairs of government,
+science, and religion; and intellectual chimpanzees being mostly scientists. While their society is a theocracy similar to the
+beginnings of the human Industrial Era, the apes consider the primitive humans as
+Document [3](Title: Planet of the Apes (1968 film)): Planet of the Apes (1968 film) Planet of the Apes is a 1968 American
+science fiction film directed by Franklin J. Schaffner. It stars Charlton Heston, Roddy McDowall, Kim Hunter, Maurice
+Evans, James Whitmore, James Daly and Linda Harrison. The screenplay by Michael Wilson and Rod Serling was loosely
+based on the 1963 French novel "La Planète des Singes" by Pierre Boulle. Jerry Goldsmith composed the groundbreaking
+avant-garde score. It was the first in a series of five films made between 1968 and 1973, all produced by Arthur P. Jacobs and
+released by 20th Century Fox. The film tells the
+Answer: In the 1968 film Planet of the Apes, Galen was played by Wright King. And in the tv series Planet of the Apes,
+Galen was played by Roddy McDowall.
+Instruction: Write an accurate, engaging, and concise answer for the given question, possibly using the provided search
+results (some of which might be irrelevant).
+Question: Who has the highest goals in world football?
+Document [1](Title: Argentina­Brazil football rivalry): "Football Player of the Century", by IFFHS International Federation
+of Football History and Statistics, 1999, "South America Football Player of the Century", by IFFHS International Federation
+of Football History and Statistics. Pelé's 1281 goals are recognized by FIFA as the highest total achieved by a professional
+footballer, although the Soccer Statistic Foundation (rssf) recognizes only 767 goals in official mode, occupying the third
+place after Josef Bican (805) and Romario (772). For his part, Maradona has been named the best soccer player in World Cup
+history both by The Times and FourFourTwo, publication that also rewarded him as the "Best
+Document [2](Title: Godfrey Chitalu): have beaten Gerd Müller's record of 85 goals in a year, the Football Association
+of Zambia claimed that the world record actually pertained to Godfrey Chitalu who had scored 116 goals (possibly 117)
+during the 1972 calendar year and 107 during the 1972 season. The difference of goals is due to first 9 goals being scored
+before the season officially started. The Football Association of Zambia presented the evidence to FIFA but a spokesperson
+responded that they would ratify neither Lionel Messi's nor Chitalu's records as they do not keep statistical track of domestic
+competitions. Nonetheless, it could constitute the
+Document [3](Title: Godfrey Chitalu): highest official tally claimed by a national football association. Chitalu made his
+international debut on 29 June 1968 in a friendly match against Uganda in Lusaka which Zambia won 2­1. He scored his first
+goal in a 2­2 draw against the same team five days later. Chitalu played a prominent role during the World Cup qualification
+matches against Sudan with Zambia being eliminated on a strange rule which was peculiar to Africa and favoured the team
+that won the second leg. Despite the aggregate score being tied at 6­6 after Zambia won the first leg 4­2 and lost the return
+Answer:
+
+   Table 4: Example of prompt with one exemplar of question-documents-answer triple, used for ASQA.
+
+                                                          1552
+

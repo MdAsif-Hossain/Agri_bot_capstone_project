@@ -21,6 +21,9 @@ rank-bm25>=0.2.2
 # Reranking
 flashrank>=0.2.0
 
+# Vision (CBAM CNN inference)
+onnxruntime>=1.16.0
+
 # PDF Processing (Layout-aware extraction — Marker/Surya)
 marker-pdf>=1.0.0
 

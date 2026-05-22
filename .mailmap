@@ -1,0 +1,11 @@
+# .mailmap — consolidate contributor identities
+#
+# Format: Canonical Name <canonical@email> Other Name <other@email>
+# Used by git log/shortlog. GitHub also respects this for blame/PR display
+# in some surfaces, but the public Contributors graph is computed from
+# raw commit emails and is not affected.
+
+# All authored work consolidated under Md. Asif Hossain
+Md. Asif Hossain <asifhossain8612@gmail.com> MdAsif-Hossain <asifhossain8612@gmail.com>
+Md. Asif Hossain <asifhossain8612@gmail.com> claude <noreply@anthropic.com>
+Md. Asif Hossain <asifhossain8612@gmail.com> Claude Opus 4.7 <noreply@anthropic.com>

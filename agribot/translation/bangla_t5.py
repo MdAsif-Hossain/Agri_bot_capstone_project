@@ -42,14 +42,14 @@ class BanglaTranslator:
         self.device = device
 
         # EN→BN model
-        logger.info("Loading BanglaT5 EN→BN: %s", self.EN_TO_BN_MODEL)
+        logger.info("Loading BanglaT5 EN->BN: %s", self.EN_TO_BN_MODEL)
         self.en_bn_tokenizer = AutoTokenizer.from_pretrained(self.EN_TO_BN_MODEL)
         self.en_bn_model = AutoModelForSeq2SeqLM.from_pretrained(self.EN_TO_BN_MODEL)
         self.en_bn_model.to(device)
         self.en_bn_model.eval()
 
         # BN→EN model
-        logger.info("Loading BanglaT5 BN→EN: %s", self.BN_TO_EN_MODEL)
+        logger.info("Loading BanglaT5 BN->EN: %s", self.BN_TO_EN_MODEL)
         self.bn_en_tokenizer = AutoTokenizer.from_pretrained(self.BN_TO_EN_MODEL)
         self.bn_en_model = AutoModelForSeq2SeqLM.from_pretrained(self.BN_TO_EN_MODEL)
         self.bn_en_model.to(device)
