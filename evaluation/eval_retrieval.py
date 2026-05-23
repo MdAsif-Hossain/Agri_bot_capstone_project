@@ -23,22 +23,28 @@ from evaluation.common import (
 )
 
 
+def _chunk_meta(chunk_or_ev) -> tuple[str, int]:
+    """Extract (source_file, page_num) whether the object is an EvidenceChunk
+    (wraps .chunk) or a raw Chunk (has fields directly) or a dict."""
+    inner = getattr(chunk_or_ev, "chunk", chunk_or_ev)  # unwrap EvidenceChunk
+    if isinstance(inner, dict):
+        return str(inner.get("source_file", "")), int(inner.get("page_num", -1))
+    return str(getattr(inner, "source_file", "")), int(getattr(inner, "page_num", -1))
+
+
 def _hit_rank(retrieved, expected_sources) -> int | None:
     """Return 1-based rank of the first retrieved chunk that matches an
-    expected (source_file, near_page) pair, or None if no match."""
+    expected source_file (page tolerance ±2)."""
     expected_map: dict[str, set[int]] = defaultdict(set)
     for src in expected_sources:
         expected_map[src["source_file"]].update(src.get("expected_pages", []))
 
     for rank, chunk in enumerate(retrieved, start=1):
-        src = getattr(chunk, "source_file", None) or chunk.get("source_file")
-        page = getattr(chunk, "page_num", None) or chunk.get("page_num")
+        src, page = _chunk_meta(chunk)
         if src in expected_map:
-            # Page tolerance: ±2 to handle page-split heuristics in the loader
             if any(abs(page - ep) <= 2 for ep in expected_map[src]):
                 return rank
-            # Accept source-match even on far page as a partial hit so we don't
-            # over-penalize for chunker page boundaries that drift
+            # Source matches but page is off — still counts as a (weaker) hit
             return rank
     return None
 
@@ -56,13 +62,13 @@ def run(top_k_values: list[int]) -> dict:
     retriever = HybridRetriever(
         index_bundle=bundle,
         embedding_model=embedder,
-        dense_top_k=max(top_k_values),
-        sparse_top_k=max(top_k_values),
+        dense_top_k=max(max(top_k_values), settings.DENSE_TOP_K),
+        sparse_top_k=max(max(top_k_values), settings.SPARSE_TOP_K),
         dense_weight=settings.DENSE_WEIGHT,
         sparse_weight=settings.SPARSE_WEIGHT,
     )
     reranker = Reranker(
-        model_dir=str(settings.BASE_DIR / "models" / "reranker" / "ms-marco-MiniLM-L-12-v2"),
+        model_name="ms-marco-MiniLM-L-12-v2",
         top_n=max(top_k_values),
         threshold=settings.RERANK_THRESHOLD,
     )
@@ -82,26 +88,23 @@ def run(top_k_values: list[int]) -> dict:
         if not q["expected_sources"]:
             continue
         t0 = time.perf_counter()
-        candidates = retriever.retrieve(q["query"])
+        candidates = retriever.retrieve(q["query"], top_n=max(top_k_values) * 2)
         ranked = reranker.rerank(q["query"], candidates) if candidates else []
         elapsed_ms = (time.perf_counter() - t0) * 1000
         timings.append(elapsed_ms)
 
         rank = _hit_rank(ranked, q["expected_sources"])
         ranks.append(rank)
+        top1_meta = None
+        if ranked:
+            src, page = _chunk_meta(ranked[0])
+            top1_meta = {"source_file": src, "page_num": page}
         per_query.append(
             {
                 "id": q["id"],
                 "category": q["category"],
                 "rank": rank,
-                "retrieved_top1": (
-                    {
-                        "source_file": getattr(ranked[0], "source_file", "?"),
-                        "page_num": getattr(ranked[0], "page_num", -1),
-                    }
-                    if ranked
-                    else None
-                ),
+                "retrieved_top1": top1_meta,
             }
         )
 
