@@ -1,4 +1,5 @@
-.PHONY: setup install test run run-dev ingest build-frontend
+.PHONY: setup install test run run-dev ingest build-frontend \
+        eval-retrieval eval-grounding eval-refusal eval-latency stress eval-all
 
 # Global Python alias
 PYTHON := python
@@ -32,3 +33,23 @@ ingest:
 # Run Python tests
 test:
 	$(PYTHON) -m pytest tests/ -v
+
+# Evaluation harness (writes JSON to evaluation/results/)
+# Retrieval is offline (no backend needed); the rest require `make run`.
+eval-retrieval:
+	$(PYTHON) evaluation/eval_retrieval.py
+
+eval-grounding:
+	$(PYTHON) evaluation/eval_grounding.py
+
+eval-refusal:
+	$(PYTHON) evaluation/eval_refusal.py
+
+eval-latency:
+	$(PYTHON) evaluation/eval_latency.py --runs 3
+
+stress:
+	$(PYTHON) evaluation/stress_test.py --concurrency 5 --total 20
+
+eval-all: eval-retrieval eval-grounding eval-refusal eval-latency stress
+	@echo "All evals complete. See evaluation/results/*.json"
