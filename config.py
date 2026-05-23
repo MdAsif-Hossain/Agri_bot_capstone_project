@@ -95,6 +95,11 @@ class AgriConfig(BaseSettings):
     CORS_ORIGINS: str = "http://localhost:5173,http://localhost:8000"
     API_KEY: str = ""  # If set, require X-API-Key header
 
+    # --- Rate Limiting (per client IP, token bucket) ---
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_PER_MINUTE: int = 30  # Max requests per minute per client IP
+    RATE_LIMIT_BURST: int = 10  # Burst capacity on top of steady rate
+
     # --- Noise Filtering ---
     HEADER_FOOTER_FREQ_THRESHOLD: float = 0.5  # Lines appearing in >50% of pages
     TOC_KEYWORDS: list[str] = [

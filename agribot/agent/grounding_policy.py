@@ -102,6 +102,47 @@ def is_risky_query(query: str) -> bool:
     return any(pat.search(query) for pat in RISK_PATTERNS)
 
 
+# Threshold below which we treat the image classifier's top prediction as
+# unreliable enough that we should ask the farmer for clarification instead
+# of producing a confident-sounding answer.
+VISION_LOW_CONFIDENCE_THRESHOLD = 0.55
+
+
+def _vision_followups(state: AgentState) -> list[str]:
+    """Build clarifying follow-ups when an image was provided but the
+    classifier's top prediction is weak. Returns an empty list when no image
+    was uploaded or when vision confidence is high enough to skip follow-ups.
+    """
+    if state.get("input_mode") != "image":
+        return []
+
+    top_conf = float(state.get("image_top_confidence", 0.0) or 0.0)
+    top_label = (state.get("image_top_label", "") or "").strip()
+    hints = state.get("image_symptom_hints", []) or []
+
+    if top_conf >= VISION_LOW_CONFIDENCE_THRESHOLD and top_label:
+        return []
+
+    followups: list[str] = []
+    if top_label and top_conf > 0:
+        followups.append(
+            f"The image looks like possible {top_label} ({int(top_conf * 100)}% confidence). "
+            "Can you confirm what the affected area looks like in person?"
+        )
+    if hints:
+        followups.append(
+            "I noticed: " + "; ".join(hints[:2]) + ". Is that consistent with what you see?"
+        )
+    followups.extend(
+        [
+            "Which part of the plant is affected — leaves, stems, roots, or grains?",
+            "How widespread is the problem across the field (a few plants, a patch, or most of the crop)?",
+            "When did the symptoms first appear, and have they been spreading?",
+        ]
+    )
+    return followups[:4]
+
+
 def _extract_cited_facts(answer: str, evidence_texts: str) -> str:
     """
     Extract only sentences from the answer that have direct support
@@ -216,6 +257,14 @@ def make_enforce_policy_node(
                 if answer_bn and DISCLAIMER_BN not in answer_bn:
                     answer_bn = answer_bn + DISCLAIMER_BN
 
+        # Vision-aware follow-ups: if the request had an image and the
+        # classifier's top prediction is weak, prefer specific clarifying
+        # questions over generic ones. Suppress for already-strong, verified
+        # answers so we don't second-guess a good result.
+        vision_followups = _vision_followups(state)
+        if vision_followups and (not is_verified or action != "pass"):
+            follow_ups = vision_followups
+
         result: dict = {
             "grounding_action": action,
             "follow_up_suggestions": follow_ups,
@@ -227,9 +276,10 @@ def make_enforce_policy_node(
             result["answer_bn"] = answer_bn
 
         logger.info(
-            "Grounding policy applied: action=%s, risky=%s",
+            "Grounding policy applied: action=%s, risky=%s, vision_followups=%s",
             action,
             risky,
+            bool(vision_followups),
             extra={"trace_id": state.get("trace_id", "")},
         )
         return result

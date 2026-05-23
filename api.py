@@ -409,9 +409,26 @@ class TTSRequest(BaseModel):
 
 
 def _build_initial_state(
-    query: str, input_mode: str = "text", trace_id: str = ""
+    query: str,
+    input_mode: str = "text",
+    trace_id: str = "",
+    image_block: "ImageBlock | None" = None,
 ) -> dict:
     """Build the initial agent state for a query."""
+    image_top_label = ""
+    image_top_confidence = 0.0
+    image_symptom_hints: list[str] = []
+    if image_block is not None and image_block.possible_conditions:
+        top = image_block.possible_conditions[0]
+        image_top_label = str(top.get("label", ""))
+        try:
+            image_top_confidence = float(top.get("confidence", 0.0))
+        except (TypeError, ValueError):
+            image_top_confidence = 0.0
+        image_symptom_hints = list(
+            image_block.analysis_summary.get("symptom_hints", [])
+        )
+
     return {
         "query_original": query,
         "query_language": "",
@@ -430,6 +447,9 @@ def _build_initial_state(
         "should_refuse": False,
         "input_mode": input_mode,
         "input_audio_path": "",
+        "image_top_label": image_top_label,
+        "image_top_confidence": image_top_confidence,
+        "image_symptom_hints": image_symptom_hints,
         "error": "",
         "trace_id": trace_id,
         "timings_ms": {},
@@ -469,7 +489,9 @@ async def _run_agent(
 
     try:
         agent = _services["agent"]
-        initial_state = _build_initial_state(query, input_mode, trace_id)
+        initial_state = _build_initial_state(
+            query, input_mode, trace_id, image_block=image_block
+        )
 
         # Run agent in thread pool
         loop = asyncio.get_event_loop()

@@ -43,6 +43,11 @@ class AgentState(TypedDict):
     input_mode: str  # "text", "voice", or "image"
     input_audio_path: str  # Path to recorded audio (if voice input)
 
+    # --- Vision context (set by API layer when input_mode == "image") ---
+    image_top_label: str  # Top condition label from classifier (empty if none)
+    image_top_confidence: float  # Top condition confidence in [0, 1]; 0.0 if none
+    image_symptom_hints: list[str]  # Heuristic symptom hints from PIL/NumPy analyzer
+
     # --- Control ---
     retry_count: int  # Current retry iteration
     should_refuse: bool  # Whether to refuse answering

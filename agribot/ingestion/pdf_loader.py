@@ -6,6 +6,7 @@ figures) and Tesseract OCR for scanned pages. Includes noise filtering to
 detect/remove repeated headers/footers and classify page types.
 """
 
+import os
 import re
 import logging
 from pathlib import Path
@@ -13,6 +14,46 @@ from dataclasses import dataclass
 from collections import Counter
 
 logger = logging.getLogger(__name__)
+
+# Cache Marker's model dict across PDFs in a single ingest run.
+# Loading is expensive (~5 GB models from HF on first use), so we do it once.
+_MARKER_MODELS = None
+_MARKER_LOAD_FAILED = False
+
+
+def _get_marker_models():
+    """Lazy-load Marker model artifacts once per process.
+
+    Returns None if loading fails or AGRIBOT_DISABLE_MARKER=1 is set, in which
+    case callers must use the pypdf/OCR fallback path.
+    """
+    global _MARKER_MODELS, _MARKER_LOAD_FAILED
+
+    if os.environ.get("AGRIBOT_DISABLE_MARKER") == "1":
+        return None
+
+    if _MARKER_LOAD_FAILED:
+        return None
+
+    if _MARKER_MODELS is not None:
+        return _MARKER_MODELS
+
+    try:
+        from marker.models import create_model_dict
+
+        logger.info(
+            "Loading Marker model artifacts (one-time, may download ~5 GB on first run)..."
+        )
+        _MARKER_MODELS = create_model_dict()
+        logger.info("Marker models loaded.")
+        return _MARKER_MODELS
+    except Exception as e:
+        logger.warning(
+            "Failed to load Marker models: %s. Falling back to pypdf for all PDFs.",
+            e,
+        )
+        _MARKER_LOAD_FAILED = True
+        return None
 
 
 @dataclass
@@ -37,12 +78,19 @@ def _extract_with_marker(pdf_path: Path) -> list[PageData]:
     source_name = pdf_path.name
     pages: list[PageData] = []
 
+    artifact_dict = _get_marker_models()
+    if artifact_dict is None:
+        return _extract_with_fallback(pdf_path)
+
     try:
         from marker.converters.pdf import PdfConverter
         from marker.config.parser import ConfigParser
 
         config_parser = ConfigParser({"output_format": "markdown"})
-        converter = PdfConverter(config=config_parser.generate_config_dict())
+        converter = PdfConverter(
+            config=config_parser.generate_config_dict(),
+            artifact_dict=artifact_dict,
+        )
         rendered = converter(str(pdf_path))
 
         # Marker returns a single document — split by page markers if available
