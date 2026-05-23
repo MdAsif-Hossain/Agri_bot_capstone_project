@@ -180,6 +180,13 @@ def _init_services() -> dict:
         on_verify_fail=settings.ON_VERIFY_FAIL,
     )
 
+    # 11. Telemetry tracker (offline SQLite request log)
+    from agribot.telemetry import get_telemetry
+
+    telemetry_path = settings.DATA_DIR / "telemetry.db"
+    svc["telemetry"] = get_telemetry(telemetry_path)
+    logger.info("Telemetry tracker ready at %s", telemetry_path)
+
     svc["kg_stats"] = svc["kg"].get_stats()
     svc["chunk_count"] = len(svc["index_bundle"].chunks)
 
@@ -238,6 +245,61 @@ app.add_middleware(
 # =============================================================================
 # OPTIONAL API KEY MIDDLEWARE
 # =============================================================================
+
+
+from agribot.security.rate_limit import TokenBucketRateLimiter
+
+_rate_limiter = (
+    TokenBucketRateLimiter(
+        per_minute=settings.RATE_LIMIT_PER_MINUTE,
+        burst=settings.RATE_LIMIT_BURST,
+    )
+    if settings.RATE_LIMIT_ENABLED
+    else None
+)
+
+
+def _client_key(request: Request) -> str:
+    """Identify a client for rate-limiting. Prefers X-Forwarded-For (first
+    hop), falls back to the socket peer address. API-keyed callers get their
+    own bucket so anonymous traffic can't drain them."""
+    api_key = request.headers.get("X-API-Key")
+    if api_key:
+        return f"key:{api_key}"
+    fwd = request.headers.get("X-Forwarded-For", "")
+    if fwd:
+        return f"ip:{fwd.split(',')[0].strip()}"
+    if request.client and request.client.host:
+        return f"ip:{request.client.host}"
+    return "ip:unknown"
+
+
+@app.middleware("http")
+async def rate_limit_middleware(request: Request, call_next):
+    """Per-client token-bucket rate limit. Bypasses health/docs/static."""
+    if _rate_limiter is None:
+        return await call_next(request)
+
+    path = request.url.path
+    if (
+        path in ("/health", "/v1/health", "/docs", "/redoc", "/openapi.json")
+        or path.startswith("/assets")
+        or not path.startswith(("/v1/", "/chat", "/tts"))
+    ):
+        return await call_next(request)
+
+    allowed, retry_after = _rate_limiter.acquire(_client_key(request))
+    if not allowed:
+        return JSONResponse(
+            status_code=429,
+            content={
+                "detail": "Rate limit exceeded. Please slow down.",
+                "retry_after_seconds": round(retry_after, 1),
+            },
+            headers={"Retry-After": str(max(1, int(retry_after)))},
+        )
+
+    return await call_next(request)
 
 
 @app.middleware("http")
@@ -529,7 +591,7 @@ async def _run_agent(
             warnings=diag_warnings,
         )
 
-        return ChatResponseV1(
+        response = ChatResponseV1(
             answer=result.get("answer", "An error occurred."),
             answer_bn=result.get("answer_bn", ""),
             citations=result.get("citations", []),
@@ -546,6 +608,22 @@ async def _run_agent(
             voice=voice_block,
             image=image_block,
         )
+
+        # Telemetry: record outside the hot path failure modes
+        telemetry = _services.get("telemetry")
+        if telemetry is not None:
+            telemetry.record(
+                input_mode=input_mode,
+                query=query,
+                grounding_action=response.grounding_action,
+                is_verified=response.is_verified,
+                citation_count=len(response.citations),
+                retry_count=response.retry_count,
+                total_latency_ms=total_ms,
+                trace_id=trace_id,
+            )
+
+        return response
 
     except asyncio.TimeoutError:
         logger.error("Agent execution timed out", trace_id=trace_id)
@@ -956,6 +1034,20 @@ async def v1_tts(request: TTSRequest):
     except Exception as e:
         logger.error("TTS error: %s", e, exc_info=True)
         raise HTTPException(status_code=500, detail=f"TTS error: {e}")
+
+
+@v1.get("/telemetry")
+async def v1_telemetry(hours: float = 24.0, top: int = 10):
+    """Local-only ops dashboard: request volume, latency p50/p95, refusal rate,
+    and top queries over the last `hours` hours."""
+    telemetry = _services.get("telemetry")
+    if telemetry is None:
+        return {"enabled": False}
+    return {
+        "enabled": True,
+        "summary": telemetry.summary(last_n_hours=hours),
+        "top_queries": telemetry.top_queries(limit=top, last_n_hours=hours),
+    }
 
 
 @v1.get("/kg/stats")
