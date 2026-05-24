@@ -1,0 +1,78 @@
+digraph arch {
+	bgcolor=white compound=true fontname=Times fontsize=10 nodesep=0.25 rankdir=TB ranksep=0.45
+	node [fontname=Times fontsize=9 shape=box style="filled,rounded"]
+	edge [arrowsize=0.6 fontname=Times fontsize=8]
+	subgraph cluster_client {
+		color=gray50 fontsize=9 label="Client layer" style=dashed
+		mobile [label="Mobile app
+(Capacitor)" fillcolor="#dde8f5"]
+		web [label="Web UI
+(Vite + React)" fillcolor="#dde8f5"]
+	}
+	subgraph cluster_api {
+		color=gray50 fontsize=9 label="API layer (FastAPI)" style=dashed
+		middleware [label="Middlewares:
+rate-limit · API-key · telemetry" fillcolor="#fde7d3"]
+		api [label="REST endpoints
+/v1/chat · /chat/voice · /chat/image · /tts" fillcolor="#fde7d3"]
+	}
+	subgraph cluster_pre {
+		color=gray50 fontsize=9 label="Multimodal preprocessors (per-request, CPU)" style=dashed
+		stt [label="STT pipeline
+faster-whisper →
+BanglaSpeech2Text →
+Vosk (fallback)" fillcolor="#e6f2e6"]
+		imgproc [label="Image processor
+PIL/NumPy heuristics
++ Tesseract OCR" fillcolor="#e6f2e6"]
+		classifier [label="MobileNetV3+CBAM
+(ONNX)" fillcolor="#e6f2e6"]
+	}
+	agent [label="LangGraph agent (Fig. 2)
+normalize → kg_link → retrieve →
+rerank → grade ↻ → generate →
+translate → verify → enforce_policy" fillcolor="#f6e6f5" shape=box3d]
+	subgraph cluster_services {
+		color=gray50 fontsize=9 label="Inference services (per-node calls from the agent)" style=dashed
+		llm [label="Qwen2.5-1.5B (Q8 GGUF)
+— GPU —" fillcolor="#fde9d9"]
+		retrv [label="Hybrid retrieval
+FAISS dense + BM25 sparse
++ RRF fusion + Cross-encoder" fillcolor="#e6f2e6"]
+		kg [label="KG entity linker
+(SQLite)" fillcolor="#e6f2e6"]
+		trans [label="BanglaT5 EN↔BN
+(2 models, CPU)" fillcolor="#e6f2e6"]
+	}
+	tts [label="TTS
+pyttsx3 (system voice)" fillcolor="#e6f2e6"]
+	subgraph cluster_data {
+		color=gray50 fontsize=9 label="Persistent data (offline)" style=dashed
+		pdfs [label="Agricultural
+PDFs" fillcolor="#ececec" shape=folder]
+		indexes [label="FAISS + BM25 +
+chunks.json" fillcolor="#ececec" shape=cylinder]
+		kgdb [label="knowledge_graph.db" fillcolor="#ececec" shape=cylinder]
+		telem [label="telemetry.db" fillcolor="#ececec" shape=cylinder]
+	}
+	mobile -> api [label="HTTPS / JSON"]
+	web -> api [label="HTTPS / JSON"]
+	middleware -> api [label="all routes" arrowhead=none color=gray40 fontsize=7 style=dashed]
+	api -> stt [label="voice path" fontsize=7]
+	api -> imgproc [label="image path" fontsize=7]
+	imgproc -> classifier [label=optional fontsize=7 style=dashed]
+	stt -> agent [label="transcribed text" color=gray40 fontsize=7]
+	imgproc -> agent [label="combined query +
+image analysis block" color=gray40 fontsize=7]
+	api -> agent [label="text path" fontsize=7]
+	api -> tts [label="/v1/tts" fontsize=7 style=dashed]
+	agent -> llm [label="grade / rewrite / generate / verify" fontsize=7]
+	agent -> retrv [label="retrieve + rerank" fontsize=7]
+	agent -> kg [label="entity link + expand" fontsize=7]
+	agent -> trans [label="normalize +
+translate answer" fontsize=7]
+	retrv -> indexes [style=dotted]
+	kg -> kgdb [style=dotted]
+	indexes -> pdfs [label="built by ingest.py" fontsize=7 style=dotted]
+	middleware -> telem [label="every request" fontsize=7 style=dotted]
+}

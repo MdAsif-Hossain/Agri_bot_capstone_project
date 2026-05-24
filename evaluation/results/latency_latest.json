@@ -1,0 +1,615 @@
+{
+  "summary": {
+    "queries_evaluated": 37,
+    "runs_per_query": 3,
+    "wall_ms": {
+      "p50": 53005.2,
+      "p95": 83578.0,
+      "mean": 55433.7
+    },
+    "stage_means_ms": {
+      "normalize": 0.1,
+      "kg_link": 3.6,
+      "retrieve": 16.8,
+      "rerank": 429.3,
+      "grade": 7970.5,
+      "generate": 12641.1,
+      "translate": 4121.1,
+      "verify": 8488.5,
+      "total": 53387.0,
+      "rewrite": 2449.5
+    }
+  },
+  "per_query": [
+    {
+      "id": "Q01",
+      "wall_ms_mean": 48681.2,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.9,
+        "retrieve": 46.4,
+        "rerank": 407.5,
+        "grade": 7586.9,
+        "generate": 21095.3,
+        "translate": 6364.0,
+        "verify": 11129.8,
+        "total": 46639.9
+      }
+    },
+    {
+      "id": "Q02",
+      "wall_ms_mean": 38448.9,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.6,
+        "retrieve": 12.0,
+        "rerank": 123.2,
+        "grade": 5702.2,
+        "rewrite": 2264.1,
+        "generate": 6341.9,
+        "translate": 369.3,
+        "verify": 7126.3,
+        "total": 36407.5
+      }
+    },
+    {
+      "id": "Q03",
+      "wall_ms_mean": 53874.4,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.3,
+        "retrieve": 14.1,
+        "rerank": 159.0,
+        "grade": 7573.4,
+        "rewrite": 2429.0,
+        "generate": 12805.7,
+        "translate": 3040.8,
+        "verify": 8186.0,
+        "total": 51819.9
+      }
+    },
+    {
+      "id": "Q04",
+      "wall_ms_mean": 49181.5,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 4.2,
+        "retrieve": 12.1,
+        "rerank": 125.8,
+        "grade": 7494.0,
+        "rewrite": 2277.3,
+        "generate": 10012.0,
+        "translate": 1408.5,
+        "verify": 7547.1,
+        "total": 47141.0
+      }
+    },
+    {
+      "id": "Q05",
+      "wall_ms_mean": 48824.4,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 4.5,
+        "retrieve": 13.7,
+        "rerank": 112.3,
+        "grade": 8296.0,
+        "rewrite": 2168.0,
+        "generate": 10435.5,
+        "translate": 744.0,
+        "verify": 8002.0,
+        "total": 46770.3
+      }
+    },
+    {
+      "id": "Q06",
+      "wall_ms_mean": 48708.7,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.2,
+        "retrieve": 12.0,
+        "rerank": 130.6,
+        "grade": 6573.3,
+        "rewrite": 2357.3,
+        "generate": 11382.9,
+        "translate": 2994.7,
+        "verify": 7660.1,
+        "total": 46658.2
+      }
+    },
+    {
+      "id": "Q07",
+      "wall_ms_mean": 56393.2,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.0,
+        "retrieve": 14.1,
+        "rerank": 150.3,
+        "grade": 7195.0,
+        "rewrite": 2160.9,
+        "generate": 14843.7,
+        "translate": 5247.6,
+        "verify": 8697.1,
+        "total": 54358.9
+      }
+    },
+    {
+      "id": "Q08",
+      "wall_ms_mean": 53709.9,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.0,
+        "retrieve": 16.3,
+        "rerank": 114.6,
+        "grade": 7973.0,
+        "rewrite": 2468.7,
+        "generate": 12217.3,
+        "translate": 2307.8,
+        "verify": 8319.2,
+        "total": 51667.7
+      }
+    },
+    {
+      "id": "Q09",
+      "wall_ms_mean": 46253.8,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.1,
+        "retrieve": 11.4,
+        "rerank": 135.6,
+        "grade": 7678.3,
+        "rewrite": 2244.6,
+        "generate": 8390.5,
+        "translate": 390.8,
+        "verify": 7795.6,
+        "total": 44211.7
+      }
+    },
+    {
+      "id": "Q10",
+      "wall_ms_mean": 24660.5,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.4,
+        "retrieve": 27.0,
+        "rerank": 562.1,
+        "grade": 6380.1,
+        "generate": 8684.9,
+        "translate": 520.8,
+        "verify": 6421.5,
+        "total": 22604.5
+      }
+    },
+    {
+      "id": "Q11",
+      "wall_ms_mean": 58200.4,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.1,
+        "retrieve": 13.3,
+        "rerank": 86.4,
+        "grade": 6739.0,
+        "rewrite": 2392.9,
+        "generate": 16448.6,
+        "translate": 5565.2,
+        "verify": 8961.7,
+        "total": 56154.2
+      }
+    },
+    {
+      "id": "Q12",
+      "wall_ms_mean": 50594.5,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.4,
+        "retrieve": 13.8,
+        "rerank": 242.5,
+        "grade": 7884.5,
+        "rewrite": 2476.7,
+        "generate": 10576.9,
+        "translate": 1798.5,
+        "verify": 7419.0,
+        "total": 48542.3
+      }
+    },
+    {
+      "id": "Q13",
+      "wall_ms_mean": 60681.0,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.4,
+        "retrieve": 17.4,
+        "rerank": 300.2,
+        "grade": 8207.1,
+        "rewrite": 2650.1,
+        "generate": 14810.0,
+        "translate": 3774.8,
+        "verify": 10073.4,
+        "total": 58645.9
+      }
+    },
+    {
+      "id": "Q14",
+      "wall_ms_mean": 45900.6,
+      "stage_means_ms": {
+        "normalize": 0.0,
+        "kg_link": 1.8,
+        "retrieve": 11.9,
+        "rerank": 276.5,
+        "grade": 6213.3,
+        "rewrite": 2323.4,
+        "generate": 8385.0,
+        "translate": 1494.9,
+        "verify": 7225.1,
+        "total": 43870.7
+      }
+    },
+    {
+      "id": "Q15",
+      "wall_ms_mean": 54275.8,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 4.7,
+        "retrieve": 14.0,
+        "rerank": 337.8,
+        "grade": 9081.3,
+        "rewrite": 2225.5,
+        "generate": 11260.7,
+        "translate": 821.5,
+        "verify": 8556.0,
+        "total": 52230.2
+      }
+    },
+    {
+      "id": "Q16",
+      "wall_ms_mean": 46418.1,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.8,
+        "retrieve": 15.0,
+        "rerank": 310.1,
+        "grade": 7727.1,
+        "rewrite": 2529.5,
+        "generate": 10550.1,
+        "translate": 1660.3,
+        "verify": 7288.5,
+        "total": 44378.4
+      }
+    },
+    {
+      "id": "Q17",
+      "wall_ms_mean": 54553.9,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.9,
+        "retrieve": 15.7,
+        "rerank": 489.7,
+        "grade": 7688.9,
+        "rewrite": 2696.8,
+        "generate": 12618.0,
+        "translate": 2552.2,
+        "verify": 7906.0,
+        "total": 52522.8
+      }
+    },
+    {
+      "id": "Q18",
+      "wall_ms_mean": 60402.9,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.7,
+        "retrieve": 16.0,
+        "rerank": 255.8,
+        "grade": 8934.5,
+        "rewrite": 2750.9,
+        "generate": 13476.0,
+        "translate": 3042.7,
+        "verify": 9679.5,
+        "total": 58361.2
+      }
+    },
+    {
+      "id": "Q19",
+      "wall_ms_mean": 55792.6,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.5,
+        "retrieve": 12.1,
+        "rerank": 218.5,
+        "grade": 8367.4,
+        "rewrite": 2482.4,
+        "generate": 11057.9,
+        "translate": 2446.3,
+        "verify": 8166.7,
+        "total": 53749.2
+      }
+    },
+    {
+      "id": "Q20",
+      "wall_ms_mean": 64046.2,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 5.0,
+        "retrieve": 12.6,
+        "rerank": 270.7,
+        "grade": 8980.4,
+        "rewrite": 2107.0,
+        "generate": 15172.2,
+        "translate": 3941.7,
+        "verify": 10538.8,
+        "total": 61986.0
+      }
+    },
+    {
+      "id": "Q21",
+      "wall_ms_mean": 112414.5,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 5.7,
+        "retrieve": 18.4,
+        "rerank": 495.2,
+        "grade": 10461.5,
+        "rewrite": 2854.3,
+        "generate": 27489.5,
+        "translate": 30803.1,
+        "verify": 13290.7,
+        "total": 110358.0
+      }
+    },
+    {
+      "id": "Q22",
+      "wall_ms_mean": 70016.0,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 6.4,
+        "retrieve": 24.3,
+        "rerank": 494.8,
+        "grade": 10355.4,
+        "rewrite": 3575.5,
+        "generate": 13678.5,
+        "translate": 4477.7,
+        "verify": 9803.2,
+        "total": 67972.1
+      }
+    },
+    {
+      "id": "Q23",
+      "wall_ms_mean": 59680.3,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.8,
+        "retrieve": 21.9,
+        "rerank": 1000.4,
+        "grade": 9713.8,
+        "rewrite": 2310.0,
+        "generate": 10888.0,
+        "translate": 1199.4,
+        "verify": 9064.8,
+        "total": 57646.2
+      }
+    },
+    {
+      "id": "Q24",
+      "wall_ms_mean": 95462.7,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 7.8,
+        "retrieve": 34.8,
+        "rerank": 1759.7,
+        "grade": 10241.5,
+        "rewrite": 3103.2,
+        "generate": 20642.0,
+        "translate": 20464.2,
+        "verify": 11320.7,
+        "total": 93417.7
+      }
+    },
+    {
+      "id": "Q25",
+      "wall_ms_mean": 69383.6,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 8.2,
+        "retrieve": 22.4,
+        "rerank": 1854.4,
+        "grade": 9093.9,
+        "rewrite": 2694.7,
+        "generate": 13210.3,
+        "translate": 5761.6,
+        "verify": 9014.3,
+        "total": 67321.5
+      }
+    },
+    {
+      "id": "Q26",
+      "wall_ms_mean": 62740.4,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.0,
+        "retrieve": 14.5,
+        "rerank": 969.1,
+        "grade": 8893.5,
+        "rewrite": 2368.7,
+        "generate": 16066.2,
+        "translate": 5923.0,
+        "verify": 9490.5,
+        "total": 60685.9
+      }
+    },
+    {
+      "id": "Q27",
+      "wall_ms_mean": 53861.2,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.6,
+        "retrieve": 13.5,
+        "rerank": 259.0,
+        "grade": 6263.2,
+        "rewrite": 2238.5,
+        "generate": 13697.3,
+        "translate": 5833.5,
+        "verify": 7508.0,
+        "total": 51806.2
+      }
+    },
+    {
+      "id": "Q28",
+      "wall_ms_mean": 61761.0,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.3,
+        "retrieve": 17.0,
+        "rerank": 992.6,
+        "grade": 8979.6,
+        "rewrite": 2130.7,
+        "generate": 15616.4,
+        "translate": 5434.2,
+        "verify": 10036.8,
+        "total": 59708.2
+      }
+    },
+    {
+      "id": "Q29",
+      "wall_ms_mean": 43436.7,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 4.1,
+        "retrieve": 15.0,
+        "rerank": 869.8,
+        "grade": 7906.1,
+        "rewrite": 2332.8,
+        "generate": 9719.6,
+        "translate": 927.4,
+        "verify": 7584.3,
+        "total": 41374.1
+      }
+    },
+    {
+      "id": "Q30",
+      "wall_ms_mean": 45071.4,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.0,
+        "retrieve": 13.4,
+        "rerank": 222.4,
+        "grade": 6811.5,
+        "rewrite": 2340.2,
+        "generate": 9289.7,
+        "translate": 2088.3,
+        "verify": 6597.1,
+        "total": 43020.9
+      }
+    },
+    {
+      "id": "Q31",
+      "wall_ms_mean": 47667.8,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 5.3,
+        "retrieve": 14.5,
+        "rerank": 278.3,
+        "grade": 8011.3,
+        "rewrite": 2274.0,
+        "generate": 10084.7,
+        "translate": 1760.1,
+        "verify": 7831.1,
+        "total": 45614.8
+      }
+    },
+    {
+      "id": "Q53",
+      "wall_ms_mean": 59325.6,
+      "stage_means_ms": {
+        "normalize": 0.0,
+        "kg_link": 3.6,
+        "retrieve": 12.4,
+        "rerank": 211.7,
+        "grade": 8818.4,
+        "rewrite": 2289.6,
+        "generate": 12536.9,
+        "translate": 3676.0,
+        "verify": 8943.2,
+        "total": 57283.5
+      }
+    },
+    {
+      "id": "Q54",
+      "wall_ms_mean": 51567.9,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 3.7,
+        "retrieve": 17.8,
+        "rerank": 282.1,
+        "grade": 8648.2,
+        "rewrite": 2606.3,
+        "generate": 10861.5,
+        "translate": 1999.2,
+        "verify": 8431.2,
+        "total": 49516.8
+      }
+    },
+    {
+      "id": "Q55",
+      "wall_ms_mean": 30874.7,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.4,
+        "retrieve": 14.7,
+        "rerank": 337.1,
+        "grade": 4236.0,
+        "rewrite": 2585.0,
+        "generate": 5675.2,
+        "translate": 776.1,
+        "verify": 3368.7,
+        "total": 28829.3
+      }
+    },
+    {
+      "id": "Q56",
+      "wall_ms_mean": 55416.6,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.0,
+        "retrieve": 15.2,
+        "rerank": 517.0,
+        "grade": 7684.9,
+        "rewrite": 2241.5,
+        "generate": 12798.6,
+        "translate": 3383.7,
+        "verify": 8148.5,
+        "total": 53368.5
+      }
+    },
+    {
+      "id": "Q57",
+      "wall_ms_mean": 61932.8,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 4.5,
+        "retrieve": 16.8,
+        "rerank": 324.2,
+        "grade": 8544.9,
+        "rewrite": 2446.0,
+        "generate": 14774.0,
+        "translate": 5655.6,
+        "verify": 9268.1,
+        "total": 59887.2
+      }
+    },
+    {
+      "id": "Q59",
+      "wall_ms_mean": 50832.8,
+      "stage_means_ms": {
+        "normalize": 0.1,
+        "kg_link": 2.6,
+        "retrieve": 14.8,
+        "rerank": 207.5,
+        "grade": 7968.4,
+        "rewrite": 2335.0,
+        "generate": 10128.8,
+        "translate": 1832.2,
+        "verify": 7673.4,
+        "total": 48786.1
+      }
+    }
+  ]
+}

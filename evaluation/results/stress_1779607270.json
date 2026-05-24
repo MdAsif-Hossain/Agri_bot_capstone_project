@@ -1,0 +1,19 @@
+{
+  "summary": {
+    "total_requests": 20,
+    "concurrency": 5,
+    "wallclock_sec": 531.6,
+    "throughput_rps": 0.04,
+    "success_count": 12,
+    "rate_limited_count": 8,
+    "other_errors_count": 0,
+    "error_breakdown": {
+      "http429": 8
+    },
+    "wall_ms": {
+      "p50": 122122.5,
+      "p95": 154590.6,
+      "max": 155716.7
+    }
+  }
+}

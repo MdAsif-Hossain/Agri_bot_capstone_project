@@ -88,6 +88,44 @@ def _save(fig, name: str) -> Path:
 
 
 # =============================================================================
+# MATPLOTLIB-NATIVE DIAGRAM HELPERS (no graphviz/dot.exe required)
+# =============================================================================
+def _draw_box(ax, x, y, w, h, label, fill="#dde8f5", edge="black", fontsize=8,
+              text_color="black", lw=0.8):
+    """Draw a rounded rectangle with a centered label."""
+    from matplotlib.patches import FancyBboxPatch
+
+    box = FancyBboxPatch(
+        (x, y), w, h,
+        boxstyle="round,pad=0.02,rounding_size=0.04",
+        linewidth=lw, edgecolor=edge, facecolor=fill,
+    )
+    ax.add_patch(box)
+    ax.text(x + w / 2, y + h / 2, label, ha="center", va="center",
+            fontsize=fontsize, color=text_color, wrap=True)
+
+
+def _draw_arrow(ax, x1, y1, x2, y2, label="", color="dimgray", lw=0.8, ls="-",
+                fontsize=7, label_offset=(0, 0.02)):
+    """Arrow from (x1,y1) to (x2,y2) with optional midpoint label."""
+    ax.annotate("", xy=(x2, y2), xytext=(x1, y1),
+                arrowprops=dict(arrowstyle="->", color=color, lw=lw,
+                                linestyle=ls, shrinkA=2, shrinkB=2))
+    if label:
+        mx, my = (x1 + x2) / 2 + label_offset[0], (y1 + y2) / 2 + label_offset[1]
+        ax.text(mx, my, label, ha="center", va="center", fontsize=fontsize,
+                color=color)
+
+
+def _setup_diagram_axes(ax, xlim=(0, 10), ylim=(0, 10)):
+    ax.set_xlim(*xlim)
+    ax.set_ylim(*ylim)
+    ax.set_aspect("equal")
+    ax.axis("off")
+    ax.grid(False)
+
+
+# =============================================================================
 # FIGURE 1 — System architecture (graphviz)
 # =============================================================================
 def fig1_architecture():
@@ -151,15 +189,15 @@ def fig1_architecture():
     g.edge("mobile", "api", label="HTTPS / JSON")
     g.edge("web", "api", label="HTTPS / JSON")
     g.edge("middleware", "api", style="dashed", arrowhead="none",
-           label="all routes", fontsize="7", color="gray40")
+           label="all routes", fontsize="7", color="dimgray")
 
     # --- Edges: api → preprocessors → agent (per modality) ---
     g.edge("api", "stt", label="voice path", fontsize="7")
     g.edge("api", "imgproc", label="image path", fontsize="7")
     g.edge("imgproc", "classifier", style="dashed", label="optional", fontsize="7")
-    g.edge("stt", "agent", label="transcribed text", fontsize="7", color="gray40")
+    g.edge("stt", "agent", label="transcribed text", fontsize="7", color="dimgray")
     g.edge("imgproc", "agent", label="combined query +\nimage analysis block",
-           fontsize="7", color="gray40")
+           fontsize="7", color="dimgray")
     g.edge("api", "agent", label="text path", fontsize="7")
 
     # --- Edges: api → tts (separate output endpoint) ---
@@ -476,15 +514,215 @@ def fig7_screenshots():
 
 
 # =============================================================================
+# MATPLOTLIB-ONLY DIAGRAM ALTERNATIVES (use these if graphviz/dot is unavailable)
+# Same visual content as fig1/fig2/fig6 but rendered with pure matplotlib —
+# no external `dot` binary needed.
+# =============================================================================
+
+def fig1_mpl():
+    """Architecture diagram, pure matplotlib (no graphviz)."""
+    fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 5.5))
+    _setup_diagram_axes(ax, xlim=(0, 14), ylim=(0, 10))
+
+    # --- Row 1: Client ---
+    _draw_box(ax, 4.5, 8.7, 2.2, 0.8, "Mobile app\n(Capacitor)", fill="#dde8f5")
+    _draw_box(ax, 7.3, 8.7, 2.2, 0.8, "Web UI\n(Vite + React)", fill="#dde8f5")
+    ax.text(0.2, 9.1, "Client", fontsize=8, color="gray", style="italic")
+
+    # --- Row 2: API ---
+    _draw_box(ax, 3.0, 7.0, 8.0, 0.8,
+              "FastAPI · /v1/chat · /chat/voice · /chat/image · /tts\n"
+              "middlewares: rate-limit · API-key · telemetry",
+              fill="#fde7d3", fontsize=7)
+    ax.text(0.2, 7.4, "API", fontsize=8, color="gray", style="italic")
+
+    # --- Row 3: Preprocessors (CPU) ---
+    _draw_box(ax, 0.5, 5.2, 2.6, 1.1,
+              "STT pipeline\nfaster-whisper →\nBanglaSpeech2Text →\nVosk (fallback)",
+              fill=PALETTE["bg_cpu"], fontsize=6.5)
+    _draw_box(ax, 3.3, 5.2, 2.6, 1.1,
+              "Image processor\nPIL/NumPy heuristics\n+ Tesseract OCR\n+ MobileNetV3+CBAM (ONNX)",
+              fill=PALETTE["bg_cpu"], fontsize=6.5)
+    ax.text(0.2, 5.7, "Multimodal\npreprocessors", fontsize=7, color="gray", style="italic")
+
+    # --- Row 4: Agent ---
+    _draw_box(ax, 3.0, 3.4, 8.0, 1.1,
+              "LangGraph agent  (Fig. 2)\nnormalize → kg_link → retrieve → rerank → grade ↻ →\n"
+              "generate → translate → verify → enforce_policy",
+              fill="#f6e6f5", fontsize=7)
+
+    # --- Row 5: Services ---
+    _draw_box(ax, 0.3, 1.6, 2.1, 1.1, "Qwen2.5-1.5B\n(Q8 GGUF)\n— GPU —",
+              fill=PALETTE["bg_gpu"], fontsize=7)
+    _draw_box(ax, 2.6, 1.6, 2.6, 1.1, "Hybrid retrieval\nFAISS + BM25\n+ RRF + Reranker",
+              fill=PALETTE["bg_cpu"], fontsize=7)
+    _draw_box(ax, 5.4, 1.6, 2.1, 1.1, "KG entity\nlinker\n(SQLite)",
+              fill=PALETTE["bg_cpu"], fontsize=7)
+    _draw_box(ax, 7.7, 1.6, 2.1, 1.1, "BanglaT5\nEN↔BN\n(2 models)",
+              fill=PALETTE["bg_cpu"], fontsize=7)
+    _draw_box(ax, 10.0, 1.6, 2.1, 1.1, "TTS\npyttsx3\n(system voice)",
+              fill=PALETTE["bg_cpu"], fontsize=7)
+    ax.text(0.2, 2.1, "Services", fontsize=8, color="gray", style="italic")
+
+    # --- Row 6: Data ---
+    _draw_box(ax, 1.5, 0.1, 2.0, 0.7, "PDFs", fill="#ececec", fontsize=7)
+    _draw_box(ax, 3.8, 0.1, 2.6, 0.7, "FAISS+BM25+chunks", fill="#ececec", fontsize=7)
+    _draw_box(ax, 6.7, 0.1, 2.4, 0.7, "knowledge_graph.db", fill="#ececec", fontsize=7)
+    _draw_box(ax, 9.4, 0.1, 2.0, 0.7, "telemetry.db", fill="#ececec", fontsize=7)
+
+    # --- Arrows ---
+    _draw_arrow(ax, 5.6, 8.65, 5.6, 7.85, "HTTPS", fontsize=6)
+    _draw_arrow(ax, 8.4, 8.65, 8.4, 7.85, "HTTPS", fontsize=6)
+    _draw_arrow(ax, 4.0, 6.95, 1.8, 6.35, "voice", fontsize=6, color="dimgray")
+    _draw_arrow(ax, 6.0, 6.95, 4.6, 6.35, "image", fontsize=6, color="dimgray")
+    _draw_arrow(ax, 8.0, 6.95, 8.0, 4.55, "text path", fontsize=6, color="dimgray")
+    _draw_arrow(ax, 1.8, 5.15, 5.0, 4.55, "transcribed", fontsize=6, color="dimgray")
+    _draw_arrow(ax, 4.6, 5.15, 6.0, 4.55, "combined query", fontsize=6, color="dimgray")
+    _draw_arrow(ax, 11.0, 7.0, 11.0, 2.75, "/v1/tts", fontsize=6, color="dimgray", ls="--")
+    # Agent → services
+    for x in [1.4, 3.9, 6.4, 8.7]:
+        _draw_arrow(ax, 5.5 + (x - 5.5) * 0.2, 3.35, x, 2.75, color="dimgray")
+    # Services → data (dotted)
+    _draw_arrow(ax, 3.9, 1.55, 4.5, 0.85, color="darkgray", ls=":")
+    _draw_arrow(ax, 6.4, 1.55, 7.9, 0.85, color="darkgray", ls=":")
+
+    _save(fig, "fig1_architecture")
+
+
+def fig2_mpl():
+    """LangGraph workflow, pure matplotlib (no graphviz)."""
+    fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 2.6))
+    _setup_diagram_axes(ax, xlim=(0, 18), ylim=(0, 4))
+
+    # Linear chain
+    chain = [
+        ("Input",     0.2, 2.0, 1.3, 0.7, "#cccccc", "ellipse"),
+        ("normalize", 1.7, 2.0, 1.3, 0.7, "#dde8f5", "box"),
+        ("kg_link",   3.2, 2.0, 1.3, 0.7, "#dde8f5", "box"),
+        ("retrieve\n(FAISS+BM25)", 4.7, 1.9, 1.7, 0.9, "#dde8f5", "box"),
+        ("rerank\n(cross-enc)",    6.6, 1.9, 1.7, 0.9, "#dde8f5", "box"),
+        ("grade\n(LLM)", 8.5, 1.9, 1.4, 0.9, "#fff2cc", "diamond"),
+        ("generate\n(LLM)",   10.1, 1.9, 1.4, 0.9, "#dde8f5", "box"),
+        ("translate\n(BanglaT5)", 11.7, 1.9, 1.5, 0.9, "#dde8f5", "box"),
+        ("verify\n(LLM)",    13.4, 1.9, 1.3, 0.9, "#e0f0e0", "box"),
+        ("enforce_policy\n(safety)", 14.9, 1.9, 1.9, 0.9, "#e0f0e0", "box"),
+        ("Output",  17.0, 2.0, 0.9, 0.7, "#cccccc", "ellipse"),
+    ]
+
+    from matplotlib.patches import Ellipse, FancyBboxPatch
+    centers = {}
+    for name, x, y, w, h, color, shape in chain:
+        if shape == "ellipse":
+            ax.add_patch(Ellipse((x + w / 2, y + h / 2), w, h, facecolor=color,
+                                  edgecolor="black", linewidth=0.8))
+            ax.text(x + w / 2, y + h / 2, name, ha="center", va="center", fontsize=7)
+        elif shape == "diamond":
+            cx, cy = x + w / 2, y + h / 2
+            ax.add_patch(plt.Polygon(
+                [(cx, cy + h / 2), (cx + w / 2, cy), (cx, cy - h / 2), (cx - w / 2, cy)],
+                facecolor=color, edgecolor="black", linewidth=0.8))
+            ax.text(cx, cy, name, ha="center", va="center", fontsize=7)
+        else:
+            ax.add_patch(FancyBboxPatch(
+                (x, y), w, h, boxstyle="round,pad=0.02,rounding_size=0.04",
+                facecolor=color, edgecolor="black", linewidth=0.8))
+            ax.text(x + w / 2, y + h / 2, name, ha="center", va="center", fontsize=7)
+        centers[name.split("\n")[0]] = (x + w / 2, y + h / 2, x, x + w)
+
+    # Forward arrows
+    order = ["Input", "normalize", "kg_link", "retrieve", "rerank", "grade"]
+    for a, b in zip(order, order[1:]):
+        ax.annotate("", xy=(centers[b][2], centers[b][1]),
+                    xytext=(centers[a][3], centers[a][1]),
+                    arrowprops=dict(arrowstyle="->", color="black", lw=0.8))
+
+    # grade → generate (SUFFICIENT)
+    ax.annotate("", xy=(centers["generate"][2], centers["generate"][1]),
+                xytext=(centers["grade"][3], centers["grade"][1]),
+                arrowprops=dict(arrowstyle="->", color="black", lw=0.8))
+    ax.text((centers["grade"][3] + centers["generate"][2]) / 2, 2.7,
+            "SUFFICIENT\nor max retries", ha="center", fontsize=6, color="dimgray")
+
+    # generate → translate → verify → enforce → Output
+    for a, b in [("generate", "translate"), ("translate", "verify"),
+                 ("verify", "enforce_policy"), ("enforce_policy", "Output")]:
+        ax.annotate("", xy=(centers[b][2], centers[b][1]),
+                    xytext=(centers[a][3], centers[a][1]),
+                    arrowprops=dict(arrowstyle="->", color="black", lw=0.8))
+
+    # Retry loop: grade → rewrite (down arrow) → retrieve (curved back)
+    rew_x, rew_y = 7.5, 0.6
+    ax.add_patch(FancyBboxPatch((rew_x - 0.7, rew_y - 0.35), 1.4, 0.7,
+                                 boxstyle="round,pad=0.02,rounding_size=0.04",
+                                 facecolor="#f5dada", edgecolor="black", linewidth=0.8))
+    ax.text(rew_x, rew_y, "rewrite\n(LLM)", ha="center", va="center", fontsize=7)
+    ax.annotate("", xy=(rew_x + 0.7, rew_y + 0.2), xytext=(centers["grade"][0], 1.85),
+                arrowprops=dict(arrowstyle="->", color="#b54a4a", lw=0.8,
+                                connectionstyle="arc3,rad=0.2"))
+    ax.text((centers["grade"][0] + rew_x) / 2 + 0.4, 1.2,
+            "INSUFFICIENT\n(retry < 2)", ha="center", fontsize=6, color="#b54a4a")
+    ax.annotate("", xy=(centers["retrieve"][0], 1.85), xytext=(rew_x - 0.7, rew_y + 0.2),
+                arrowprops=dict(arrowstyle="->", color="#b54a4a", lw=0.8, linestyle="--",
+                                connectionstyle="arc3,rad=0.2"))
+
+    _save(fig, "fig2_workflow")
+
+
+def fig6_mpl():
+    """KG dialect-expansion example, pure matplotlib (no graphviz)."""
+    fig, ax = plt.subplots(figsize=(COL_WIDTH_IN, 3.0))
+    _setup_diagram_axes(ax, xlim=(0, 10), ylim=(0, 8))
+
+    # Two dialect aliases (top)
+    _draw_box(ax, 0.4, 6.5, 3.2, 1.0,
+              "গাছফড়িং\n(colloquial alias)", fill="#fff2cc", fontsize=7)
+    _draw_box(ax, 6.4, 6.5, 3.2, 1.0,
+              "brown planthopper\n(English alias)", fill="#fff2cc", fontsize=7)
+
+    # Canonical center
+    _draw_box(ax, 2.8, 3.6, 4.4, 1.4,
+              "বাদামি গাছফড়িং\nBrown Planthopper\n(canonical · type=pest)",
+              fill="#dde8f5", fontsize=7.5)
+
+    # Neighbors (bottom)
+    _draw_box(ax, 0.1, 0.5, 2.3, 1.0, "Hopper burn\n(symptom)", fill="#f6e6f5", fontsize=6.5)
+    _draw_box(ax, 2.6, 0.5, 2.4, 1.0, "Yellowing of leaves\n(symptom)", fill="#f6e6f5", fontsize=6.5)
+    _draw_box(ax, 5.2, 0.5, 2.3, 1.0, "Imidacloprid\n(chemical)", fill="#fde7d3", fontsize=6.5)
+    _draw_box(ax, 7.7, 0.5, 2.2, 1.0, "BR3 resistant\n(cultivar)", fill="#fde7d3", fontsize=6.5)
+
+    # Arrows from aliases to canonical (with relation label)
+    _draw_arrow(ax, 2.0, 6.45, 4.0, 5.05, "alias_of", fontsize=6)
+    _draw_arrow(ax, 8.0, 6.45, 6.0, 5.05, "alias_of", fontsize=6)
+    # Canonical to neighbors
+    _draw_arrow(ax, 4.0, 3.55, 1.3, 1.55, "causes", fontsize=6)
+    _draw_arrow(ax, 4.6, 3.55, 3.8, 1.55, "causes", fontsize=6)
+    _draw_arrow(ax, 5.4, 3.55, 6.3, 1.55, "controlled_by", fontsize=6)
+    _draw_arrow(ax, 6.0, 3.55, 8.8, 1.55, "controlled_by", fontsize=6)
+
+    _save(fig, "fig6_kg_example")
+
+
+# =============================================================================
 # MAIN — comment out any figure you don't want to regenerate
 # =============================================================================
 if __name__ == "__main__":
     print("Generating paper figures into:", OUT_DIR.relative_to(ROOT))
-    fig1_architecture()
-    fig2_workflow()
+
+    import shutil
+    has_dot = shutil.which("dot") is not None
+
+    if has_dot:
+        fig1_architecture()
+        fig2_workflow()
+        fig6_kg_example()
+    else:
+        print("  ℹ Graphviz `dot` not on PATH — using matplotlib-only versions of Figs 1/2/6")
+        fig1_mpl()
+        fig2_mpl()
+        fig6_mpl()
+
     fig3_retrieval()
     fig4_latency()
     fig5_confusion()
-    fig6_kg_example()
     fig7_screenshots()
     print("Done.")

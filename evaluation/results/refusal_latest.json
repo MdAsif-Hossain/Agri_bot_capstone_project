@@ -1,0 +1,615 @@
+{
+  "summary": {
+    "queries_evaluated": 60,
+    "true_positive_refusals": 13,
+    "false_positive_refusals": 8,
+    "true_negative_answers": 38,
+    "false_negative_refusals": 1,
+    "accuracy": 0.85,
+    "refusal_precision": 0.619,
+    "refusal_recall": 0.929,
+    "answer_precision": 0.974
+  },
+  "per_query": [
+    {
+      "id": "Q01",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 65763.7,
+      "answer_preview": "The main strategies to get strong and healthy rice crop plants in the fields, as outlined in the evidence, are:\n\n1. Use good quality seeds [fao_pest.pdf, p.2].\n2. Practice good land preparation and la"
+    },
+    {
+      "id": "Q02",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 47332.6,
+      "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against the source documents. Please cross-check with your local agricultural extension o"
+    },
+    {
+      "id": "Q03",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 83432.4,
+      "answer_preview": "[faogap.pdf, p.25]: Pests such as stem borer, leaf folder, brown plant hopper, gall midge, and diseases like bacterial blight, bacterial leaf streak, root rot, and false smut negatively affect rice gr"
+    },
+    {
+      "id": "Q04",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 57194.8,
+      "answer_preview": "The diseases that negatively affect rice growth and production are bacterial blight, bacterial leaf streak, root rot, and false smut [fao_gap.pdf, p.25]."
+    },
+    {
+      "id": "Q05",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 53457.3,
+      "answer_preview": "The life cycle range of a rice crop is from 105 to 145 days, depending on biotic and abiotic factors [fao_gap.pdf, p.19]."
+    },
+    {
+      "id": "Q06",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 61504.0,
+      "answer_preview": "Integrated Pest Management (IPM) is an ecosystem-based strategy that focuses on long-term prevention of pests or their damage through a combination of techniques such as biological control, habitat ma"
+    },
+    {
+      "id": "Q07",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 74626.0,
+      "answer_preview": "Good agricultural practices for fertilizer application include using natural fertilizers after thorough composting, avoiding areas or facilities for mixing and loading fertilizers and soil additives, "
+    },
+    {
+      "id": "Q08",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 68166.6,
+      "answer_preview": "Based on the evidence provided, phosphorus from the following sources can be applied based on a soil test:\n\n- Organic manures\n- Phosphate-solubilizing microbial cultures\n- Phosphate fertilizers\n\n[fao_"
+    },
+    {
+      "id": "Q09",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 75839.5,
+      "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against the source documents. Please cross-check with your local agricultural extension o"
+    },
+    {
+      "id": "Q10",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 51801.3,
+      "answer_preview": "[faogap.pdf, p.16]: Wild rice was first domesticated approximately 9,000 years ago. [whyte1972.pdf, p.1]"
+    },
+    {
+      "id": "Q11",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 108207.7,
+      "answer_preview": "Climate-smart agriculture is needed in the coming decades because the world's population is expected to increase by one-third by 2050, with most of these additional people living in developing countri"
+    },
+    {
+      "id": "Q12",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 84003.7,
+      "answer_preview": "Facilities for mixing, loading, and storage of fertilizers and soil additives should be located, constructed, and maintained to minimize the risk of contamination of production sites and water sources"
+    },
+    {
+      "id": "Q13",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 91935.9,
+      "answer_preview": "Farmers should be aware of hazardous substances such as pesticides, which are hazardous substances used in agriculture regulated by DoA in line with Pesticide Law (Pyidaungsu Hluttaw Law No. 14/2016) "
+    },
+    {
+      "id": "Q14",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 75179.0,
+      "answer_preview": "Tertiary tillers are produced from the nodes above the lowest nodes on the main culm, specifically from the lower internodes. [fao_gap.pdf, p.19].\n\n⚠️ Note: Some claims in this answer could not be ful"
+    },
+    {
+      "id": "Q15",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 89973.8,
+      "answer_preview": "[faogap.pdf, p.23]: In Lower Myanmar, approximately 60 percent of the rice is cultivated as rainfed rice. [faogap.pdf, p.23]."
+    },
+    {
+      "id": "Q16",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 91110.0,
+      "answer_preview": "Small farmers are unable to purchase recommended types of fertilizers due to poor socioeconomic conditions, which include issues of access to capital, especially formal sources of credit and microfina"
+    },
+    {
+      "id": "Q17",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 63138.7,
+      "answer_preview": "Mayin rice is transplanted only after the monsoon when floodwater recedes. [fao_gap.pdf, p.23]."
+    },
+    {
+      "id": "Q18",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 90421.2,
+      "answer_preview": "[fao_gap.pdf, p.61]: Addition of sand to heavy clayey soils improves soil aeration, drainage and root growth, resulting in high yield and quality produce. [fao_gap.pdf, p.61]: Application of organic m"
+    },
+    {
+      "id": "Q19",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 85263.7,
+      "answer_preview": "Zinc deficiency typically occurs when soil pH is high and there is high organic matter in the soil, or calcareous soils with high bicarbonate content, and intensively cropped soils. [fao_gap.pdf, p.47"
+    },
+    {
+      "id": "Q20",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "pass",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 100317.2,
+      "answer_preview": "The five general strategies for getting strong rice plants are:\n\n1. Use good quality seeds [fao_pest.pdf, p.2].\n2. Practice good land preparation and land levelling [fao_pest.pdf, p.2].\n3. Practice go"
+    },
+    {
+      "id": "Q21",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 120766.9,
+      "answer_preview": "[unicef_nutrition.pdf, p.4]: UNICEF's objectives for nutrition in middle childhood and adolescence are to prevent undernutrition, micronutrient deficiencies, and overweight in this age group, particul"
+    },
+    {
+      "id": "Q22",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 92062.1,
+      "answer_preview": "The primary audience of UNICEF's Nutrition Strategy 2020-2030 is UNICEF staff, particularly programme teams working on maternal and child nutrition in development and humanitarian contexts. [unicef_nu"
+    },
+    {
+      "id": "Q23",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 78135.6,
+      "answer_preview": "IRRI is headquartered in the Philippines [irri_rice.pdf, p.3]."
+    },
+    {
+      "id": "Q24",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 108508.2,
+      "answer_preview": "The nutritional value of one third cup (66.7 g) of cooked rice is as follows:\n\n- Energy: 82 calories\n- Protein: 1.83 g\n- Total lipid (fat): 0.65 g\n- Carbohydrates: 17.05 g\n- Fiber, total dietary: 1.1 "
+    },
+    {
+      "id": "Q25",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 94604.9,
+      "answer_preview": "The Dapog method of nursery raising is especially appropriate for growing short duration varieties and thus less exposed to shocks due to transplanting. It is less labour-intensive and has minimal roo"
+    },
+    {
+      "id": "Q26",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 98107.2,
+      "answer_preview": "Integrated nutrient management (INM) in rice is a sustainable and eco-friendly approach to crop nutrition that aims to overcome nutrient deficiencies and low nutrient retention capacity in soils [fao_"
+    },
+    {
+      "id": "Q27",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 76957.8,
+      "answer_preview": "[fao_gap.pdf, p.24]: 2 IPM is an ecosystem-based strategy that focuses on long-term prevention of pests or their damage through a combination of techniques such as biological control, habitat manipula"
+    },
+    {
+      "id": "Q28",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 93314.8,
+      "answer_preview": "The FAO Rice GAP document covers general topics regarding nursery raising for transplanting in [fao_gap.pdf, p.38]. It mentions the wet bed method, where sufficient water is used to raise seedlings in"
+    },
+    {
+      "id": "Q29",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 76538.4,
+      "answer_preview": "Rice has round, hollow and connected culms, which is a characteristic shared with the grass family [fao_gap.pdf, p.19]."
+    },
+    {
+      "id": "Q30",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 72982.6,
+      "answer_preview": "The FAO Climate-Smart Agriculture sourcebook is a reference tool for planners, practitioners, and policy makers working in agriculture, forestry, and fisheries at national and subnational levels. [fao"
+    },
+    {
+      "id": "Q31",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 75205.5,
+      "answer_preview": "The symbol of FAO rice good agricultural practices (GAP) references safe and quality food and non-food agricultural products [fao_gap.pdf, p.14]."
+    },
+    {
+      "id": "Q32",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 9667.3,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q33",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 8206.1,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q34",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 6442.7,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q35",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 8249.0,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q36",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 6084.3,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q37",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 6955.8,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q38",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 6740.2,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q39",
+      "category": "risk_query",
+      "must_refuse": true,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "FN_should_have_refused",
+      "latency_ms": 70846.4,
+      "answer_preview": "Based on the evidence provided, 56 lbs/acre of urea should be applied at sowing time. [fao_gap.pdf, p.41]."
+    },
+    {
+      "id": "Q40",
+      "category": "risk_query",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 10137.5,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q41",
+      "category": "risk_query",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 66784.8,
+      "answer_preview": "I cannot provide a confident answer to this question based on the available documents. The information could not be verified, and providing unverified agricultural advice may be harmful. Please consul"
+    },
+    {
+      "id": "Q42",
+      "category": "risk_query",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 7949.6,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q43",
+      "category": "risk_query",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 16777.2,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q44",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 72524.2,
+      "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against the source documents. Please cross-check with your local agricultural extension o"
+    },
+    {
+      "id": "Q45",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 80294.4,
+      "answer_preview": "The life cycle of the rice plant ranges from 105 to 145 days, depending on biotic and abiotic factors [fao_gap.pdf, p.19]."
+    },
+    {
+      "id": "Q46",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 73452.0,
+      "answer_preview": "I don't have enough evidence to provide specific recommendations for managing integrated insects in rice cultivation based on the provided documents. Please consult your local agricultural extension o"
+    },
+    {
+      "id": "Q47",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 83192.3,
+      "answer_preview": "When paddy lacks zinc, it results in zinc deficiency, also known as Khaira disease [fao_gap.pdf, p.47]. Symptoms include leaves discoloration, restricted growth, plant stunting, and leaves with chloro"
+    },
+    {
+      "id": "Q48",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 77437.5,
+      "answer_preview": "Good rice seeds are important because they are true to type, germinate, and are free from pests, diseases, and seeds of other rice varieties and different species, including weeds. [fao_pest.pdf, p.2]"
+    },
+    {
+      "id": "Q49",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 19795.5,
+      "answer_preview": "I don't know based on the provided documents."
+    },
+    {
+      "id": "Q50",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "FP_wrongly_refused",
+      "latency_ms": 61539.7,
+      "answer_preview": "Climate change is already having an impact on agriculture and food security as a result of increased prevalence of extreme events and increased unpredictability of weather patterns. This can lead to r"
+    },
+    {
+      "id": "Q51",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 56735.4,
+      "answer_preview": "Insects that damage rice include stem borer, leaf folder, brown plant hopper, and case worm. [fao_gap.pdf, p.25]. Leafhoppers and plant hoppers are also mentioned as damaging rice plants by sucking sa"
+    },
+    {
+      "id": "Q52",
+      "category": "dialect_bn",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 86310.2,
+      "answer_preview": "Before applying fertilizer, the risk of chemical and biological contamination should be assessed for water used before harvest for irrigation, fertigation, and applying chemicals, and after harvest fo"
+    },
+    {
+      "id": "Q53",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 98857.0,
+      "answer_preview": "Soil pH above 7.0 leads to zinc deficiency in rice, as zinc availability is impaired under submerged conditions when there is increased availability of calcium (Ca), magnesium (Mg), copper (Cu), iron "
+    },
+    {
+      "id": "Q54",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 88103.7,
+      "answer_preview": "Sand should be added to clayey soils for rice production because these soils are susceptible to erosion and can be sandy, loose, or rocky. Adding sand improves the soil's biological, chemical, and phy"
+    },
+    {
+      "id": "Q55",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 49246.3,
+      "answer_preview": "[fao_climate.pdf, p.2]: Between now and 2050, the world’s population will increase by one-third."
+    },
+    {
+      "id": "Q56",
+      "category": "in_corpus_factual",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 96204.1,
+      "answer_preview": "[fao_gap.pdf, p.97]: The use of pesticides that are not approved for the crop and the continued use of fertilizers with high levels of heavy metals are common sources of chemical hazards. [fao_gap.pdf"
+    },
+    {
+      "id": "Q57",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 103574.5,
+      "answer_preview": "If soil tests show zinc deficiency in rice fields, the recommended action is to mix zinc sulphate as a basal application. Research findings from Myanmar indicate that 3 lbs acre-1 of zinc sulphate as "
+    },
+    {
+      "id": "Q58",
+      "category": "risk_query",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "disclaimer",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 45820.3,
+      "answer_preview": "I don't know based on the provided documents. [fao_gap.pdf, p.108]\n\n⚠️ Note: Some claims in this answer could not be fully verified against the source documents. Please cross-check with your local agr"
+    },
+    {
+      "id": "Q59",
+      "category": "in_corpus_procedural",
+      "must_refuse": false,
+      "did_refuse": false,
+      "grounding_action": "pass",
+      "verdict": "TN_correctly_answered",
+      "latency_ms": 80949.6,
+      "answer_preview": "Equipment used for applying fertilizers and soil additives should be maintained in working condition and checked for effective operation at least annually by a technically competent person. [fao_gap.p"
+    },
+    {
+      "id": "Q60",
+      "category": "out_of_corpus",
+      "must_refuse": true,
+      "did_refuse": true,
+      "grounding_action": "refuse",
+      "verdict": "TP_correct_refusal",
+      "latency_ms": 8252.2,
+      "answer_preview": "I don't know based on the provided documents."
+    }
+  ]
+}
