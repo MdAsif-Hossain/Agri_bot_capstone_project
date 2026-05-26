@@ -201,22 +201,34 @@ def make_enforce_policy_node(
                 ],
             }
 
-        # Check risk for dosage/chemical queries
+        # Check risk for dosage/chemical queries.
+        #
+        # Policy: ALWAYS refuse risky queries, even if the answer is
+        # "verified" against the corpus. Specific dosage recommendations
+        # are unsafe to deliver from an automated advisory system because:
+        #   - the right dose depends on soil, climate, season, variety,
+        #     and growth stage — none of which are in the query;
+        #   - the corpus may be outdated, region-specific, or incomplete;
+        #   - misapplied agrochemicals cause crop loss and environmental harm.
+        # A grounded citation does not constitute professional advice.
         risky = is_risky_query(query)
 
-        if risky and not is_verified:
-            # High-risk query without verification → always refuse
+        if risky:
             logger.warning(
-                "Risky query detected without verification — refusing",
-                extra={"trace_id": state.get("trace_id", "")},
+                "Risky (dosage/chemical) query refused — referring to extension officer",
+                extra={
+                    "trace_id": state.get("trace_id", ""),
+                    "was_verified": is_verified,
+                },
             )
             return {
                 "answer": REFUSE_EN,
                 "answer_bn": REFUSE_BN,
                 "grounding_action": "refuse",
                 "follow_up_suggestions": [
-                    "What is the recommended dosage for [specific product]?",
-                    "What pesticides are approved for [specific crop]?",
+                    "What symptoms are you observing on the crop?",
+                    "What general practices does the manual recommend for this issue?",
+                    "Who is your nearest agricultural extension officer?",
                 ],
             }
 

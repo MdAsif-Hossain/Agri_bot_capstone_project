@@ -403,10 +403,15 @@ def fig5_confusion():
 # FIGURE 6 — Knowledge graph dialect expansion example (graphviz)
 # =============================================================================
 def fig6_kg_example():
-    """KG dialect-expansion example.
-    Aliases shown are real entries from agribot/knowledge_graph/seed_data.py.
-    Neighbor entities (symptom/chemical) are illustrative — edit to match
-    your final KG content if those specific relations aren't seeded yet.
+    """KG dialect-expansion example — Rice Blast canonical.
+
+    All aliases AND neighbor relations are real entries from
+    agribot/knowledge_graph/seed_data.py (verified):
+      Aliases (lines 74-78):       ব্লাস্ট রোগ, blast, rice blast, পাতা পোড়া
+      Neighbor relations:
+        - leaf_spot symptom_of blast (line 198)
+        - blast affects rice         (line 205)
+        - tricyclazole treatment_for blast (line 217)
     """
     from graphviz import Digraph
 
@@ -415,39 +420,39 @@ def fig6_kg_example():
     g.attr("node", shape="box", style="filled,rounded", fontname="Times", fontsize="9")
     g.attr("edge", fontname="Times", fontsize="8", arrowsize="0.6")
 
-    # Dialect / colloquial alias (entry point) — REAL seeded alias
-    g.node(
-        "alias_a",
-        "গাছফড়িং\n(colloquial)",
-        fillcolor="#fff2cc",
-        shape="note",
-    )
-    g.node(
-        "alias_b",
-        "brown planthopper\n(English)",
-        fillcolor="#fff2cc",
-        shape="note",
-    )
+    # Surface forms (real seeded aliases)
+    g.node("alias_a", "পাতা পোড়া\n(colloquial, Bn)",
+           fillcolor="#fff2cc", shape="note")
+    g.node("alias_b", "ব্লাস্ট রোগ\n(standard, Bn)",
+           fillcolor="#fff2cc", shape="note")
+    g.node("alias_c", "rice blast\n(English)",
+           fillcolor="#fff2cc", shape="note")
 
-    # Canonical entity — real seed_data.py entry (bph)
-    g.node(
-        "canon",
-        "বাদামি গাছফড়িং\nBrown Planthopper\n(canonical · type=pest)",
-        fillcolor="#dde8f5",
-    )
+    # Canonical entity
+    g.node("canon",
+           "Rice Blast\nব্লাস্ট রোগ\n(canonical · type=disease)",
+           fillcolor="#dde8f5")
 
-    # Symptom + treatment neighbors (illustrative)
-    g.node("sym1", "Hopper burn\n(symptom)", fillcolor="#f6e6f5")
-    g.node("sym2", "Yellowing of leaves\n(symptom)", fillcolor="#f6e6f5")
-    g.node("treat1", "Imidacloprid\n(chemical)", fillcolor="#fde7d3")
-    g.node("treat2", "Resistant variety: BR3\n(cultivar)", fillcolor="#fde7d3")
+    # Real 1-hop neighbors
+    g.node("sym",
+           "Leaf Spots\nপাতায় দাগ\n(symptom)",
+           fillcolor="#f6e6f5")
+    g.node("crop",
+           "Rice\nধান\n(crop)",
+           fillcolor="#c8e6c9")
+    g.node("treat",
+           "Tricyclazole\nট্রাইসাইক্লাজল\n(chemical)",
+           fillcolor="#fde7d3")
 
+    # Alias edges
     g.edge("alias_a", "canon", label="alias_of")
     g.edge("alias_b", "canon", label="alias_of")
-    g.edge("canon", "sym1", label="causes")
-    g.edge("canon", "sym2", label="causes")
-    g.edge("canon", "treat1", label="controlled_by")
-    g.edge("canon", "treat2", label="controlled_by")
+    g.edge("alias_c", "canon", label="alias_of")
+
+    # Real relation edges (direction matches seed_data.py)
+    g.edge("sym",   "canon", label="symptom_of")     # leaf_spot symptom_of blast
+    g.edge("canon", "crop",  label="affects")        # blast affects rice
+    g.edge("treat", "canon", label="treatment_for")  # tricyclazole treatment_for blast
 
     out = OUT_DIR / "fig6_kg_example"
     g.render(filename=out.name, directory=out.parent, cleanup=True, format="pdf")

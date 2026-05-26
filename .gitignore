@@ -159,7 +159,7 @@ pnpm-debug.log*
 .pre-commit-cache/
 
 # =============================================================================
-# Paper / LaTeX
+# Paper / LaTeX — keep manuscript private until submission/publication
 # =============================================================================
 *.tex
 *.bib
@@ -168,5 +168,13 @@ pnpm-debug.log*
 *.blg
 *.out
 *.toc
+*.synctex.gz
+*.fdb_latexmk
+*.fls
+# Belt-and-suspenders: anything inside docs/paper/ except its README
 docs/paper/*.tex
 docs/paper/*.bib
+docs/paper/*.pdf
+docs/paper/main*
+docs/paper/bibliography*
+!docs/paper/README.md
