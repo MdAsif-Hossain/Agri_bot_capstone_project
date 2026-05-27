@@ -24,35 +24,64 @@ GroundingMode = Literal["strict", "lenient"]
 OnVerifyFailAction = Literal["disclaimer", "cited_facts_only", "refuse"]
 
 # ---------------------------------------------------------------------------
-# Risk patterns — queries involving dosage, chemical application, etc.
-# These require explicit evidence; never guess.
+# Risk patterns — two-factor co-occurrence rule.
+#
+# A query is treated as RISKY only when both a CHEMICAL/FERTILIZER reference
+# AND a QUANTITY/DOSAGE signal appear in the same query. This avoids
+# over-refusing legitimate agronomy questions that happen to contain "per
+# acre" (e.g. a statistic) or "pesticide" (e.g. a general question) alone,
+# while still catching genuine dosage queries that need professional input.
+#
+# Examples (from our benchmark):
+#   "How much urea per acre should I apply"      → urea ∧ per acre ⇒ REFUSE
+#   "exact ml per liter of carbofuran"           → carbofuran ∧ ml ⇒ REFUSE
+#   "What is the percentage of rice cultivated"  → no chemical ⇒ ALLOW
+#   "What chemical hazards in unapproved pesticide use" → no quantity ⇒ ALLOW
 # ---------------------------------------------------------------------------
-RISK_PATTERNS: list[re.Pattern] = [
+CHEMICAL_PATTERNS: list[re.Pattern] = [
     re.compile(p, re.IGNORECASE)
     for p in [
-        # English patterns
-        r"\b\d+\s*(?:ml|mg|gm?|kg|l|cc|ppm)\b",  # numeric dose units
-        r"\bdos(?:age|e)\b",
-        r"\bspray\s+(?:rate|schedule|amount)\b",
-        r"\bapply\s+\d+",
-        r"\b(?:mix|dilute)\s+\d+",
-        r"\bconcentration\b",
-        r"\bpesticide\s+(?:amount|quantity|rate)\b",
-        r"\bfungicide\s+(?:amount|quantity|rate)\b",
-        r"\bherbicide\s+(?:amount|quantity|rate)\b",
-        r"\binsecticide\s+(?:amount|quantity|rate)\b",
-        r"\bper\s+(?:acre|hectare|bigha|liter|litre)\b",
-        # Bengali patterns (মাত্রা = dosage, কীটনাশক = pesticide, etc.)
-        r"মাত্রা",  # dosage
-        r"কীটনাশক",  # pesticide
-        r"ছত্রাকনাশক",  # fungicide
-        r"আগাছানাশক",  # herbicide
-        r"কতটুকু.*দিতে হবে",  # "how much to apply"
-        r"\d+\s*(?:মিলি|গ্রাম|কেজি|লিটার)",  # Bengali numeric units
-        r"প্রতি\s*(?:একর|হেক্টর|বিঘা|লিটার)",  # per acre/hectare/bigha
-        r"স্প্রে\s*(?:হার|পরিমাণ)",  # spray rate/amount
+        # Common fertilisers
+        r"\b(?:urea|mop|tsp|dap|npk|gypsum|zinc|potash)\b",
+        # Pesticides/fungicides/herbicides commonly cited in BD rice farming
+        r"\b(?:carbofuran|glyphosate|malathion|imidacloprid|carbendazim|"
+        r"tricyclazole|chlorpyrifos|fipronil|deltamethrin|cypermethrin|"
+        r"atrazine|paraquat|abamectin|emamectin)\b",
+        # Chemical/fertiliser categories
+        r"\b(?:pesticide|fungicide|herbicide|insecticide|rodenticide|"
+        r"fertili[sz]er|agrochemical|chemical)s?\b",
+        # Bengali specific names + categories
+        r"ইউরিয়া|এমওপি|টিএসপি|ডিএপি|এনপিকে|পটাশ|জিপসাম",
+        r"কীটনাশক|ছত্রাকনাশক|আগাছানাশক|রাসায়নিক|রোধক|সার",
     ]
 ]
+
+QUANTITY_PATTERNS: list[re.Pattern] = [
+    re.compile(p, re.IGNORECASE)
+    for p in [
+        # Numeric value + measurement unit
+        r"\b\d+\s*(?:ml|mg|gm?|kg|l|cc|ppm|lbs?|grams?|kilograms?|"
+        r"liters?|litres?|milliliters?|millilitres?)\b",
+        # Per-area (most common dosage qualifier)
+        r"\bper\s+(?:acre|hectare|bigha|liter|litre)\b",
+        # How-much / quantity questions
+        r"\bhow\s+much\b",
+        r"\bdos(?:age|e)\b",
+        r"\b(?:spray|application)\s+(?:rate|schedule|amount|quantity)\b",
+        r"\b(?:apply|mix|dilute)\s+\d+",
+        r"\bconcentration\b",
+        r"\bexact\s+(?:rate|amount|quantity|dosage)\b",
+        # Bengali
+        r"কতটুকু|কত\s*(?:মিলি|গ্রাম|কেজি|লিটার)|কত\s*পরিমাণ",
+        r"\d+\s*(?:মিলি|গ্রাম|কেজি|লিটার)",
+        r"প্রতি\s*(?:একর|হেক্টর|বিঘা|লিটার)",
+        r"স্প্রে\s*(?:হার|পরিমাণ)",
+        r"মাত্রা",  # dosage
+    ]
+]
+
+# Kept for backwards-compatibility with anything that imported the old name.
+RISK_PATTERNS = CHEMICAL_PATTERNS + QUANTITY_PATTERNS
 
 DISCLAIMER_EN = (
     "\n\n⚠️ Note: Some claims in this answer could not be fully "
@@ -98,8 +127,13 @@ ESCALATION_BN = (
 
 
 def is_risky_query(query: str) -> bool:
-    """Check if a query involves high-risk dosage/chemical advice."""
-    return any(pat.search(query) for pat in RISK_PATTERNS)
+    """Two-factor risk check: a query is risky only if it mentions both a
+    chemical/fertiliser AND a quantity/dosage signal. This co-occurrence
+    rule keeps the safety net tight on real dosage requests while not
+    over-refusing legitimate agronomy questions."""
+    has_chemical = any(p.search(query) for p in CHEMICAL_PATTERNS)
+    has_quantity = any(p.search(query) for p in QUANTITY_PATTERNS)
+    return has_chemical and has_quantity
 
 
 # Threshold below which we treat the image classifier's top prediction as
