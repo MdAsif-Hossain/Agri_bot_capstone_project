@@ -68,7 +68,9 @@ CORRECTED real module paths (rag_pipeline.py / hybrid_retriever.py do NOT exist)
 
 ### Item 3 — GPU latency (IN PROGRESS — prebuilt-wheel route WORKING)
 - GPU SMOKE SUCCESS: offloaded 37/37 layers, supports_gpu_offload=True, 79 tok/s (vs ~5-8 CPU), VRAM ~2.2GB of 4GB, load 1.8s. venv-gpu now has ALL deps (torch CPU, faiss, rank_bm25, sentence_transformers, flashrank, transformers, langgraph, sentencepiece, bnunicodenormalizer) + GPU llama-cpp.
-- Built `evaluation/gpu_latency_probe.py` (in-process, same 37 in-corpus queries x3 runs as eval_latency.py, agent.invoke path, CUDA DLL preamble). Running GPU latency now → `latency_gpu_latest.json`. Then items 13/14.
+- FINAL GPU latency script = `evaluation/eval_latency_gpu.py` (in-process, same 37 in-corpus queries x3 runs as eval_latency.py, real agent.invoke path, CUDA DLL preamble, sys.path root insert). Deleted the older stale `gpu_latency_probe.py` (generation-only, wrong filename/model, no DLL preamble).
+- venv-gpu dep resolution (full app stack needed for agent.invoke, not just llama_cpp): added torch(cpu), faiss-cpu, rank-bm25, sentence-transformers, flashrank, transformers, langgraph, sentencepiece, bnunicodenormalizer, pydantic, pydantic-settings, structlog. Dry-run import of all 9 agent modules in venv-gpu = OK.
+- Output → `latency_gpu_latest.json`. Then items 13/14 (Table III GPU row + latency paragraph). Use measured tok/s ~79 GPU vs CPU baseline for speedup framing.
 - USER CHOSE: prebuilt CUDA wheel after ablation. NO source build, NO system CUDA toolkit.
 - Driver 581.57 supports CUDA 13.0 → cu124 wheels compatible. RTX 3050 Laptop 4GB.
 - DONE: isolated `venv-gpu` (Python 3.12) created. Installed `llama-cpp-python==0.3.23` from `https://abetlen.github.io/llama-cpp-python/whl/cu124`. Wheel bundles `ggml-cuda.dll` (810MB) but NOT cuda runtime → added `nvidia-cuda-runtime-cu12` + `nvidia-cublas-cu12` wheels (cudart64_12, cublas64_12, cublasLt64_12).
