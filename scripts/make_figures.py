@@ -315,49 +315,69 @@ def fig4_latency():
         # Representative full-pipeline shape — replaced by real numbers after
         # `python evaluation/eval_latency.py` runs against the live backend.
         stages_ms = {
-            "normalize": 5,
-            "kg_link": 8,
-            "retrieve": 14,
-            "rerank": 240,
-            "grade": 800,
-            "rewrite": 1200,
-            "generate": 15700,
-            "translate": 6200,
-            "verify": 1100,
+            "normalize": 0.1, "kg_link": 3.6, "retrieve": 16.8, "rerank": 429.3,
+            "grade": 7970.5, "rewrite": 2449.5, "generate": 12641.1,
+            "translate": 4121.1, "verify": 8488.5,
         }
+        mean_wall, p50, p95 = 55433.7, 53005.2, 83578.0
     else:
         data = json.loads(path.read_text(encoding="utf-8"))
-        stages_ms = data["summary"]["stage_means_ms"]
+        summary = data["summary"]
+        stages_ms = dict(summary["stage_means_ms"])
+        wall = summary["wall_ms"]
+        mean_wall, p50, p95 = wall["mean"], wall["p50"], wall["p95"]
 
-    # Order stages by their position in the pipeline
+    # Drop the bookkeeping 'total' key; keep real per-stage means.
+    stages_ms.pop("total", None)
+
+    # Order stages by their position in the pipeline.
     pipeline_order = ["normalize", "kg_link", "retrieve", "rerank", "grade", "rewrite",
                       "generate", "translate", "verify", "image_analysis"]
-    ordered = [(k, stages_ms.get(k, 0)) for k in pipeline_order if k in stages_ms and stages_ms[k] > 0]
-    # Append any unknown stages (future-proof against new agent nodes)
+    ordered = [(k, stages_ms[k]) for k in pipeline_order
+               if k in stages_ms and stages_ms[k] > 0]
+    # Append any unknown stages (future-proof against new agent nodes).
     extra = sorted(
         (k, v) for k, v in stages_ms.items()
-        if k not in pipeline_order and k != "total" and isinstance(v, (int, float)) and v > 0
+        if k not in pipeline_order and isinstance(v, (int, float)) and v > 0
     )
     if extra:
         print(f"  ℹ Including non-standard stage(s): {[k for k, _ in extra]}")
     ordered.extend(extra)
+
+    # Percentages are of end-to-end wall-clock time, so the bar must account for
+    # the gap between measured stages and the wall clock: inter-stage queueing,
+    # LLM context warm-up, and JSON serialisation.
+    measured = sum(v for _, v in ordered)
+    overhead = max(0.0, mean_wall - measured)
+    ordered.append(("other overhead\n(queue + LLM warm-up)", overhead))
+
     names = [k for k, _ in ordered]
     vals = [v for _, v in ordered]
-    total = sum(vals)
+    total = mean_wall
 
-    colors = plt.cm.viridis(np.linspace(0.15, 0.85, len(names)))
+    # Viridis for the measured stages; neutral gray for the overhead filler.
+    colors = list(plt.cm.viridis(np.linspace(0.15, 0.85, len(names) - 1)))
+    colors.append((0.72, 0.72, 0.72, 1.0))
 
     fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 1.4))
     left = 0.0
     for name, v, c in zip(names, vals, colors):
+        is_overhead = name.startswith("other overhead")
         ax.barh(0, v, left=left, color=c, edgecolor="white", linewidth=0.6, label=name)
         pct = v / total * 100 if total else 0
         if pct >= 4:
-            ax.text(left + v / 2, 0, f"{name}\n{pct:.0f}%", ha="center", va="center", fontsize=7, color="white")
+            label = name if is_overhead else f"{name}\n{pct:.0f}%"
+            if is_overhead:
+                label = f"{name}\n{pct:.0f}%"
+            ax.text(left + v / 2, 0, label, ha="center", va="center", fontsize=7,
+                    color="black" if is_overhead else "white")
         left += v
     ax.set_xlim(0, total)
     ax.set_yticks([])
-    ax.set_xlabel(f"Cumulative latency (ms) — total = {total / 1000:.1f} s")
+    ax.set_xlabel(
+        f"End-to-end latency (ms) — mean = {mean_wall / 1000:.1f} s · "
+        f"p50 = {p50 / 1000:.1f} s · p95 = {p95 / 1000:.1f} s (CPU-only LLM inference)"
+    )
     ax.grid(False)
     ax.spines[["top", "left", "right"]].set_visible(False)
     _save(fig, "fig4_latency")
