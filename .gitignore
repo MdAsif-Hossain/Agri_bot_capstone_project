@@ -178,3 +178,5 @@ docs/paper/*.pdf
 docs/paper/main*
 docs/paper/bibliography*
 !docs/paper/README.md
+venv-gpu/
+evaluation/results/
