@@ -100,7 +100,7 @@ AgriBot combines:
 - **Hybrid retrieval** (CPU-based FAISS + BM25 + ms-marco reranker),
 - **Dialect Knowledge Graph** (SQLite) for term alignment,
 - **LangGraph bounded self-correct loop** with evidence grading and verification,
-- **Offline local LLM** (Qwen 2.5 1.5B via `llama-cpp-python`) running strictly on the GPU,
+- **Offline local LLM** (Qwen2.5-3B-Instruct, Q4_0 GGUF via `llama-cpp-python`) running strictly on the GPU,
 - **Multi-platform ecosystem** (Web Kiosk, Mobile, Desktop) communicating with a unified FastAPI orchestrator.
 
 ---
@@ -130,7 +130,7 @@ AgriBot combines:
 ### 7.2 Hardware Splitting Strategy
 | Task | Technology | Hardware Target | Output |
 |---|---|---|---|
-| Text Generation (RAG) | **llama-cpp-python (Qwen 1.5B)** | **GPU (VRAM)** | BN+EN answer + citations |
+| Text Generation (RAG) | **llama-cpp-python (Qwen2.5-3B, Q4_0)** | **GPU (VRAM)** | BN+EN answer + citations |
 | Voice → text | **faster-whisper** | **CPU (RAM)** | BN transcript + confidence |
 | Image Classification | **MobileNetV3 + CBAM (ONNX Runtime)** | **CPU (RAM)** | Top-K Disease classes / Keywords |
 | Symptom Extraction | **PIL/NumPy Color Heuristics** | **CPU (RAM)** | Symptom hints (e.g. "Yellowing") |
@@ -281,20 +281,97 @@ Focused smoke set:
 pytest tests/test_voice.py tests/test_api.py -q
 ```
 
-## 11. Recommended Next Milestones
+## 11. Evaluation and Reproducibility
 
-1. Reintroduce evaluation harness with reproducible score reports
-2. Reintroduce containerized deployment path
-3. Add production observability (metrics, tracing, alerts)
-4. Harden security controls and API governance
-5. Finalize production vision model path
-6. Publish benchmark and ablation results for scholarship/research dossiers
+All quantitative claims in the accompanying paper are reproduced by scripts in
+[evaluation/](evaluation/), each of which writes a versioned JSON result file to
+`evaluation/results/` (a timestamped copy plus a stable `*_latest.json` pointer).
+The shared benchmark is [evaluation/dataset.json](evaluation/dataset.json): 60
+bilingual queries across five categories (in-corpus factual/procedural,
+out-of-corpus, risk-query, dialect-bn), each with expected sources, expected
+keywords, and a `must_refuse` flag.
 
-## 12. Related Documents
+> Note: `evaluation/results/*.json` are gitignored (regenerable artifacts).
+> Run the scripts to produce them locally.
+
+### Harness scripts
+
+| Script | Measures | Notes |
+|---|---|---|
+| [eval_retrieval.py](evaluation/eval_retrieval.py) | Recall@{1,3,5,10}, MRR | In-process; ±2-page tolerance |
+| [eval_grounding.py](evaluation/eval_grounding.py) | keyword coverage, citations, verified-rate | Hits the live API (`python api.py` first) |
+| [eval_refusal.py](evaluation/eval_refusal.py) | refusal confusion matrix, accuracy | Live API |
+| [eval_latency.py](evaluation/eval_latency.py) | per-stage + end-to-end p50/p95 (CPU) | Live API, 3 runs/query |
+| [eval_latency_gpu.py](evaluation/eval_latency_gpu.py) | per-stage + end-to-end p50/p95 (GPU) | In-process; requires the CUDA `venv-gpu` (see below) |
+| [eval_ablation.py](evaluation/eval_ablation.py) | 4-config ablation (R@3, MRR, groundedness, refusal accuracy) | One harness scores A/B/C single-pass + D full agent |
+| [stress_test.py](evaluation/stress_test.py) | concurrency stability (crashes / OOM / HTTP codes) | Live API |
+| [run_all.py](evaluation/run_all.py) | orchestrates the live-API suite | — |
+
+```bash
+# retrieval-only metrics (fast, no LLM):
+python evaluation/eval_retrieval.py
+
+# 4-config ablation incl. naive baseline (slow, ~hours on CPU):
+python evaluation/eval_ablation.py            # all configs, all 60 queries
+python evaluation/eval_ablation.py --smoke    # 2 queries/config, wiring test
+
+# live-API metrics: start the backend first
+python api.py            # in one shell
+python evaluation/eval_grounding.py
+python evaluation/eval_refusal.py
+python evaluation/eval_latency.py --runs 3
+```
+
+### Inter-annotator agreement (Cohen's κ) harness
+
+[kappa_subset.py](evaluation/kappa_subset.py) draws a deterministic,
+category-balanced 20-query subset and emits blank annotator templates under
+`evaluation/annotation/`; [kappa_score.py](evaluation/kappa_score.py) computes
+Cohen's κ once two non-author annotators have filled
+`annotator1.csv` / `annotator2.csv`.
+
+### GPU latency benchmark (optional, isolated env)
+
+The default `requirements.txt` installs a CPU build of `llama-cpp-python`. To
+reproduce the GPU latency numbers, create a **separate** environment with a CUDA
+wheel so the working CPU env is never disturbed:
+
+```bash
+python -m venv venv-gpu
+venv-gpu\Scripts\activate
+pip install llama-cpp-python --extra-index-url https://abetlen.github.io/llama-cpp-python/whl/cu124
+pip install nvidia-cuda-runtime-cu12 nvidia-cublas-cu12   # runtime DLLs the wheel needs
+pip install -r requirements.txt                            # rest of the stack
+python evaluation/eval_latency_gpu.py --runs 3
+```
+
+`eval_latency_gpu.py` prepends the pip-installed CUDA DLL directories to the DLL
+search path before importing `llama_cpp`, so no system-wide CUDA toolkit install
+is required.
+
+### Figures
+
+All paper figures are regenerated from [scripts/make_figures.py](scripts/make_figures.py)
+(matplotlib charts read the `evaluation/results/*.json` files; graphviz diagrams
+need the `dot` binary on PATH). For the two graphviz figures without a local
+`dot`, [scripts/make_fig12_colab.py](scripts/make_fig12_colab.py) is a
+self-contained Colab cell.
+
+## 12. Recommended Next Milestones
+
+1. Containerized deployment path
+2. Production observability (metrics, tracing, alerts)
+3. Harden security controls and API governance
+4. Finalize production vision model path with a leakage-free evaluation set
+5. Scale the dialect KG from the 28-entity seed to a few hundred entities
+
+## 13. Related Documents
 
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)
 - [docs/MODELS.md](docs/MODELS.md)
 - [docs/DATA_SOURCES.md](docs/DATA_SOURCES.md)
 - [PROJECT_PHASES_COMPLETE_BREAKDOWN.txt](PROJECT_PHASES_COMPLETE_BREAKDOWN.txt)
 
-Note: [docs/EVALUATION.md](docs/EVALUATION.md) currently describes planned evaluation capabilities that are not fully present in this repository state.
+The evaluation harness described in Section 11 is implemented in
+[evaluation/](evaluation/); run the scripts there to regenerate all reported
+metrics.
