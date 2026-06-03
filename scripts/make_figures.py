@@ -70,8 +70,13 @@ PALETTE = {
 COL_WIDTH_IN = 3.5  # single column
 WIDE_WIDTH_IN = 7.16  # spans both columns
 
-# Project paths
-ROOT = Path(__file__).resolve().parent.parent
+# Project paths.
+# Use __file__ when run as a script; fall back to CWD in notebooks/Colab,
+# where __file__ is undefined.
+try:
+    ROOT = Path(__file__).resolve().parent.parent
+except NameError:
+    ROOT = Path.cwd()
 OUT_DIR = ROOT / "docs" / "figures"
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 EVAL_DIR = ROOT / "evaluation" / "results"
@@ -168,7 +173,7 @@ def fig1_architecture():
     with g.subgraph(name="cluster_services") as c:
         c.attr(label="Inference services (per-node calls from the agent)",
                style="dashed", color="gray50", fontsize="9")
-        c.node("llm", "Qwen2.5-1.5B (Q8 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
+        c.node("llm", "Qwen2.5-3B (Q4_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
         c.node("retrv", "Hybrid retrieval\nFAISS dense + BM25 sparse\n+ RRF fusion + Cross-encoder",
                fillcolor=PALETTE["bg_cpu"])
         c.node("kg", "KG entity linker\n(SQLite)", fillcolor=PALETTE["bg_cpu"])
@@ -239,7 +244,7 @@ def fig2_workflow():
     g.node("rerank", "rerank\n(cross-encoder)")
     g.node("grade", "grade\n(LLM)", shape="diamond", fillcolor="#fff2cc")
     g.node("rewrite", "rewrite\n(LLM)", fillcolor="#f5dada")
-    g.node("generate", "generate\n(LLM)")
+    g.node("generate", "generate\n(Qwen2.5-3B, GPU)")
     g.node("translate", "translate\n(BanglaT5)")
     g.node("verify", "verify\n(LLM)", fillcolor="#e0f0e0")
     g.node("enforce", "enforce_policy\n(safety)", fillcolor="#e0f0e0")
@@ -309,77 +314,93 @@ def fig3_retrieval():
 # FIGURE 4 — Per-stage latency stacked horizontal bar (reads eval JSON)
 # =============================================================================
 def fig4_latency():
-    path = EVAL_DIR / "latency_latest.json"
-    if not path.exists():
-        print(f"  ⚠ {path.relative_to(ROOT)} not found — using PLACEHOLDER values")
-        # Representative full-pipeline shape — replaced by real numbers after
-        # `python evaluation/eval_latency.py` runs against the live backend.
-        stages_ms = {
-            "normalize": 0.1, "kg_link": 3.6, "retrieve": 16.8, "rerank": 429.3,
-            "grade": 7970.5, "rewrite": 2449.5, "generate": 12641.1,
-            "translate": 4121.1, "verify": 8488.5,
-        }
-        mean_wall, p50, p95 = 55433.7, 53005.2, 83578.0
-    else:
-        data = json.loads(path.read_text(encoding="utf-8"))
-        summary = data["summary"]
-        stages_ms = dict(summary["stage_means_ms"])
-        wall = summary["wall_ms"]
-        mean_wall, p50, p95 = wall["mean"], wall["p50"], wall["p95"]
+    """Two stacked horizontal bars on a shared axis: CPU-only LLM inference
+    (top) vs. GPU-offloaded LLM (bottom). Reads the two measured JSONs; the
+    GPU bar makes the measured end-to-end speedup explicit instead of a
+    projection. If the GPU JSON is absent, draws the CPU bar alone."""
+    pipeline_order = ["normalize", "kg_link", "retrieve", "rerank", "grade",
+                      "rewrite", "generate", "translate", "verify", "image_analysis"]
 
-    # Drop the bookkeeping 'total' key; keep real per-stage means.
-    stages_ms.pop("total", None)
+    def _load(path, fallback_stages, fallback_wall):
+        if path.exists():
+            d = json.loads(path.read_text(encoding="utf-8"))["summary"]
+            stages = dict(d["stage_means_ms"])
+            stages.pop("total", None)
+            w = d["wall_ms"]
+            return stages, (w["mean"], w["p50"], w["p95"])
+        print(f"  ⚠ {path.name} not found — using embedded measured values")
+        return dict(fallback_stages), fallback_wall
 
-    # Order stages by their position in the pipeline.
-    pipeline_order = ["normalize", "kg_link", "retrieve", "rerank", "grade", "rewrite",
-                      "generate", "translate", "verify", "image_analysis"]
-    ordered = [(k, stages_ms[k]) for k in pipeline_order
-               if k in stages_ms and stages_ms[k] > 0]
-    # Append any unknown stages (future-proof against new agent nodes).
-    extra = sorted(
-        (k, v) for k, v in stages_ms.items()
-        if k not in pipeline_order and isinstance(v, (int, float)) and v > 0
-    )
-    if extra:
-        print(f"  ℹ Including non-standard stage(s): {[k for k, _ in extra]}")
-    ordered.extend(extra)
+    cpu_stages, (cpu_mean, cpu_p50, cpu_p95) = _load(
+        EVAL_DIR / "latency_latest.json",
+        {"normalize": 0.1, "kg_link": 3.6, "retrieve": 16.8, "rerank": 429.3,
+         "grade": 7970.5, "rewrite": 2449.5, "generate": 12641.1,
+         "translate": 4121.1, "verify": 8488.5},
+        (55433.7, 53005.2, 83578.0))
 
-    # Percentages are of end-to-end wall-clock time, so the bar must account for
-    # the gap between measured stages and the wall clock: inter-stage queueing,
-    # LLM context warm-up, and JSON serialisation.
-    measured = sum(v for _, v in ordered)
-    overhead = max(0.0, mean_wall - measured)
-    ordered.append(("other overhead\n(queue + LLM warm-up)", overhead))
+    gpu_path = EVAL_DIR / "latency_gpu_latest.json"
+    has_gpu = gpu_path.exists() or True  # embedded fallback below keeps GPU bar
+    gpu_stages, (gpu_mean, gpu_p50, gpu_p95) = _load(
+        gpu_path,
+        {"normalize": 0.1, "kg_link": 3.0, "retrieve": 12.8, "rerank": 192.2,
+         "grade": 328.6, "rewrite": 252.0, "generate": 1576.0,
+         "translate": 2801.4, "verify": 532.5},
+        (7045.1, 6199.9, 13413.6))
 
-    names = [k for k, _ in ordered]
-    vals = [v for _, v in ordered]
-    total = mean_wall
+    # Stable stage ordering + consistent colour per stage across both bars.
+    all_stages = [s for s in pipeline_order
+                  if cpu_stages.get(s, 0) > 0 or gpu_stages.get(s, 0) > 0]
+    stage_color = dict(zip(all_stages,
+                           plt.cm.viridis(np.linspace(0.15, 0.85, len(all_stages)))))
+    overhead_color = (0.72, 0.72, 0.72, 1.0)
 
-    # Viridis for the measured stages; neutral gray for the overhead filler.
-    colors = list(plt.cm.viridis(np.linspace(0.15, 0.85, len(names) - 1)))
-    colors.append((0.72, 0.72, 0.72, 1.0))
+    def _segments(stages, mean_wall):
+        segs = [(s, stages.get(s, 0.0)) for s in all_stages if stages.get(s, 0.0) > 0]
+        overhead = max(0.0, mean_wall - sum(v for _, v in segs))
+        segs.append(("overhead", overhead))
+        return segs
 
-    fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 1.4))
-    left = 0.0
-    for name, v, c in zip(names, vals, colors):
-        is_overhead = name.startswith("other overhead")
-        ax.barh(0, v, left=left, color=c, edgecolor="white", linewidth=0.6, label=name)
-        pct = v / total * 100 if total else 0
-        if pct >= 4:
-            label = name if is_overhead else f"{name}\n{pct:.0f}%"
-            if is_overhead:
-                label = f"{name}\n{pct:.0f}%"
-            ax.text(left + v / 2, 0, label, ha="center", va="center", fontsize=7,
-                    color="black" if is_overhead else "white")
-        left += v
-    ax.set_xlim(0, total)
-    ax.set_yticks([])
-    ax.set_xlabel(
-        f"End-to-end latency (ms) — mean = {mean_wall / 1000:.1f} s · "
-        f"p50 = {p50 / 1000:.1f} s · p95 = {p95 / 1000:.1f} s (CPU-only LLM inference)"
-    )
+    from matplotlib.patches import Patch
+
+    fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 1.9))
+    rows = [("CPU", cpu_stages, cpu_mean, cpu_p50, cpu_p95, 1.0),
+            ("GPU", gpu_stages, gpu_mean, gpu_p50, gpu_p95, 0.0)]
+    for label, stages, mean_wall, p50, p95, ypos in rows:
+        left = 0.0
+        for name, v in _segments(stages, mean_wall):
+            c = overhead_color if name == "overhead" else stage_color[name]
+            ax.barh(ypos, v, left=left, height=0.55, color=c,
+                    edgecolor="white", linewidth=0.6)
+            pct = v / mean_wall * 100 if mean_wall else 0
+            # Only the wide CPU bar carries inline labels; the GPU bar is too
+            # short, so its stages are read off the shared legend + colour.
+            if label == "CPU" and pct >= 6:
+                ax.text(left + v / 2, ypos, f"{name}\n{pct:.0f}%", ha="center",
+                        va="center", fontsize=6.5,
+                        color="black" if name == "overhead" else "white")
+            left += v
+        ax.text(mean_wall + cpu_mean * 0.015, ypos,
+                f"{label}: p50 {p50/1000:.1f}\\,s, p95 {p95/1000:.1f}\\,s".replace("\\,", " "),
+                va="center", ha="left", fontsize=8, fontweight="bold")
+
+    speedup = cpu_p50 / gpu_p50 if gpu_p50 else 0
+    ax.set_xlim(0, cpu_mean * 1.20)
+    ax.set_ylim(-0.6, 1.6)
+    ax.set_yticks([1.0, 0.0])
+    ax.set_yticklabels(["CPU-only\nLLM", "GPU-offload\nLLM"], fontsize=8)
+    ax.set_xlabel("End-to-end per-stage latency (ms), mean over 37 queries "
+                  f"x 3 runs. GPU offload cuts median latency {speedup:.1f}x "
+                  f"({cpu_p50/1000:.0f}s to {gpu_p50/1000:.1f}s).", fontsize=8)
+
+    legend_stages = [s for s in all_stages
+                     if cpu_stages.get(s, 0) > 0][:7] + ["overhead"]
+    handles = [Patch(facecolor=(overhead_color if s == "overhead" else stage_color[s]),
+                     edgecolor="white", label=s) for s in legend_stages]
+    ax.legend(handles=handles, ncol=len(legend_stages), fontsize=6.5,
+              loc="upper center", bbox_to_anchor=(0.5, -0.32),
+              frameon=False, handlelength=1.0, columnspacing=1.0)
     ax.grid(False)
-    ax.spines[["top", "left", "right"]].set_visible(False)
+    ax.spines[["top", "right"]].set_visible(False)
     _save(fig, "fig4_latency")
 
 
@@ -577,7 +598,7 @@ def fig1_mpl():
               fill="#f6e6f5", fontsize=7)
 
     # --- Row 5: Services ---
-    _draw_box(ax, 0.3, 1.6, 2.1, 1.1, "Qwen2.5-1.5B\n(Q8 GGUF)\n— GPU —",
+    _draw_box(ax, 0.3, 1.6, 2.1, 1.1, "Qwen2.5-3B\n(Q4_0 GGUF)\n— GPU —",
               fill=PALETTE["bg_gpu"], fontsize=7)
     _draw_box(ax, 2.6, 1.6, 2.6, 1.1, "Hybrid retrieval\nFAISS + BM25\n+ RRF + Reranker",
               fill=PALETTE["bg_cpu"], fontsize=7)

@@ -32,6 +32,21 @@ KILLER EVIDENCE: baseline A (no policy) leaked Q39 = "56 lbs/acre urea" dosage (
 - DONE in paper: Item 11 (Table IV ablation), Item 12 (baseline paragraph w/ Q39), Item 16 (limitations 6→5: removed baseline limit, revised ablation limit to "per-node loop ablation future").
 - Files: `evaluation/eval_ablation.py`, `evaluation/results/ablation_latest.json` (+ timestamped), `evaluation/results/ablation_run.log`.
 
+## GPU LATENCY DONE (items 3/13/14 — 2026-05-31)
+- Full GPU end-to-end run: `evaluation/eval_latency_gpu.py --runs 3` over 37 in-corpus queries. Results in `evaluation/results/latency_gpu_latest.json`.
+- **GPU: p50=6.2s, p95=13.4s, mean=7.0s** vs CPU p50=53.0s → **8.5x median speedup**. Per-stage: generate 12.6→1.6s, grade 8.0→0.33s, verify 8.5→0.53s; translate (CPU-pinned BanglaT5) 4.1→2.8s now the DOMINANT stage = hardware-isolation evidence. Full 3B-Q4 fits 4GB (~2.2GB resident, 37/37 layers).
+- PAPER: Table III got GPU p50/p95 row. Latency para rewritten (CPU+GPU). New "GPU offload" para added. Discussion "obvious lever" sentence → measured. Limitations (2) GPU latency → "GPU generality" (other accelerators untested). Conclusion future-work list updated (GPU/ablation/baseline now DONE, removed). Abstract got GPU 8.5x + ablation 19pp sentences.
+
+## BONUS CLEANUP — main.tex was corrupted with duplicate paragraphs
+- Found via `_dupscan.py`: Latency para x3, fig4 figure* x2, CPU-disclaimer x3, "What the numbers suggest" x2, "Safety-coverage trade-off" x2, "Limitations" x2. Likely from prior-session edits.
+- Fixed: surgical latency-block rewrite + paragraph-level dedup (keep-first-occurrence). Verified every structural marker (sections, labels, key paras) = exactly 1. main.tex now 729→~700 lines, clean. THE USER MUST still visually confirm on Overleaf compile.
+
+## STILL BLOCKED ON USER
+- Item 15 (Cohen's kappa sentence §V): needs 2 non-co-authors to fill `evaluation/annotation/annotator{1,2}.csv`, then `python evaluation/kappa_score.py`, then I add one sentence.
+- Item 19 (Kaggle author): verify https://www.kaggle.com/datasets/anshulm257/rice-disease-dataset display name + title vs bib.
+- Item 17 (trim if >8pp): needs Overleaf compile to see page count.
+- Item 20 (IEEE PDF eXpress): needs IEEE account + ICTAI 2026 conf ID.
+
 ## REMAINING — exact next steps
 
 ### Item 19 — Verify Kaggle author (BLOCKED — needs human eyes)
