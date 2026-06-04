@@ -23,11 +23,27 @@ export interface VoiceBlock {
     suggested_actions: string[];
 }
 
+export interface PossibleCondition {
+    label: string;
+    confidence: number;
+}
+
+/** Full structured result the backend nests under image.analysis_summary. */
+export interface AnalysisSummary {
+    pipeline_used?: string;
+    ocr_text?: string;
+    symptom_hints?: string[];
+    quality_flags?: string[];
+    limitations?: string[];
+    keywords?: string[];
+    possible_conditions?: PossibleCondition[];
+}
+
 export interface ImageBlock {
     pipeline_used: "ocr_baseline" | "classifier_assisted" | "ocr_fallback";
-    analysis_summary: Record<string, unknown>;
+    analysis_summary: AnalysisSummary;
     limitations: string[];
-    possible_conditions: { label: string; confidence: number }[];
+    possible_conditions: PossibleCondition[];
 }
 
 // --- Main response ---
@@ -88,6 +104,8 @@ export interface Message {
     grounding_action?: string;
     follow_up_suggestions?: string[];
     timestamp: number;
+    // Local object URL of the user's uploaded image (client-side only).
+    image_url?: string;
     // Nested diagnostics
     diagnostics?: DiagnosticsBlock;
     voice?: VoiceBlock | null;

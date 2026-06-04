@@ -1,22 +1,34 @@
 @import "tailwindcss";
 
+/* =========================================================================
+   AgriBot — light SaaS theme.
+   One green accent, neutral slate canvas, soft shadows, generous radius.
+   ========================================================================= */
 @theme {
-  --color-emerald-50: #ecfdf5;
-  --color-emerald-100: #d1fae5;
-  --color-emerald-200: #a7f3d0;
-  --color-emerald-300: #6ee7b7;
-  --color-emerald-400: #34d399;
-  --color-emerald-500: #10b981;
-  --color-emerald-600: #059669;
-  --color-emerald-700: #047857;
-  --color-emerald-800: #065f46;
-  --color-emerald-900: #064e3b;
-  --color-surface: #0a0f0d;
-  --color-surface-2: #111916;
-  --color-surface-3: #182320;
-  --color-surface-4: #1c2b26;
-  --color-glass: rgba(24, 45, 36, 0.45);
-  --color-glass-border: rgba(52, 211, 153, 0.12);
+  /* Accent (green) */
+  --color-brand-50: #f0fdf4;
+  --color-brand-100: #dcfce7;
+  --color-brand-200: #bbf7d0;
+  --color-brand-300: #86efac;
+  --color-brand-400: #4ade80;
+  --color-brand-500: #22c55e;
+  --color-brand-600: #16a34a;
+  --color-brand-700: #15803d;
+  --color-brand-800: #166534;
+  --color-brand-900: #14532d;
+
+  /* Neutral canvas (slate) */
+  --color-canvas: #f6f8f7;      /* app background */
+  --color-card: #ffffff;        /* cards / surfaces */
+  --color-muted: #f1f5f4;       /* subtle fills */
+  --color-line: #e5eae8;        /* borders */
+  --color-ink: #0f1f17;         /* primary text */
+  --color-ink-2: #44514b;       /* secondary text */
+  --color-ink-3: #8a968f;       /* tertiary / placeholder */
+
+  /* Soft shadows */
+  --shadow-card: 0 1px 2px rgba(16, 24, 20, 0.04), 0 4px 16px rgba(16, 24, 20, 0.06);
+  --shadow-pop: 0 8px 30px rgba(16, 24, 20, 0.12);
 }
 
 @font-face {
@@ -29,125 +41,64 @@
 html {
   font-size: 16px;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 body {
   font-family: 'Inter', system-ui, sans-serif;
-  background: var(--color-surface);
-  color: #f0fdf4;
+  background: var(--color-canvas);
+  color: var(--color-ink);
   overflow: hidden;
 }
 
-::-webkit-scrollbar {
-  width: 6px;
+/* Soft radial wash so the canvas isn't flat white. */
+.bg-app {
+  background:
+    radial-gradient(48rem 36rem at 85% -8%, rgba(34, 197, 94, 0.06), transparent 60%),
+    radial-gradient(40rem 32rem at -5% 5%, rgba(16, 185, 129, 0.05), transparent 55%),
+    var(--color-canvas);
 }
 
-::-webkit-scrollbar-track {
-  background: transparent;
-}
-
+/* Scrollbars */
+::-webkit-scrollbar { width: 10px; height: 10px; }
+::-webkit-scrollbar-track { background: transparent; }
 ::-webkit-scrollbar-thumb {
-  background: #065f46;
+  background: #d4dcd8;
   border-radius: 9999px;
+  border: 3px solid var(--color-canvas);
+}
+::-webkit-scrollbar-thumb:hover { background: #bcc7c2; }
+
+/* Multi-line truncation (OCR preview). */
+.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-@keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(12px);
-  }
-
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes float {
-
-  0%,
-  100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-8px);
-  }
-}
-
-@keyframes pulse-dot {
-
-  0%,
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-
-  50% {
-    opacity: 0.5;
-    transform: scale(0.8);
-  }
-}
-
+/* ---------- Keyframes ---------- */
 @keyframes typing-bounce {
-
-  0%,
-  60%,
-  100% {
-    transform: translateY(0);
-    opacity: 0.4;
-  }
-
-  30% {
-    transform: translateY(-6px);
-    opacity: 1;
-  }
+  0%, 60%, 100% { transform: translateY(0); opacity: 0.35; }
+  30% { transform: translateY(-6px); opacity: 1; }
 }
 
 @keyframes wave {
-
-  0%,
-  100% {
-    height: 6px;
-  }
-
-  50% {
-    height: 18px;
-  }
+  0%, 100% { height: 6px; }
+  50% { height: 18px; }
 }
 
 @keyframes pulse-recording {
-
-  0%,
-  100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
-  }
-
-  50% {
-    box-shadow: 0 0 0 8px rgba(239, 68, 68, 0);
-  }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.25); }
+  50% { box-shadow: 0 0 0 8px rgba(239, 68, 68, 0); }
 }
 
-.animate-fadeInUp {
-  animation: fadeInUp 0.35s ease-out;
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
 }
 
-.animate-float {
-  animation: float 3s ease-in-out infinite;
-}
-
-.animate-pulse-dot {
-  animation: pulse-dot 2s ease-in-out infinite;
-}
-
-.animate-typing {
-  animation: typing-bounce 1.2s ease-in-out infinite;
-}
-
-.animate-wave {
-  animation: wave 0.8s ease-in-out infinite;
-}
-
-.animate-pulse-rec {
-  animation: pulse-recording 1.5s ease-in-out infinite;
-}
+.animate-typing { animation: typing-bounce 1.2s ease-in-out infinite; }
+.animate-wave { animation: wave 0.8s ease-in-out infinite; }
+.animate-pulse-rec { animation: pulse-recording 1.5s ease-in-out infinite; }
+.animate-pulse-dot { animation: pulse-dot 2s ease-in-out infinite; }

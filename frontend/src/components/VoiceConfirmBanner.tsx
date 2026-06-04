@@ -6,6 +6,7 @@
  */
 
 import { useState } from "react";
+import { motion } from "framer-motion";
 
 interface Props {
     transcript: string;
@@ -30,51 +31,39 @@ export default function VoiceConfirmBanner({
 }: Props) {
     const [editedText, setEditedText] = useState(transcript);
 
-    const confidencePercent = Math.round(confidence * 100);
-    const confidenceColor =
+    const pct = Math.round(confidence * 100);
+    const tone =
         confidence >= 0.6
-            ? "var(--color-success, #4caf50)"
+            ? "text-brand-700 bg-brand-50 border-brand-200"
             : confidence >= 0.4
-              ? "var(--color-warning, #ff9800)"
-              : "var(--color-error, #f44336)";
+              ? "text-amber-300 bg-amber-500/15 border-amber-500/30"
+              : "text-rose-300 bg-rose-500/15 border-rose-500/30";
 
     return (
-        <div
-            style={{
-                background: "var(--color-surface, #fff3cd)",
-                border: "1px solid var(--color-border-warning, #ffc107)",
-                borderRadius: "12px",
-                padding: "16px",
-                margin: "8px 0",
-                animation: "slideIn 0.3s ease-out",
-            }}
+        <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -8 }}
+            transition={{ duration: 0.3, ease: "easeOut" }}
+            className="rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-[var(--shadow-card)]"
         >
             {/* Header */}
-            <div style={{ display: "flex", alignItems: "center", gap: "8px", marginBottom: "12px" }}>
-                <span style={{ fontSize: "18px" }}>🎤</span>
-                <strong style={{ flex: 1 }}>Voice Transcription — Please Review</strong>
-                {/* Confidence pill */}
-                <span
-                    style={{
-                        background: confidenceColor,
-                        color: "white",
-                        borderRadius: "12px",
-                        padding: "2px 10px",
-                        fontSize: "12px",
-                        fontWeight: 600,
-                    }}
-                >
-                    {confidencePercent}% confidence
+            <div className="flex items-center gap-2 mb-3">
+                <span className="text-lg">🎤</span>
+                <strong className="flex-1 text-sm text-amber-900">Voice transcription — please review</strong>
+                <span className={`text-[11px] font-semibold px-2.5 py-0.5 rounded-full border ${tone}`}>
+                    {pct}% confidence
                 </span>
             </div>
 
-            {/* Language indicator */}
-            <div style={{ fontSize: "12px", color: "var(--color-text-muted, #666)", marginBottom: "8px" }}>
-                Detected language: <strong>{language === "bn" ? "Bengali 🇧🇩" : language === "en" ? "English" : language}</strong>
+            {/* Language + warnings */}
+            <div className="text-xs text-amber-800 mb-2">
+                Detected language:{" "}
+                <strong className="text-amber-900">
+                    {language === "bn" ? "Bengali 🇧🇩" : language === "en" ? "English" : language}
+                </strong>
                 {warnings.length > 0 && (
-                    <span style={{ marginLeft: "8px", color: "var(--color-warning, #ff9800)" }}>
-                        ⚠ {warnings.join(", ")}
-                    </span>
+                    <span className="ml-2 text-amber-700">⚠ {warnings.join(", ")}</span>
                 )}
             </div>
 
@@ -83,63 +72,35 @@ export default function VoiceConfirmBanner({
                 id="voice-confirm-transcript"
                 value={editedText}
                 onChange={(e) => setEditedText(e.target.value)}
-                style={{
-                    width: "100%",
-                    minHeight: "60px",
-                    padding: "10px",
-                    borderRadius: "8px",
-                    border: "1px solid var(--color-border, #ddd)",
-                    fontFamily: "inherit",
-                    fontSize: "14px",
-                    resize: "vertical",
-                    marginBottom: "12px",
-                    boxSizing: "border-box",
-                }}
                 placeholder="Edit the transcribed text if needed..."
+                className="w-full min-h-[60px] p-3 rounded-xl border border-amber-200 bg-card text-ink text-sm resize-y outline-none focus:border-brand-400 transition-colors mb-3"
             />
 
             {/* Suggested actions */}
             {suggestedActions.length > 0 && (
-                <div style={{ fontSize: "12px", color: "var(--color-text-muted, #666)", marginBottom: "12px" }}>
-                    💡 {suggestedActions.join(" · ")}
-                </div>
+                <div className="text-xs text-amber-800 mb-3">💡 {suggestedActions.join(" · ")}</div>
             )}
 
-            {/* Action buttons */}
-            <div style={{ display: "flex", gap: "8px", justifyContent: "flex-end" }}>
+            {/* Buttons */}
+            <div className="flex gap-2 justify-end">
                 <button
                     id="voice-confirm-cancel"
                     onClick={onCancel}
-                    style={{
-                        padding: "8px 16px",
-                        borderRadius: "8px",
-                        border: "1px solid var(--color-border, #ccc)",
-                        background: "transparent",
-                        cursor: "pointer",
-                        fontSize: "13px",
-                    }}
+                    className="px-4 py-2 rounded-xl border border-line bg-card text-ink-2 text-[13px] hover:bg-muted transition-colors"
                 >
                     ✕ Cancel
                 </button>
-                <button
+                <motion.button
                     id="voice-confirm-submit"
+                    whileHover={{ scale: editedText.trim() ? 1.04 : 1 }}
+                    whileTap={{ scale: editedText.trim() ? 0.96 : 1 }}
                     onClick={() => onConfirm(editedText, traceId)}
                     disabled={!editedText.trim()}
-                    style={{
-                        padding: "8px 16px",
-                        borderRadius: "8px",
-                        border: "none",
-                        background: "var(--color-primary, #2196f3)",
-                        color: "white",
-                        cursor: editedText.trim() ? "pointer" : "not-allowed",
-                        fontWeight: 600,
-                        fontSize: "13px",
-                        opacity: editedText.trim() ? 1 : 0.5,
-                    }}
+                    className="px-4 py-2 rounded-xl bg-brand-600 text-white font-semibold text-[13px] shadow-[0_2px_12px_rgba(34,197,94,0.35)] hover:bg-brand-700 transition-colors disabled:opacity-50 disabled:shadow-none"
                 >
-                    ✓ Confirm & Send
-                </button>
+                    ✓ Confirm &amp; Send
+                </motion.button>
             </div>
-        </div>
+        </motion.div>
     );
 }
