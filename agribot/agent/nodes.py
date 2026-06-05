@@ -27,6 +27,47 @@ from agribot.llm.engine import (
 logger = logging.getLogger(__name__)
 
 
+# --- Answer post-processing ------------------------------------------------
+
+def _clean_answer(text: str) -> str:
+    """Tidy a generated answer before it leaves the pipeline.
+
+    Two safety nets on top of the improved prompt + repeat_penalty:
+      1. Strip inline citation brackets like ``[fao_pest.pdf, p.1]`` — sources
+         are surfaced separately in the structured ``citations`` field.
+      2. Drop consecutive duplicate sentences, so any residual model looping
+         ("Wet leaves... Wet leaves...") collapses to a single occurrence.
+    """
+    if not text:
+        return text
+
+    # 1. Remove inline source brackets (file + optional page) but keep other
+    #    bracketed text intact.
+    cleaned = re.sub(r"\[[^\]\n]*?\.pdf[^\]\n]*?\]", "", text)
+    # Tidy whitespace left by the removal: collapse runs, and drop spaces that
+    # now sit before punctuation (e.g. "humidity ." -> "humidity.").
+    cleaned = re.sub(r"\s+([.,;:!?।])", r"\1", cleaned)
+    cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
+
+    # 2. De-duplicate sentences, preserving first-seen order. The dedup key is
+    #    normalised (lowercased, punctuation-stripped) so near-identical repeats
+    #    collapse regardless of trailing punctuation/whitespace.
+    sentences = re.split(r"(?<=[.!?।])\s+", cleaned)
+    seen: set[str] = set()
+    kept: list[str] = []
+    for s in sentences:
+        key = re.sub(r"[^\wঀ-৿]+", " ", s.lower()).strip()
+        if not key:
+            continue
+        if key in seen:
+            continue
+        seen.add(key)
+        kept.append(s.strip())
+
+    result = " ".join(kept).strip()
+    return result or text.strip()
+
+
 # --- Timing helper ---
 
 
@@ -262,6 +303,7 @@ def make_generate_node(llm: Llama, max_tokens: int = 512):
 
         try:
             answer = generate_answer(llm, query, context, max_tokens=max_tokens)
+            answer = _clean_answer(answer)
             if not answer.strip():
                 answer = "I don't know based on the provided documents."
 

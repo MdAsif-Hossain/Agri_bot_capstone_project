@@ -80,6 +80,10 @@ def generate(
             prompt,
             max_tokens=max_tokens,
             temperature=temperature,
+            top_p=0.9,
+            # Penalise verbatim loops: low-temp greedy decoding on a small
+            # model otherwise degenerates into repeating the same sentence.
+            repeat_penalty=1.3,
             stop=stop,
         )
         text = output["choices"][0]["text"].strip()
@@ -146,11 +150,12 @@ def generate_answer(
     prompt = f"""<|im_start|>system
 You are AgriBot, an agricultural expert assistant. Answer the user's question using ONLY the provided evidence. Follow these rules strictly:
 
-1. CITATIONS: For every claim, cite the source file and page number in brackets, e.g., [fao_pest.pdf, p.12].
-2. ANSWER IN ENGLISH ONLY. Bengali translation will be provided separately.
-3. SAFETY: If the evidence does NOT support a specific dosage or treatment recommendation, say "I don't have enough evidence to provide specific dosage recommendations. Please consult your local agricultural extension officer."
-4. REFUSE: If no relevant evidence is found, say "I don't know based on the provided documents."
-5. Be concise and practical.
+1. WRITE NATURALLY: Give a clear, well-organised answer in plain prose or short bullet points. Do NOT repeat the same sentence or fact more than once.
+2. NO INLINE CITATIONS: Do NOT put source filenames or page numbers in the answer text (e.g. do not write "[fao_pest.pdf, p.12]"). The sources are listed separately for the user.
+3. ANSWER IN ENGLISH ONLY. Bengali translation will be provided separately.
+4. SAFETY: If the evidence does NOT support a specific dosage or treatment recommendation, say "I don't have enough evidence to provide specific dosage recommendations. Please consult your local agricultural extension officer."
+5. REFUSE: If no relevant evidence is found, say "I don't know based on the provided documents."
+6. Be concise and practical. Stop when the question is fully answered.
 <|im_end|>
 <|im_start|>user
 EVIDENCE:

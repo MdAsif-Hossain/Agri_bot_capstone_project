@@ -154,6 +154,10 @@ class BanglaTranslator:
                     max_length=max_length,
                     num_beams=num_beams,
                     early_stopping=True,
+                    # Prevent the decoder looping a single token (e.g. the
+                    # "পটাশিয়াম, পটাশিয়াম, ..." degeneration on list-like inputs).
+                    repetition_penalty=1.5,
+                    no_repeat_ngram_size=3,
                 )
 
                 output = self.en_bn_tokenizer.decode(
@@ -172,9 +176,11 @@ class BanglaTranslator:
 
         translated = " ".join(translated_parts)
 
-        # Append citations at the end if they existed
-        if citations:
-            translated += "\n" + " ".join(citations)
+        # Note: inline citation brackets are intentionally NOT re-appended.
+        # Sources are surfaced separately via the structured `citations`
+        # field in the API response (shown in the UI's Sources area), so
+        # dumping bracket markers back into the prose only clutters it.
+        _ = citations  # parsed above to strip them from the translated text
 
         return translated
 
