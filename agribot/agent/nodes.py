@@ -30,41 +30,72 @@ logger = logging.getLogger(__name__)
 # --- Answer post-processing ------------------------------------------------
 
 def _clean_answer(text: str) -> str:
-    """Tidy a generated answer before it leaves the pipeline.
+    """Tidy and STRUCTURE a generated answer into clean markdown.
 
-    Two safety nets on top of the improved prompt + repeat_penalty:
-      1. Strip inline citation brackets like ``[fao_pest.pdf, p.1]`` — sources
-         are surfaced separately in the structured ``citations`` field.
-      2. Drop consecutive duplicate sentences, so any residual model looping
-         ("Wet leaves... Wet leaves...") collapses to a single occurrence.
+    Small instruction-tuned models tend to emit a wall of text: inline
+    ``" - "`` bullets, section labels like ``**Cause:**`` buried mid-paragraph,
+    and the occasional repeated sentence. This normaliser turns that into
+    readable markdown that the frontend renders as real headings + bullets:
+
+      1. Strip inline citation brackets (sources shown separately in the UI).
+      2. Put section headers (Symptoms/Cause/Management/...) on their own line.
+      3. Break inline ``" - "`` / ``"; "`` item separators into one bullet per
+         line.
+      4. De-duplicate repeated bullets/sentences.
     """
     if not text:
         return text
 
-    # 1. Remove inline source brackets (file + optional page) but keep other
-    #    bracketed text intact.
+    # 1. Remove inline source brackets; tidy the whitespace they leave behind.
     cleaned = re.sub(r"\[[^\]\n]*?\.pdf[^\]\n]*?\]", "", text)
-    # Tidy whitespace left by the removal: collapse runs, and drop spaces that
-    # now sit before punctuation (e.g. "humidity ." -> "humidity.").
     cleaned = re.sub(r"\s+([.,;:!?।])", r"\1", cleaned)
     cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
 
-    # 2. De-duplicate sentences, preserving first-seen order. The dedup key is
-    #    normalised (lowercased, punctuation-stripped) so near-identical repeats
-    #    collapse regardless of trailing punctuation/whitespace.
-    sentences = re.split(r"(?<=[.!?।])\s+", cleaned)
+    # 2. Force known section headers onto their own line as bold markdown.
+    #    Matches "Cause:", "**Management:**", "Treatment:" etc. wherever they
+    #    appear, including mid-sentence.
+    sections = (
+        r"Symptoms?|Causes?|Cause and management|Management|Treatment|Control|"
+        r"Prevention|Diagnosis|Overview|Description|Favou?rable conditions|"
+        r"Recommendations?|Note"
+    )
+    cleaned = re.sub(
+        rf"\s*\**\s*\b({sections})\b\s*:\s*\**\s*",
+        lambda m: f"\n\n**{m.group(1).strip().title()}:**\n",
+        cleaned,
+        flags=re.IGNORECASE,
+    )
+
+    # 3. Turn inline " - " / " • " item separators into real newline bullets.
+    #    (Leading bullet handled too.)
+    cleaned = re.sub(r"\s+[-•]\s+", "\n- ", cleaned)
+    cleaned = re.sub(r"^\s*[-•]\s+", "- ", cleaned)
+
+    # 4. Walk lines: keep headers as-is, normalise bullets, dedup content.
+    out_lines: list[str] = []
     seen: set[str] = set()
-    kept: list[str] = []
-    for s in sentences:
-        key = re.sub(r"[^\wঀ-৿]+", " ", s.lower()).strip()
-        if not key:
+    for raw_line in cleaned.split("\n"):
+        line = raw_line.strip()
+        if not line:
+            if out_lines and out_lines[-1] != "":
+                out_lines.append("")
             continue
-        if key in seen:
+        is_header = line.startswith("**") and line.endswith(":**")
+        if is_header:
+            out_lines.append(line)
+            continue
+        is_bullet = line.startswith("- ")
+        body = line[2:].strip() if is_bullet else line
+        # Split a bullet that still packs multiple sentences? Keep as one bullet
+        # but dedup on normalised content.
+        key = re.sub(r"[^\wঀ-৿]+", " ", body.lower()).strip()
+        if not key or key in seen:
             continue
         seen.add(key)
-        kept.append(s.strip())
+        out_lines.append(f"- {body}" if is_bullet else body)
 
-    result = " ".join(kept).strip()
+    # Collapse 3+ blank lines to one, trim edges.
+    result = re.sub(r"\n{3,}", "\n\n", "\n".join(out_lines)).strip()
     return result or text.strip()
 
 

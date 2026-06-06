@@ -119,27 +119,53 @@ class BanglaTranslator:
         if not text.strip():
             return ""
 
-        # Strip citation brackets before translation (preserve them)
-        citations = re.findall(r"\[.*?\]", text)
-        clean_text = re.sub(r"\[.*?\]", "", text).strip()
+        # Strip citation brackets before translation. Sources are shown
+        # separately, so they are not re-appended afterwards.
+        text = re.sub(r"\[.*?\]", "", text)
 
-        if not clean_text:
-            return text  # Only citations, return as-is
+        if not text.strip():
+            return ""
 
-        # Split into manageable sentences
-        sentences = self._split_sentences(clean_text)
-        translated_parts = []
+        # Translate LINE BY LINE so the markdown structure (bold "**Header:**"
+        # lines and "- bullet" lines) survives. The previous approach flattened
+        # everything into one sentence-joined blob, which destroyed the layout
+        # and mangled the bold markers (e.g. "**Symptoms:**" -> "* উপসর্গ: **").
+        out_lines: list[str] = []
+        for raw_line in text.split("\n"):
+            line = raw_line.rstrip()
+            if not line.strip():
+                out_lines.append("")
+                continue
 
+            # Detect + peel off markdown scaffolding so only prose is translated.
+            header = re.match(r"^\*\*(.+?):\*\*$", line.strip())
+            bullet = re.match(r"^[-•]\s+(.*)$", line.strip())
+            if header:
+                prefix, suffix, content = "**", ":**", header.group(1)
+            elif bullet:
+                prefix, suffix, content = "- ", "", bullet.group(1)
+            else:
+                prefix, suffix, content = "", "", line.strip()
+
+            translated_content = self._translate_block(content, max_length, num_beams)
+            out_lines.append(f"{prefix}{translated_content}{suffix}")
+
+        return "\n".join(out_lines).strip()
+
+    def _translate_block(self, text: str, max_length: int, num_beams: int) -> str:
+        """Translate one line/block of prose EN->BN (sentence-wise for quality)."""
+        if not text.strip():
+            return text
+        sentences = self._split_sentences(text)
+        translated_parts: list[str] = []
         for sentence in sentences:
             sentence = sentence.strip()
             if not sentence:
                 continue
-
-            # Skip lines that are purely numbers, bullets, or whitespace
+            # Pass through pure punctuation/number fragments unchanged.
             if re.match(r"^[\d\.\)\-\s]+$", sentence):
                 translated_parts.append(sentence)
                 continue
-
             try:
                 inputs = self.en_bn_tokenizer(
                     sentence,
@@ -148,41 +174,24 @@ class BanglaTranslator:
                     truncation=True,
                     padding=True,
                 ).to(self.device)
-
                 generated = self.en_bn_model.generate(
                     **inputs,
                     max_length=max_length,
                     num_beams=num_beams,
                     early_stopping=True,
-                    # Prevent the decoder looping a single token (e.g. the
-                    # "পটাশিয়াম, পটাশিয়াম, ..." degeneration on list-like inputs).
                     repetition_penalty=1.5,
                     no_repeat_ngram_size=3,
                 )
-
                 output = self.en_bn_tokenizer.decode(
                     generated[0], skip_special_tokens=True
                 )
-
-                # Apply BN normalization to output
-                output = self._normalize_bn(output)
-                translated_parts.append(output)
-
+                translated_parts.append(self._normalize_bn(output))
             except Exception as e:
                 logger.warning(
                     "Translation failed for sentence: %s — %s", sentence[:50], e
                 )
-                translated_parts.append(sentence)  # Fallback to original
-
-        translated = " ".join(translated_parts)
-
-        # Note: inline citation brackets are intentionally NOT re-appended.
-        # Sources are surfaced separately via the structured `citations`
-        # field in the API response (shown in the UI's Sources area), so
-        # dumping bracket markers back into the prose only clutters it.
-        _ = citations  # parsed above to strip them from the translated text
-
-        return translated
+                translated_parts.append(sentence)
+        return " ".join(translated_parts)
 
     def translate_bn_to_en(
         self,
