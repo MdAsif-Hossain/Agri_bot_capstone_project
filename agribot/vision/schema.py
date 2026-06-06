@@ -67,27 +67,39 @@ class ImageAnalysisResult:
         """
         Build a combined query string for RAG retrieval.
 
-        Merges user text + OCR keywords + symptom hints + classifier labels.
+        Retrieval is embedding-based, so the query must be DOMINATED by the
+        strongest signal — the classifier's predicted disease — phrased as a
+        natural disease query. Generic color-heuristic keywords (e.g.
+        "dark/necrotic, areas, detected") are deliberately excluded from the
+        retrieval text because they dilute the embedding away from
+        disease-specific documents. Those heuristic hints are still surfaced
+        to the user via the image-analysis block; they just don't drive search.
         """
-        parts = []
+        parts: list[str] = []
 
+        # 1. Lead with the predicted disease as a rich, natural phrase. The
+        #    top label carries the most weight; secondary labels follow.
+        if self.possible_conditions:
+            top = self.possible_conditions[0].label
+            parts.append(
+                f"{top} disease in rice: symptoms, cause, and management of {top}."
+            )
+            others = [c.label for c in self.possible_conditions[1:3]]
+            if others:
+                parts.append(f"It may also be {', '.join(others)}.")
+
+        # 2. The user's actual question (if any) — kept, but after the disease
+        #    anchor so it refines rather than dominates.
         if user_query.strip():
             parts.append(user_query.strip())
 
-        if self.symptom_hints:
-            parts.append(f"Observed symptoms: {'; '.join(self.symptom_hints)}")
-
-        if self.keywords:
-            parts.append(f"Keywords: {', '.join(self.keywords)}")
-
-        if self.possible_conditions:
-            top_labels = [c.label for c in self.possible_conditions[:3]]
-            parts.append(f"Possible conditions: {', '.join(top_labels)}")
-
-        if self.ocr_text:
+        # 3. OCR text can carry real disease/product names from labels — keep a
+        #    short slice. (Generic symptom_hints/keywords are intentionally
+        #    omitted from retrieval; see docstring.)
+        if self.ocr_text.strip():
             parts.append(f"Text from image: {self.ocr_text[:200]}")
 
         if not parts:
-            return "Crop image uploaded; unable to extract specific features."
+            return "Crop disease identification from an uploaded leaf image."
 
-        return " | ".join(parts)
+        return " ".join(parts)

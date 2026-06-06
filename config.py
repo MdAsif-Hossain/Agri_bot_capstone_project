@@ -51,7 +51,11 @@ class AgriConfig(BaseSettings):
 
     # --- Voice / STT ---
     WHISPER_MODEL_SIZE: str = (
-        "medium"  # Better latency/quality trade-off for RTX 3050 or CPU fallback
+        # "base" (~140MB) downloads reliably and transcribes fast on CPU, which
+        # suits the 4GB offline target. "medium" gives higher accuracy but is
+        # ~1.5GB and far slower on CPU — bump back up only if base accuracy is
+        # insufficient AND the larger model is fully cached.
+        "base"
     )
     WHISPER_BEAM_SIZE: int = 8  # Beam search width (higher = better, slower)
     WHISPER_VAD_FILTER: bool = (

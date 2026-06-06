@@ -51,11 +51,14 @@ export default function App() {
   const addResponse = useCallback((r: ChatResponse, mode: "text" | "voice" | "voice_confirmed" | "image", userMsgId: string, imageUrl?: string) => {
     setMessages(prev => {
       const newMessages = [...prev];
-      if (r.parsed_query) {
+      // Only the VOICE path rewrites the user bubble — there parsed_query is
+      // the transcription the user should see. For text/image we keep exactly
+      // what the user typed; the engineered retrieval query (parsed_query)
+      // must never replace their message.
+      if (r.parsed_query && mode === "voice") {
         const uIdx = newMessages.findIndex(m => m.id === userMsgId);
         if (uIdx >= 0) {
-          const prefix = mode === "voice" || mode === "voice_confirmed" ? "🎤 " : mode === "image" ? "📷 " : "";
-          newMessages[uIdx] = { ...newMessages[uIdx], content: `${prefix}${r.parsed_query}` };
+          newMessages[uIdx] = { ...newMessages[uIdx], content: `🎤 ${r.parsed_query}` };
         }
       }
       return [...newMessages, {
@@ -124,7 +127,9 @@ export default function App() {
     // Persist a thumbnail URL so the image survives in the conversation log
     // (the Composer's own preview URL is revoked on send).
     const thumbUrl = URL.createObjectURL(file);
-    setMessages(prev => [...prev, { id: uId, role: "user", content: q ? `📷 ${q}` : `📷 Analyzing: ${file.name}`, input_mode: "image", image_url: thumbUrl, timestamp: Date.now() }]);
+    // The thumbnail itself signals this is an image turn, so keep the text
+    // minimal: the user's question if they asked one, else a short prompt.
+    setMessages(prev => [...prev, { id: uId, role: "user", content: q.trim() ? q.trim() : "Identify this crop problem", input_mode: "image", image_url: thumbUrl, timestamp: Date.now() }]);
     setIsLoading(true);
     try { addResponse(await sendImage(file, q), "image", uId, thumbUrl); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
   }, [addResponse, addError]);

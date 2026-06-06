@@ -69,7 +69,6 @@ export default function MessageBubble({ message: m, onFollowUp, onRetry }: { mes
                     )}
                     <div className="bg-gradient-to-br from-brand-500 to-brand-700 text-white px-5 py-3 rounded-2xl rounded-tr-sm shadow-[0_4px_16px_rgba(34,197,94,0.28)]">
                         {m.input_mode === "voice" && <span className="mr-2 opacity-80">🎤</span>}
-                        {m.input_mode === "image" && <span className="mr-2 opacity-80">📷</span>}
                         {m.content}
                     </div>
                 </div>
