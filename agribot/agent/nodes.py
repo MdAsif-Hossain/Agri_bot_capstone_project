@@ -46,8 +46,10 @@ def _clean_answer(text: str) -> str:
     if not text:
         return text
 
-    # 1. Remove inline source brackets; tidy the whitespace they leave behind.
+    # 1. Remove inline source citations (bracketed "[fao_pest.pdf, p.3]" and
+    #    parenthetical "(from fao_gap.pdf)"); tidy the whitespace left behind.
     cleaned = re.sub(r"\[[^\]\n]*?\.pdf[^\]\n]*?\]", "", text)
+    cleaned = re.sub(r"\((?:from\s+)?[^()\n]*?\.pdf[^()\n]*?\)", "", cleaned, flags=re.IGNORECASE)
     cleaned = re.sub(r"\s+([.,;:!?।])", r"\1", cleaned)
     cleaned = re.sub(r"[ \t]{2,}", " ", cleaned)
 
@@ -387,8 +389,15 @@ def make_verify_node(llm: Llama):
     return verify
 
 
-def make_translate_node(translator: BanglaTranslator):
-    """Create the BanglaT5 translation node."""
+def make_translate_node(translator: BanglaTranslator, llm=None):
+    """Create the BanglaT5 translation node.
+
+    If an ``llm`` is provided, the English answer is first rewritten into
+    simple, literal, imperative sentences (preserving markdown + facts) before
+    BanglaT5 translates it. This fixes the EN->BN errors that come from complex
+    source phrasing (phrasal verbs, subordinate negation) rather than from the
+    translator itself; see :func:`agribot.llm.engine.simplify_for_translation`.
+    """
 
     def _translate(state: AgentState) -> dict:
         answer = state.get("answer", "")
@@ -400,7 +409,19 @@ def make_translate_node(translator: BanglaTranslator):
             return {"answer_bn": ""}
 
         try:
-            answer_bn = translator.translate_en_to_bn(answer)
+            to_translate = answer
+            if llm is not None:
+                try:
+                    from agribot.llm.engine import simplify_for_translation
+
+                    simplified = simplify_for_translation(llm, answer)
+                    if simplified.strip():
+                        to_translate = simplified
+                except Exception as e:
+                    logger.warning(
+                        "Simplify-for-translation failed, using original: %s", e
+                    )
+            answer_bn = translator.translate_en_to_bn(to_translate)
             logger.info("Translated to Bengali (%d chars)", len(answer_bn))
             return {"answer_bn": answer_bn}
         except Exception as e:

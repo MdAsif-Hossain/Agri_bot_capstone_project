@@ -402,6 +402,21 @@ def _ocr_empty_pages(pages: list[PageData], pdf_path: Path) -> list[PageData]:
     return pages
 
 
+def _strip_image_markup(text: str) -> str:
+    """Remove Marker's image placeholders, e.g. ``![](_page_5_Picture_10.jpeg)``.
+
+    These carry no retrievable information: they dilute the chunk embedding
+    (pulling otherwise-relevant chunks off-topic), waste the 600-char chunk
+    budget, and pollute the evidence shown to the LLM — which then refuses
+    ("I don't know") because the retrieved chunk is mostly an image tag.
+    """
+    text = re.sub(r"!\[[^\]]*\]\([^)]*\)", "", text)  # markdown ![alt](path)
+    text = re.sub(r"<img[^>]*>", "", text, flags=re.IGNORECASE)  # stray HTML img
+    text = re.sub(r"[ \t]{2,}", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
+
+
 def load_pdfs(
     pdf_dir: Path,
     freq_threshold: float = 0.5,
@@ -452,6 +467,11 @@ def load_pdfs(
 
         # 2. OCR fallback for empty/scanned pages
         pages = _ocr_empty_pages(pages, pdf_path)
+
+        # 2b. Strip image placeholders before any text analysis so detection
+        #     and chunking operate on clean prose only.
+        for page in pages:
+            page.text = _strip_image_markup(page.text)
 
         # 3. Detect repeated headers/footers for this PDF
         repeated_lines = _detect_repeated_lines(pages, freq_threshold)

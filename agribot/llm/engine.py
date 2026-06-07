@@ -45,6 +45,9 @@ def get_llm(
             model_path=model_path,
             n_ctx=n_ctx,
             n_gpu_layers=n_gpu_layers,
+            # Fixed seed for reproducibility: without it the same query could
+            # land on a full answer one run and an "I don't know" the next.
+            seed=42,
             verbose=False,
         )
         logger.info("LLM loaded successfully")
@@ -154,8 +157,9 @@ You are AgriBot, an agricultural expert assistant. Answer the user's question us
 2. NO INLINE CITATIONS: Do NOT put source filenames or page numbers in the answer text (e.g. do not write "[fao_pest.pdf, p.12]"). The sources are listed separately for the user.
 3. ANSWER IN ENGLISH ONLY. Bengali translation will be provided separately.
 4. SAFETY: If the evidence does NOT support a specific dosage or treatment recommendation, say "I don't have enough evidence to provide specific dosage recommendations. Please consult your local agricultural extension officer."
-5. REFUSE: If no relevant evidence is found, say "I don't know based on the provided documents."
-6. Be concise and practical. Stop when the question is fully answered.
+5. USE THE EVIDENCE: The evidence above was retrieved for THIS question. If it contains relevant information, ANSWER using it — even if the match is only partial. Reply "I don't know based on the provided documents." ONLY when the evidence is empty or entirely unrelated to the question.
+6. STAY ON TOPIC: Answer only what the question asks. Do not pull in unrelated pests, diseases, or topics that merely happen to appear in the evidence.
+7. Be concise and practical. Stop when the question is fully answered.
 <|im_end|>
 <|im_start|>user
 EVIDENCE:
@@ -166,6 +170,44 @@ QUESTION: {query}
 <|im_start|>assistant"""
 
     return generate(llm, prompt, max_tokens=max_tokens, temperature=0.1)
+
+
+def simplify_for_translation(
+    llm: Llama,
+    text: str,
+    max_tokens: int = 512,
+) -> str:
+    """
+    Rewrite an English answer into simple, literal, imperative sentences that
+    the BanglaT5 NMT model translates reliably, while preserving the markdown
+    structure and every fact.
+
+    The dominant source of EN->BN errors is complex source phrasing — phrasal
+    verbs ("drain out the rice field"), subordinate negation ("ensure to leave
+    ... rough as it controls"), and long compound clauses — which the 247M NMT
+    model mis-parses (it even inverts negations). BanglaT5 translates short
+    literal imperatives correctly, so we normalise the English here first.
+    """
+    if not text.strip():
+        return text
+
+    prompt = f"""<|im_start|>system
+You rewrite agricultural advice into SIMPLE English that is easy to machine-translate into another language. Follow these rules strictly:
+1. Keep the EXACT markdown structure: bold section headers like "**Symptoms:**" stay on their own line, and bullet points stay as lines starting with "- ".
+2. Keep every fact, number, name, and recommendation. Do NOT add or remove information, and do NOT add commentary, file names, source references, or citations.
+3. Use short, literal sentences in the imperative mood for instructions (write "Drain the water from the field." not "Drain out the rice field.").
+4. Avoid phrasal verbs, idioms, and long subordinate clauses; split compound sentences into separate short sentences.
+5. Output ONLY the rewritten advice, nothing else.
+<|im_end|>
+<|im_start|>user
+{text}
+<|im_end|>
+<|im_start|>assistant"""
+
+    out = generate(llm, prompt, max_tokens=max_tokens, temperature=0.0).strip()
+    # If the model returned nothing usable, fall back to the original text so
+    # translation still runs on the unmodified answer.
+    return out if out else text
 
 
 def rewrite_query(

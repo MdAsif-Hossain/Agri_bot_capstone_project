@@ -119,9 +119,12 @@ class BanglaTranslator:
         if not text.strip():
             return ""
 
-        # Strip citation brackets before translation. Sources are shown
-        # separately, so they are not re-appended afterwards.
+        # Strip citations before translation. Sources are shown separately, so
+        # they are not re-appended afterwards. Catch both bracketed forms
+        # ("[fao_pest.pdf, p.3]") and parenthetical ones ("(from fao_gap.pdf)")
+        # — the latter otherwise survives and gets translated into the output.
         text = re.sub(r"\[.*?\]", "", text)
+        text = re.sub(r"\((?:from\s+)?[^()]*?\.pdf[^()]*?\)", "", text, flags=re.IGNORECASE)
 
         if not text.strip():
             return ""

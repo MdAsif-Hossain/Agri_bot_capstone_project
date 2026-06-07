@@ -95,7 +95,7 @@ def build_agent_graph(
     grade = make_grade_node(llm)
     rewrite = make_rewrite_node(llm)
     generate = make_generate_node(llm, max_tokens=max_tokens)
-    translate = make_translate_node(translator)
+    translate = make_translate_node(translator, llm)
     verify = make_verify_node(llm)
     enforce_policy = make_enforce_policy_node(
         grounding_mode=grounding_mode,
