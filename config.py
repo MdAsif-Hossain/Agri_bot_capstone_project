@@ -36,7 +36,11 @@ class AgriConfig(BaseSettings):
     # --- Retrieval ---
     DENSE_TOP_K: int = 5
     SPARSE_TOP_K: int = 5
-    RERANK_TOP_N: int = 3
+    # Top-N reranked chunks fed to generation. Raised 3->5: the 931-chunk
+    # corpus (10 PDFs) crowds answer-bearing chunks below rank 3 for some
+    # queries, so a slightly deeper context restores groundedness without
+    # materially changing latency (retrieval+rerank is <1% of wall time).
+    RERANK_TOP_N: int = 5
     RERANK_THRESHOLD: float = 0.10
     DENSE_WEIGHT: float = 0.6
     SPARSE_WEIGHT: float = 0.4
@@ -51,11 +55,12 @@ class AgriConfig(BaseSettings):
 
     # --- Voice / STT ---
     WHISPER_MODEL_SIZE: str = (
-        # "base" (~140MB) downloads reliably and transcribes fast on CPU, which
-        # suits the 4GB offline target. "medium" gives higher accuracy but is
-        # ~1.5GB and far slower on CPU — bump back up only if base accuracy is
-        # insufficient AND the larger model is fully cached.
-        "base"
+        # "medium" (~1.5GB) is the configuration reported in the paper: higher
+        # Bengali STT accuracy at the cost of size and slower CPU decode. The
+        # model is downloaded once into the HF cache (see scripts/get_whisper.py)
+        # and then served fully offline. Drop to "base" (~140MB) only on
+        # machines where the larger model cannot be cached.
+        "medium"
     )
     WHISPER_BEAM_SIZE: int = 8  # Beam search width (higher = better, slower)
     WHISPER_VAD_FILTER: bool = (

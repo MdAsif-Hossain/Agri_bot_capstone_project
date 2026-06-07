@@ -202,12 +202,25 @@ def verify_answer(
     Returns:
         (is_verified, reason)
     """
-    prompt = f"""<|im_start|>system
-You are a fact-checker. Check if the answer below is fully supported by the evidence. Reply with:
-- "VERIFIED" if all claims in the answer are supported by the evidence
-- "UNVERIFIED: <reason>" if any claim is not supported
+    # A refusal / non-answer has nothing to ground-check; it is not a
+    # "verified answer" and must not inflate the verified rate.
+    stripped = (answer or "").strip()
+    if not stripped:
+        return False, "Empty answer"
+    low = stripped.lower()
+    if (
+        "i don't know based on the provided documents" in low
+        or "i dont know based on the provided documents" in low
+        or "i don't have enough evidence" in low
+    ):
+        return False, "Non-answer / refusal — nothing to verify"
 
-Be strict: dosage amounts, chemical names, and specific recommendations MUST be in the evidence.
+    prompt = f"""<|im_start|>system
+You are a fact-checker. Decide whether the ANSWER is grounded in the EVIDENCE. The answer may paraphrase, reorder, summarise, or use headings and bullet points — that is fine. Judge substance, not wording or formatting.
+
+Reply with:
+- "VERIFIED" if every important fact in the answer (names, numbers, recommendations) appears in, or follows directly from, the evidence — even if reworded or reformatted.
+- "UNVERIFIED: <reason>" if the answer introduces a specific fact, number, name, or recommendation that is NOT present in the evidence, or that contradicts it.
 <|im_end|>
 <|im_start|>user
 EVIDENCE:
@@ -216,7 +229,7 @@ EVIDENCE:
 ANSWER:
 {answer}
 
-Is this answer verified?
+Is this answer grounded in the evidence?
 <|im_end|>
 <|im_start|>assistant"""
 

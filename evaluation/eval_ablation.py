@@ -274,7 +274,13 @@ def _run_full_agent(svc, query: str):
     }
     final = svc["agent"].invoke(initial)
     ranked = final.get("evidences", []) or []
-    return ranked, final.get("answer", ""), final.get("grounding_action", "pass")
+    return (
+        ranked,
+        final.get("answer", ""),
+        final.get("grounding_action", "pass"),
+        bool(final.get("is_verified", False)),
+        final.get("citations", []) or [],
+    )
 
 
 CONFIG_RUNNERS = {
@@ -304,13 +310,15 @@ def _eval_config(svc, cfg_id: str, queries: list[dict], limit: int | None) -> di
     for i, q in enumerate(eval_queries, start=1):
         t0 = time.perf_counter()
         if cfg_id == "D":
-            ranked, answer, action = _run_full_agent(svc, q["query"])
+            ranked, answer, action, is_ver, cites = _run_full_agent(svc, q["query"])
         else:
             ranked, answer, action = _run_single_pass(
                 svc, q["query"],
                 use_hybrid=cfg["use_hybrid"], use_rerank=cfg["use_rerank"],
                 use_kg=cfg["use_kg"], use_policy=cfg["use_policy"],
+                top_k=svc["settings"].RERANK_TOP_N,
             )
+            is_ver, cites = None, []
         elapsed = time.perf_counter() - t0
 
         # --- retrieval (only on queries that carry expected_sources) ---
@@ -342,6 +350,7 @@ def _eval_config(svc, cfg_id: str, queries: list[dict], limit: int | None) -> di
             "id": q["id"], "category": q["category"], "rank": rank,
             "keyword_coverage": kw, "verdict": verdict,
             "grounding_action": action, "latency_s": round(elapsed, 1),
+            "is_verified": is_ver, "citation_count": len(cites),
             "answer_preview": (answer or "")[:120],
         })
         print(f"  [{i}/{len(eval_queries)}] {q['id']}: rank={rank} kw={kw} "
@@ -363,6 +372,39 @@ def _eval_config(svc, cfg_id: str, queries: list[dict], limit: int | None) -> di
         "n_grounding_scored": len(kw_scores),
         "n_refusal_scored": n_total,
     }
+    # Config D is the shipped agent: also emit the verify-node groundedness
+    # (verified_rate) + full refusal confusion, matching the standalone
+    # eval_grounding.py / eval_refusal.py schemas so they can be written as the
+    # canonical per-metric result files (in-process, no flaky HTTP backend).
+    if cfg_id == "D":
+        gq = [pq for pq in per_query if pq["category"] in RETRIEVAL_CATEGORIES]
+        ng = len(gq) or 1
+        kcov = [pq["keyword_coverage"] for pq in gq if pq["keyword_coverage"] is not None]
+        actions: dict[str, int] = {}
+        for pq in gq:
+            actions[pq["grounding_action"]] = actions.get(pq["grounding_action"], 0) + 1
+        verified = sum(1 for pq in gq if pq["is_verified"])
+        summary["grounding"] = {
+            "queries_evaluated": len(gq),
+            "avg_keyword_coverage": round(sum(kcov) / (len(kcov) or 1), 3),
+            "avg_citation_count": round(sum(pq["citation_count"] for pq in gq) / ng, 2),
+            "verified_rate": round(verified / ng, 3),
+            "grounding_action_breakdown": actions,
+        }
+        refusal_precision = tp / (tp + fp) if (tp + fp) else 0.0
+        refusal_recall = tp / (tp + fn) if (tp + fn) else 0.0
+        answer_precision = tn / (tn + fn) if (tn + fn) else 0.0
+        summary["refusal"] = {
+            "queries_evaluated": n_total,
+            "true_positive_refusals": tp,
+            "false_positive_refusals": fp,
+            "true_negative_answers": tn,
+            "false_negative_refusals": fn,
+            "accuracy": round((tp + tn) / (n_total or 1), 3),
+            "refusal_precision": round(refusal_precision, 3),
+            "refusal_recall": round(refusal_recall, 3),
+            "answer_precision": round(answer_precision, 3),
+        }
     print(f"\n  -> R@3={summary['recall_at_3']} MRR={summary['mrr']} "
           f"Gnd={summary['groundedness_keyword_coverage']} "
           f"Acc={summary['refusal_accuracy']}")
@@ -393,6 +435,26 @@ def run(config_ids: list[str], limit: int | None) -> dict:
     }
     out = save_results("ablation", payload)
     print(f"\n\nResults written to: {out}")
+
+    # If config D ran, emit the canonical per-metric files (grounding/refusal)
+    # from the shipped agent's in-process pass, matching the standalone scripts.
+    if "D" in results and "grounding" in results["D"]["summary"]:
+        d = results["D"]
+        gq_ids = {pq["id"] for pq in d["per_query"]
+                  if pq["category"] in RETRIEVAL_CATEGORIES}
+        g_payload = {
+            "summary": d["summary"]["grounding"],
+            "per_query": [pq for pq in d["per_query"] if pq["id"] in gq_ids],
+            "meta": {"source": "eval_ablation config D (in-process)"},
+        }
+        save_results("grounding", g_payload)
+        r_payload = {
+            "summary": d["summary"]["refusal"],
+            "per_query": d["per_query"],
+            "meta": {"source": "eval_ablation config D (in-process)"},
+        }
+        save_results("refusal", r_payload)
+        print("Also wrote grounding_latest.json + refusal_latest.json from config D")
 
     # Pretty table to stdout
     print("\n" + "=" * 72)

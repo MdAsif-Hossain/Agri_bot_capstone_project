@@ -1,14 +1,14 @@
 {
   "summary": {
     "queries_evaluated": 46,
-    "mrr": 0.7935,
+    "mrr": 0.8043,
     "recall_at_k": {
-      "1": 0.7826,
+      "1": 0.8043,
       "3": 0.8043,
       "5": 0.8043,
       "10": 0.8043
     },
-    "avg_retrieval_latency_ms": 539.9
+    "avg_retrieval_latency_ms": 566.2
   },
   "per_query": [
     {
@@ -17,16 +17,16 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_pest.pdf",
-        "page_num": 2
+        "page_num": 1
       }
     },
     {
       "id": "Q02",
       "category": "in_corpus_factual",
-      "rank": 2,
+      "rank": 1,
       "retrieved_top1": {
-        "source_file": "fao_pest.pdf",
-        "page_num": 7
+        "source_file": "fao_gap.pdf",
+        "page_num": 47
       }
     },
     {
@@ -107,7 +107,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_climate.pdf",
-        "page_num": 2
+        "page_num": 1
       }
     },
     {
@@ -125,7 +125,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_gap.pdf",
-        "page_num": 92
+        "page_num": 9
       }
     },
     {
@@ -188,7 +188,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_pest.pdf",
-        "page_num": 2
+        "page_num": 1
       }
     },
     {
@@ -197,7 +197,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "unicef_nutrition.pdf",
-        "page_num": 4
+        "page_num": 1
       }
     },
     {
@@ -206,7 +206,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "unicef_nutrition.pdf",
-        "page_num": 2
+        "page_num": 1
       }
     },
     {
@@ -215,7 +215,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "irri_rice.pdf",
-        "page_num": 3
+        "page_num": 1
       }
     },
     {
@@ -260,7 +260,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_gap.pdf",
-        "page_num": 16
+        "page_num": 12
       }
     },
     {
@@ -278,7 +278,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_climate.pdf",
-        "page_num": 3
+        "page_num": 1
       }
     },
     {
@@ -336,10 +336,7 @@
       "id": "Q51",
       "category": "dialect_bn",
       "rank": null,
-      "retrieved_top1": {
-        "source_file": "irri_rice.pdf",
-        "page_num": 1
-      }
+      "retrieved_top1": null
     },
     {
       "id": "Q52",
@@ -371,7 +368,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_climate.pdf",
-        "page_num": 2
+        "page_num": 1
       }
     },
     {
