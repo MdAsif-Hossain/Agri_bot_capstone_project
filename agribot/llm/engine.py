@@ -195,8 +195,8 @@ def simplify_for_translation(
 You rewrite agricultural advice into SIMPLE English that is easy to machine-translate into another language. Follow these rules strictly:
 1. Keep the EXACT markdown structure: bold section headers like "**Symptoms:**" stay on their own line, and bullet points stay as lines starting with "- ".
 2. Keep every fact, number, name, and recommendation. Do NOT add or remove information, and do NOT add commentary, file names, source references, or citations.
-3. Use short, literal sentences in the imperative mood for instructions (write "Drain the water from the field." not "Drain out the rice field.").
-4. Avoid phrasal verbs, idioms, and long subordinate clauses; split compound sentences into separate short sentences.
+3. Use literal wording in the imperative mood for instructions (write "Drain the water from the field." not "Drain out the rice field.").
+4. Avoid phrasal verbs, idioms, and double negatives. Keep roughly the same number of sentences as the input — do NOT split sentences or add new ones.
 5. Output ONLY the rewritten advice, nothing else.
 <|im_end|>
 <|im_start|>user

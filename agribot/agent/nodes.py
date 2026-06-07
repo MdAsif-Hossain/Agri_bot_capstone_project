@@ -389,15 +389,8 @@ def make_verify_node(llm: Llama):
     return verify
 
 
-def make_translate_node(translator: BanglaTranslator, llm=None):
-    """Create the BanglaT5 translation node.
-
-    If an ``llm`` is provided, the English answer is first rewritten into
-    simple, literal, imperative sentences (preserving markdown + facts) before
-    BanglaT5 translates it. This fixes the EN->BN errors that come from complex
-    source phrasing (phrasal verbs, subordinate negation) rather than from the
-    translator itself; see :func:`agribot.llm.engine.simplify_for_translation`.
-    """
+def make_translate_node(translator: BanglaTranslator):
+    """Create the BanglaT5 translation node (EN->BN of the final answer)."""
 
     def _translate(state: AgentState) -> dict:
         answer = state.get("answer", "")
@@ -409,19 +402,7 @@ def make_translate_node(translator: BanglaTranslator, llm=None):
             return {"answer_bn": ""}
 
         try:
-            to_translate = answer
-            if llm is not None:
-                try:
-                    from agribot.llm.engine import simplify_for_translation
-
-                    simplified = simplify_for_translation(llm, answer)
-                    if simplified.strip():
-                        to_translate = simplified
-                except Exception as e:
-                    logger.warning(
-                        "Simplify-for-translation failed, using original: %s", e
-                    )
-            answer_bn = translator.translate_en_to_bn(to_translate)
+            answer_bn = translator.translate_en_to_bn(answer)
             logger.info("Translated to Bengali (%d chars)", len(answer_bn))
             return {"answer_bn": answer_bn}
         except Exception as e:

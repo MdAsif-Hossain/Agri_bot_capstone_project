@@ -1,14 +1,14 @@
 {
   "summary": {
     "queries_evaluated": 46,
-    "mrr": 0.8043,
+    "mrr": 0.933,
     "recall_at_k": {
-      "1": 0.8043,
-      "3": 0.8043,
-      "5": 0.8043,
-      "10": 0.8043
+      "1": 0.913,
+      "3": 0.9565,
+      "5": 0.9783,
+      "10": 0.9783
     },
-    "avg_retrieval_latency_ms": 566.2
+    "avg_retrieval_latency_ms": 774.1
   },
   "per_query": [
     {
@@ -23,10 +23,10 @@
     {
       "id": "Q02",
       "category": "in_corpus_factual",
-      "rank": 1,
+      "rank": 3,
       "retrieved_top1": {
-        "source_file": "fao_gap.pdf",
-        "page_num": 47
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
       }
     },
     {
@@ -293,32 +293,47 @@
     {
       "id": "Q44",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 4,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
     },
     {
       "id": "Q45",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 19
+      }
     },
     {
       "id": "Q46",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 3,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
     },
     {
       "id": "Q47",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 47
+      }
     },
     {
       "id": "Q48",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
     },
     {
       "id": "Q49",
@@ -329,20 +344,29 @@
     {
       "id": "Q50",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_climate.pdf",
+        "page_num": 1
+      }
     },
     {
       "id": "Q51",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 25
+      }
     },
     {
       "id": "Q52",
       "category": "dialect_bn",
-      "rank": null,
-      "retrieved_top1": null
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 85
+      }
     },
     {
       "id": "Q53",

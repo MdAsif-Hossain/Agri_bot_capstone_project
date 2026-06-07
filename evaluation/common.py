@@ -7,10 +7,33 @@ and reuse this set of utilities so results are comparable across runs.
 from __future__ import annotations
 
 import json
+import re
 import sys
 import time
 from pathlib import Path
 from typing import Iterable
+
+_BENGALI_RE = re.compile(r"[ঀ-৿]")
+
+
+def to_retrieval_query(translator, query: str) -> str:
+    """Return the query the deployed agent would actually retrieve on.
+
+    The agent's ``normalize`` node translates Bengali queries to English
+    (BN->EN) before retrieval. A retrieval/ablation harness that scores the
+    raw Bengali query feeds an English cross-encoder reranker text it cannot
+    score, zeroing every dialect-bn query and understating real performance.
+    Mirroring the normalize step here makes the measurement faithful to what
+    the system does. Detection matches make_normalize_node exactly.
+    """
+    if translator is not None and _BENGALI_RE.search(query or ""):
+        try:
+            translated = translator.translate_bn_to_en(query)
+            if translated and translated != query:
+                return translated
+        except Exception:
+            pass
+    return query
 
 # Ensure project root on path so eval scripts can `import agribot.*`
 PROJECT_ROOT = Path(__file__).resolve().parent.parent

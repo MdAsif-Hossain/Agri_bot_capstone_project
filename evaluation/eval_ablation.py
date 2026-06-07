@@ -203,16 +203,21 @@ def _run_single_pass(svc, query: str, *, use_hybrid: bool, use_rerank: bool,
     """
     from agribot.llm.engine import generate_answer
     from agribot.agent.grounding_policy import is_risky_query, REFUSE_EN
+    from evaluation.common import to_retrieval_query
 
     retriever = svc["hybrid"] if use_hybrid else svc["dense_only"]
 
+    # Mirror the agent's normalize node: translate Bengali queries to English
+    # before retrieval/generation, exactly as config D (the full agent) does.
+    query_en = to_retrieval_query(svc["translator"], query)
+
     # KG query expansion (config C only), mirrors make_kg_link_node.
-    retrieval_query = query
+    retrieval_query = query_en
     if use_kg:
         try:
-            retrieval_query = svc["entity_linker"].expand_query(query)
+            retrieval_query = svc["entity_linker"].expand_query(query_en)
         except Exception:
-            retrieval_query = query
+            retrieval_query = query_en
 
     candidates = retriever.retrieve(retrieval_query, top_n=max(15, top_k * 2))
 
@@ -230,7 +235,7 @@ def _run_single_pass(svc, query: str, *, use_hybrid: bool, use_rerank: bool,
     if not evidence_text.strip():
         answer = "I don't know based on the provided documents."
     else:
-        answer = generate_answer(svc["llm"], query, evidence_text,
+        answer = generate_answer(svc["llm"], query_en, evidence_text,
                                  max_tokens=svc["settings"].LLM_MAX_TOKENS)
         if not (answer or "").strip():
             answer = "I don't know based on the provided documents."

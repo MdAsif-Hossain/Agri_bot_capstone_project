@@ -20,6 +20,7 @@ from evaluation.common import (
     filter_queries,
     load_dataset,
     save_results,
+    to_retrieval_query,
 )
 
 
@@ -54,11 +55,16 @@ def run(top_k_values: list[int]) -> dict:
     from agribot.retrieval.hybrid import HybridRetriever
     from agribot.retrieval.reranker import Reranker
     from agribot.ingestion.index_builder import IndexBundle
+    from agribot.translation.bangla_t5 import get_translator
     from sentence_transformers import SentenceTransformer
 
     print(f"Loading retrieval stack (chunks from {settings.INDEX_DIR})...")
     bundle = IndexBundle.load(settings.INDEX_DIR)
     embedder = SentenceTransformer(settings.EMBEDDING_MODEL)
+    # The deployed agent translates Bengali queries to English (normalize node)
+    # before retrieval; mirror that here so dialect-bn queries are scored on the
+    # same input the system actually retrieves on.
+    translator = get_translator(device="cpu")
     retriever = HybridRetriever(
         index_bundle=bundle,
         embedding_model=embedder,
@@ -88,8 +94,9 @@ def run(top_k_values: list[int]) -> dict:
         if not q["expected_sources"]:
             continue
         t0 = time.perf_counter()
-        candidates = retriever.retrieve(q["query"], top_n=max(top_k_values) * 2)
-        ranked = reranker.rerank(q["query"], candidates) if candidates else []
+        rq = to_retrieval_query(translator, q["query"])
+        candidates = retriever.retrieve(rq, top_n=max(top_k_values) * 2)
+        ranked = reranker.rerank(rq, candidates) if candidates else []
         elapsed_ms = (time.perf_counter() - t0) * 1000
         timings.append(elapsed_ms)
 
