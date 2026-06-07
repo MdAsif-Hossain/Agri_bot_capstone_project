@@ -48,7 +48,7 @@ export default function App() {
     try { localStorage.removeItem(STORAGE_KEY); } catch { /* ignore */ }
   }, []);
 
-  const addResponse = useCallback((r: ChatResponse, mode: "text" | "voice" | "voice_confirmed" | "image", userMsgId: string, imageUrl?: string) => {
+  const addResponse = useCallback((r: ChatResponse, mode: "text" | "voice" | "voice_confirmed" | "image", userMsgId: string, imageUrl?: string, elapsedMs?: number) => {
     setMessages(prev => {
       const newMessages = [...prev];
       // Only the VOICE path rewrites the user bubble — there parsed_query is
@@ -69,6 +69,7 @@ export default function App() {
         diagnostics: r.diagnostics, voice: r.voice, image: r.image,
         grounding_action: r.grounding_action, follow_up_suggestions: r.follow_up_suggestions,
         image_url: imageUrl,
+        elapsed_ms: elapsedMs,
         timestamp: Date.now(),
       }];
     });
@@ -82,13 +83,15 @@ export default function App() {
     const uId = uid();
     setMessages(prev => [...prev, { id: uId, role: "user", content: q, input_mode: "text", timestamp: Date.now() }]);
     setIsLoading(true);
-    try { addResponse(await sendChat(q), "text", uId); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
+    const t0 = performance.now();
+    try { addResponse(await sendChat(q), "text", uId, undefined, performance.now() - t0); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
   }, [addResponse, addError]);
 
   const handleVoice = useCallback(async (blob: Blob) => {
     const uId = uid();
     setMessages(prev => [...prev, { id: uId, role: "user", content: "🎤 Transcribing voice...", input_mode: "voice", timestamp: Date.now() }]);
     setIsLoading(true);
+    const t0 = performance.now();
     try {
       const r = await sendVoice(blob);
       // Check if voice needs confirmation
@@ -105,7 +108,7 @@ export default function App() {
           return msgs;
         });
       } else {
-        addResponse(r, "voice", uId);
+        addResponse(r, "voice", uId, undefined, performance.now() - t0);
       }
     } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
   }, [addResponse, addError]);
@@ -115,7 +118,8 @@ export default function App() {
     const uId = uid();
     setMessages(prev => [...prev, { id: uId, role: "user", content: `🎤✓ ${editedText}`, input_mode: "voice_confirmed", timestamp: Date.now() }]);
     setIsLoading(true);
-    try { addResponse(await sendVoiceConfirm(editedText, traceId), "voice_confirmed", uId); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
+    const t0 = performance.now();
+    try { addResponse(await sendVoiceConfirm(editedText, traceId), "voice_confirmed", uId, undefined, performance.now() - t0); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
   }, [addResponse, addError]);
 
   const handleVoiceCancel = useCallback(() => {
@@ -131,7 +135,8 @@ export default function App() {
     // minimal: the user's question if they asked one, else a short prompt.
     setMessages(prev => [...prev, { id: uId, role: "user", content: q.trim() ? q.trim() : "Identify this crop problem", input_mode: "image", image_url: thumbUrl, timestamp: Date.now() }]);
     setIsLoading(true);
-    try { addResponse(await sendImage(file, q), "image", uId, thumbUrl); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
+    const t0 = performance.now();
+    try { addResponse(await sendImage(file, q), "image", uId, thumbUrl, performance.now() - t0); } catch (e: any) { addError(e.message); } finally { setIsLoading(false); }
   }, [addResponse, addError]);
 
   /** Regenerate an assistant answer: drop it, re-send the preceding user text.
@@ -153,7 +158,8 @@ export default function App() {
     setMessages(prev => prev.filter(m => m.id !== assistantId));
     const uId = userMsg.id;
     setIsLoading(true);
-    try { addResponse(await sendChat(query), "text", uId); }
+    const t0 = performance.now();
+    try { addResponse(await sendChat(query), "text", uId, undefined, performance.now() - t0); }
     catch (e: any) { addError(e.message); }
     finally { setIsLoading(false); }
   }, [messages, isLoading, addResponse, addError]);

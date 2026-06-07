@@ -104,6 +104,9 @@ export interface Message {
     grounding_action?: string;
     follow_up_suggestions?: string[];
     timestamp: number;
+    // Wall-clock time the system took to answer, in milliseconds (client-side
+    // round-trip: request sent -> response received). Shown in the UI.
+    elapsed_ms?: number;
     // Local object URL of the user's uploaded image (client-side only).
     image_url?: string;
     // Nested diagnostics

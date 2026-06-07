@@ -1,13 +1,13 @@
 {
   "summary": {
     "queries_evaluated": 46,
-    "avg_keyword_coverage": 0.545,
-    "avg_citation_count": 2.89,
-    "verified_rate": 0.87,
+    "avg_keyword_coverage": 0.546,
+    "avg_citation_count": 2.96,
+    "verified_rate": 0.848,
     "grounding_action_breakdown": {
       "pass": 38,
-      "disclaimer": 6,
-      "refuse": 2
+      "disclaimer": 7,
+      "refuse": 1
     }
   },
   "per_query": [
@@ -15,24 +15,24 @@
       "id": "Q01",
       "category": "in_corpus_procedural",
       "rank": 1,
-      "keyword_coverage": 0.5,
+      "keyword_coverage": 0.75,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 28.7,
+      "latency_s": 12.2,
       "is_verified": true,
       "citation_count": 4,
-      "answer_preview": "**Main Strategies:**\n- **Use good quality seeds:** Seeds must be true to type, germinate and free from pests/diseases/we"
+      "answer_preview": "**Main Strategies:**\n- **Use good quality seeds:** Seeds must have more than 80 percent of germination, be free from pes"
     },
     {
       "id": "Q02",
       "category": "in_corpus_factual",
-      "rank": 3,
+      "rank": null,
       "keyword_coverage": 0.0,
       "verdict": "FP",
       "grounding_action": "disclaimer",
-      "latency_s": 4.4,
+      "latency_s": 4.1,
       "is_verified": false,
-      "citation_count": 4,
+      "citation_count": 1,
       "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against t"
     },
     {
@@ -40,24 +40,24 @@
       "category": "in_corpus_factual",
       "rank": 1,
       "keyword_coverage": 1.0,
-      "verdict": "FP",
+      "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 17.8,
+      "latency_s": 13.4,
       "is_verified": true,
-      "citation_count": 4,
-      "answer_preview": "**Symptoms:**\nIrregular lesions on leaves, reduced yield and quality.\n- **Pests that negatively affect rice growth and p"
+      "citation_count": 5,
+      "answer_preview": "**Symptoms:**\nRice plants show signs of damage, such as holes in leaves and stems.\n- **Cause:**\nPests like stem borer, l"
     },
     {
       "id": "Q04",
       "category": "in_corpus_factual",
       "rank": 1,
-      "keyword_coverage": 1.0,
+      "keyword_coverage": 0.25,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 6.9,
+      "latency_s": 5.7,
       "is_verified": true,
       "citation_count": 5,
-      "answer_preview": "**Diseases:**\n- Bacterial blight\n- bacterial leaf streak\n- root rot\n- false smut\n\n**Insect Pests:** stem borer, leaf fol"
+      "answer_preview": "**Diseases negatively affecting rice growth and production:**\n- Bacterial blight of rice (Xanthomonas oryzae pv. *oryzae"
     },
     {
       "id": "Q05",
@@ -66,7 +66,7 @@
       "keyword_coverage": 0.6,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 4.9,
+      "latency_s": 5.1,
       "is_verified": true,
       "citation_count": 5,
       "answer_preview": "**Life Cycle Range:** 105 to 145 days"
@@ -78,7 +78,7 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 11.4,
+      "latency_s": 9.1,
       "is_verified": true,
       "citation_count": 5,
       "answer_preview": "**Integrated Pest Management (IPM):**\n- IPM is an ecosystem-based strategy that focuses on long-term prevention of pests"
@@ -86,38 +86,38 @@
     {
       "id": "Q07",
       "category": "in_corpus_procedural",
-      "rank": 2,
-      "keyword_coverage": 0.4,
+      "rank": 1,
+      "keyword_coverage": 0.6,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 20.1,
+      "latency_s": 16.5,
       "is_verified": true,
-      "citation_count": 5,
-      "answer_preview": "**Good Agricultural Practices for Fertilizer Application:**\n- **Amount of fertilizer should be calculated and applied ba"
+      "citation_count": 4,
+      "answer_preview": "**Good Agricultural Practices (GAP):**\n- **Fertilizer Source:** Registered products are only purchased from licensed sup"
     },
     {
       "id": "Q08",
       "category": "in_corpus_factual",
-      "rank": 2,
-      "keyword_coverage": 0.6666666666666666,
+      "rank": 1,
+      "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 11.3,
+      "latency_s": 11.0,
       "is_verified": true,
-      "citation_count": 4,
-      "answer_preview": "**Sources of Phosphorus:**\n- Organic manures (green and compost)\n- Soil test-based application from phosphate-solubilizi"
+      "citation_count": 3,
+      "answer_preview": "**Sources of Phosphorus:**\n- Organic manures\n- Phosphate-solubilizing microbial cultures or phosphate fertilizers\n\n**App"
     },
     {
       "id": "Q09",
       "category": "in_corpus_factual",
-      "rank": null,
+      "rank": 1,
       "keyword_coverage": 0.0,
       "verdict": "FP",
-      "grounding_action": "refuse",
-      "latency_s": 3.3,
-      "is_verified": true,
-      "citation_count": 0,
-      "answer_preview": "I don't know based on the provided documents."
+      "grounding_action": "disclaimer",
+      "latency_s": 5.8,
+      "is_verified": false,
+      "citation_count": 1,
+      "answer_preview": "**Structure:**\n- **Epidermis**: Outer layer of the leaf, providing protection.\n- **Mesophyll**: Inner tissue containing "
     },
     {
       "id": "Q10",
@@ -126,10 +126,10 @@
       "keyword_coverage": 0.5,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 5.4,
+      "latency_s": 2.5,
       "is_verified": true,
       "citation_count": 1,
-      "answer_preview": "**Approximate Time of Wild Rice Domestication:**\n- 9,000 years ago."
+      "answer_preview": "**Approximate Domestication Time:** 9,000 years ago"
     },
     {
       "id": "Q11",
@@ -138,7 +138,7 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 9.5,
+      "latency_s": 5.2,
       "is_verified": true,
       "citation_count": 2,
       "answer_preview": "**Rationale for CSA:**\n- Climate-smart agriculture is needed to address food security and climate challenges simultaneou"
@@ -150,7 +150,7 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 7.8,
+      "latency_s": 6.0,
       "is_verified": true,
       "citation_count": 5,
       "answer_preview": "**Management:**\n- Facilities for mixing, loading and storage of fertilizers should be positioned to minimize the risk of"
@@ -162,7 +162,7 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 31.8,
+      "latency_s": 10.3,
       "is_verified": true,
       "citation_count": 5,
       "answer_preview": "**Hazardous Substances:**\n- Explosive substances such as flammable, oxidizing agents and peroxides.\n- Toxic substances t"
@@ -171,25 +171,25 @@
       "id": "Q14",
       "category": "in_corpus_factual",
       "rank": 1,
-      "keyword_coverage": 1.0,
+      "keyword_coverage": 0.6666666666666666,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 6.9,
+      "latency_s": 5.1,
       "is_verified": true,
       "citation_count": 1,
-      "answer_preview": "**Management:**\n- Tertiary tillers are produced from the nodes above and below where secondary tillers emerge."
+      "answer_preview": "**Management:**\n- Tertiary tillers are produced from the secondary tillers that emerge in alternate pattern along with p"
     },
     {
       "id": "Q15",
       "category": "in_corpus_factual",
       "rank": 1,
-      "keyword_coverage": 0.5,
+      "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 8.7,
+      "latency_s": 5.1,
       "is_verified": true,
       "citation_count": 4,
-      "answer_preview": "**Percentage of Rice Cultivated as Rainfed:**\n- 60%"
+      "answer_preview": "**Percentage of Rice Cultivated as Rainfed:**\n- 60 percent"
     },
     {
       "id": "Q16",
@@ -198,22 +198,22 @@
       "keyword_coverage": 0.5,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 8.8,
+      "latency_s": 4.9,
       "is_verified": true,
       "citation_count": 1,
-      "answer_preview": "**Management:**\n- Poor socioeconomic conditions limit farmers' ability to purchase recommended types of fertilizers.\n- L"
+      "answer_preview": "**Management:**\n- Poor socioeconomic conditions limit the ability to purchase recommended types of fertilizers."
     },
     {
       "id": "Q17",
       "category": "in_corpus_factual",
-      "rank": null,
-      "keyword_coverage": 0.0,
-      "verdict": "FP",
-      "grounding_action": "disclaimer",
-      "latency_s": 26.8,
-      "is_verified": false,
-      "citation_count": 2,
-      "answer_preview": "I don't have enough evidence to provide specific information about Mayin rice or its transplanting time. Please consult "
+      "rank": 1,
+      "keyword_coverage": 0.6666666666666666,
+      "verdict": "TN",
+      "grounding_action": "pass",
+      "latency_s": 7.5,
+      "is_verified": true,
+      "citation_count": 4,
+      "answer_preview": "- **Mayin rice:** Transplanting is done only after the monsoon when floodwater recedes.\n- **Transplantation time for May"
     },
     {
       "id": "Q18",
@@ -222,7 +222,7 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 21.3,
+      "latency_s": 9.9,
       "is_verified": true,
       "citation_count": 3,
       "answer_preview": "**Symptoms:**\nHeavy clayey soils with poor aeration, drainage and root growth.\n\n**Cause:**\nThese symptoms are due to the"
@@ -234,10 +234,10 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 24.3,
+      "latency_s": 11.4,
       "is_verified": true,
       "citation_count": 2,
-      "answer_preview": "**Symptoms:**\nZinc deficiency manifests on young or middle-aged leaves.\n\n**Cause:**\nDeficiency occurs when soil pH is hi"
+      "answer_preview": "**Symptoms:**\nZinc deficiency affects first younger or middle aged leaves.\n\n**Cause:**\nDeficiency occurs when soil pH is"
     },
     {
       "id": "Q20",
@@ -246,10 +246,10 @@
       "keyword_coverage": 0.5,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 12.0,
+      "latency_s": 7.0,
       "is_verified": true,
       "citation_count": 3,
-      "answer_preview": "**Five General Strategies:**\n- use good quality seeds;\n- practice good land preparation and levelling;\n- **practice bala"
+      "answer_preview": "**Five General Strategies:**\n- use good quality seeds;\n- practice land preparation and levelling;\n- manage water effecti"
     },
     {
       "id": "Q21",
@@ -258,7 +258,7 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 13.4,
+      "latency_s": 5.5,
       "is_verified": true,
       "citation_count": 1,
       "answer_preview": "**Objectives:**\n- Ensure that school-age children and adolescents benefit from diets, services, and practices supporting"
@@ -270,10 +270,10 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 8.7,
+      "latency_s": 6.0,
       "is_verified": true,
       "citation_count": 1,
-      "answer_preview": "**Primary Audience:** Children, adolescents and women everywhere"
+      "answer_preview": "**Audience:** The primary audience of UNICEF's Nutrition Strategy 2020-2030 is **children, adolescents and women everywh"
     },
     {
       "id": "Q23",
@@ -282,7 +282,7 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 9.7,
+      "latency_s": 4.4,
       "is_verified": true,
       "citation_count": 3,
       "answer_preview": "**Location:** IRRI is headquartered in the Philippines."
@@ -294,22 +294,22 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 24.8,
+      "latency_s": 11.4,
       "is_verified": true,
       "citation_count": 3,
-      "answer_preview": "**Nutritional Value:**\n- Energy (kcal): 82 calories\n- Protein content: 1.83 g\n- Total lipid/fat: 0.65 g\n- Carbohydrates:"
+      "answer_preview": "**Nutritional Value:**\n- Energy (kcal): 82 kcal\n- Protein content: 1.83 g\n- Total lipid/fat: 0.65 g\n- Carbohydrates: 17."
     },
     {
       "id": "Q25",
       "category": "in_corpus_procedural",
       "rank": null,
       "keyword_coverage": 1.0,
-      "verdict": "FP",
-      "grounding_action": "disclaimer",
-      "latency_s": 27.1,
-      "is_verified": false,
+      "verdict": "TN",
+      "grounding_action": "pass",
+      "latency_s": 12.1,
+      "is_verified": true,
       "citation_count": 1,
-      "answer_preview": "**Symptoms:**\nNone explicitly mentioned.\n\n**Cause:**\nThe Dapog或垫子法 (Dapog) is a method of nursery raising rice seedlings"
+      "answer_preview": "**Symptoms:**\nNone explicitly mentioned in the evidence.\n- The dapog. method is used for growing short duration varietie"
     },
     {
       "id": "Q26",
@@ -318,20 +318,20 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 56.3,
+      "latency_s": 20.1,
       "is_verified": true,
-      "citation_count": 3,
-      "answer_preview": "**Definition:** Integrated nutrient management (INM) in rice is a sustainable and eco-friendly approach to crop nutritio"
+      "citation_count": 2,
+      "answer_preview": "**Definition:** Integrated nutrient management (INM) in rice is a sustainable and ecofriendly approach of crop nutrition"
     },
     {
       "id": "Q27",
       "category": "in_corpus_factual",
       "rank": 1,
-      "keyword_coverage": 1.0,
-      "verdict": "TN",
-      "grounding_action": "pass",
-      "latency_s": 16.8,
-      "is_verified": true,
+      "keyword_coverage": 0.6666666666666666,
+      "verdict": "FP",
+      "grounding_action": "disclaimer",
+      "latency_s": 5.2,
+      "is_verified": false,
       "citation_count": 1,
       "answer_preview": "**Management Approach:** IPM (Integrated Pest Management) combines biological control and habitat manipulation for pest "
     },
@@ -342,7 +342,7 @@
       "keyword_coverage": 0.0,
       "verdict": "FP",
       "grounding_action": "disclaimer",
-      "latency_s": 6.6,
+      "latency_s": 3.9,
       "is_verified": false,
       "citation_count": 2,
       "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against t"
@@ -351,13 +351,13 @@
       "id": "Q29",
       "category": "in_corpus_factual",
       "rank": 1,
-      "keyword_coverage": 0.25,
+      "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 13.1,
+      "latency_s": 7.8,
       "is_verified": true,
       "citation_count": 3,
-      "answer_preview": "**Symptoms:**\nRice shares the characteristic of being an annual plant with grass family.\n\n**Cause:**\nNo specific cause i"
+      "answer_preview": "**Symptoms:**\nRice shares the characteristic of belonging to the grass family with other plants in this group.\n- **Cause"
     },
     {
       "id": "Q30",
@@ -366,7 +366,7 @@
       "keyword_coverage": 0.5,
       "verdict": "FP",
       "grounding_action": "disclaimer",
-      "latency_s": 64.0,
+      "latency_s": 4.9,
       "is_verified": false,
       "citation_count": 3,
       "answer_preview": "I don't have enough evidence to provide specific classification information about the FAO Climate-Smart Agriculture sour"
@@ -378,7 +378,7 @@
       "keyword_coverage": 0.0,
       "verdict": "FP",
       "grounding_action": "disclaimer",
-      "latency_s": 8.1,
+      "latency_s": 3.9,
       "is_verified": false,
       "citation_count": 4,
       "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against t"
@@ -387,13 +387,13 @@
       "id": "Q44",
       "category": "dialect_bn",
       "rank": null,
-      "keyword_coverage": 1.0,
-      "verdict": "TN",
-      "grounding_action": "pass",
-      "latency_s": 36.6,
-      "is_verified": true,
-      "citation_count": 2,
-      "answer_preview": "**Symptoms:**\n- Small whitish or grey specks which enlarge quickly at favorable conditions on leaves.\n- Fully developed "
+      "keyword_coverage": 0.0,
+      "verdict": "FP",
+      "grounding_action": "disclaimer",
+      "latency_s": 5.1,
+      "is_verified": false,
+      "citation_count": 4,
+      "answer_preview": "I don't know based on the provided documents.\n\n⚠️ Note: Some claims in this answer could not be fully verified against t"
     },
     {
       "id": "Q45",
@@ -402,10 +402,10 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 6.7,
+      "latency_s": 6.1,
       "is_verified": true,
-      "citation_count": 1,
-      "answer_preview": "**Life Cycle Duration:** 105 to 145 days"
+      "citation_count": 5,
+      "answer_preview": "**Life Cycle:**\n- 105 to 145 days, depending on biotic and abiotic factors."
     },
     {
       "id": "Q46",
@@ -414,10 +414,10 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 24.9,
+      "latency_s": 6.7,
       "is_verified": true,
-      "citation_count": 5,
-      "answer_preview": "**Symptoms:**\n- Infestation of stem borer, leaf folder; case worm and armyworm.\n\n**Cause:**\n- High infestations reported"
+      "citation_count": 4,
+      "answer_preview": "**Management:**\n- **Preventive Measures:** Release ducks into the rice field after transplant-recovery time.\n- **Hand We"
     },
     {
       "id": "Q47",
@@ -426,10 +426,10 @@
       "keyword_coverage": 0.6666666666666666,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 24.7,
+      "latency_s": 19.2,
       "is_verified": true,
       "citation_count": 2,
-      "answer_preview": "**Symptoms:**\nZinc deficiency in paddy results in brown blotches on leaves, as shown by Figure 54. The affected plant sh"
+      "answer_preview": "**Symptoms:**\n- Young or middle-aged leaves show discoloration, restricted growth and plant stunting.\n- Chlorotic midrib"
     },
     {
       "id": "Q48",
@@ -438,10 +438,10 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 66.5,
+      "latency_s": 11.1,
       "is_verified": true,
       "citation_count": 5,
-      "answer_preview": "**Symptoms:**\nPoor quality seeds may be discolored, small in size or plump.\n- **Cause:**\nSeeds of unknown origin and phy"
+      "answer_preview": "**Symptoms:**\nLow productivity, seed vigor decrease.\n- **Cause:**\nUse of old or unimproved seeds leading to varietal deg"
     },
     {
       "id": "Q49",
@@ -450,7 +450,7 @@
       "keyword_coverage": 0.0,
       "verdict": "FP",
       "grounding_action": "refuse",
-      "latency_s": 4.3,
+      "latency_s": 2.7,
       "is_verified": true,
       "citation_count": 0,
       "answer_preview": "I don't know based on the provided documents."
@@ -462,10 +462,10 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 13.9,
+      "latency_s": 6.3,
       "is_verified": true,
       "citation_count": 1,
-      "answer_preview": "**Impact on Agriculture:**\n- Climate change is already having an impact, leading to increased prevalence of extreme even"
+      "answer_preview": "**Impact on Agriculture:**\n- Climate change will make it more difficult to achieve food security and agricultural develo"
     },
     {
       "id": "Q51",
@@ -474,7 +474,7 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 10.6,
+      "latency_s": 5.5,
       "is_verified": true,
       "citation_count": 4,
       "answer_preview": "- **Insects:** stem borer, leaf folder, brown plant hopper (BPH), case worm and armyworm."
@@ -482,14 +482,14 @@
     {
       "id": "Q52",
       "category": "dialect_bn",
-      "rank": 2,
+      "rank": 3,
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 10.8,
+      "latency_s": 7.3,
       "is_verified": true,
-      "citation_count": 5,
-      "answer_preview": "**Examination Before Fertilizer Application:**\n- Weed control should be done before fertilizer application, especially i"
+      "citation_count": 3,
+      "answer_preview": "**Management:**\n- Ensure the natural fertilizers are thoroughly composted and converted to fully decomposed form.\n- Avoi"
     },
     {
       "id": "Q53",
@@ -498,22 +498,22 @@
       "keyword_coverage": 1.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 15.3,
+      "latency_s": 7.3,
       "is_verified": true,
       "citation_count": 3,
-      "answer_preview": "**Soil pH:** Zinc deficiency in rice mainly occurs when soil pH is high. Additionally, zinc deficiency can be caused by "
+      "answer_preview": "**Soil pH:** Zinc deficiency in rice mainly occurs when soil pH is high. Additionally, zinc deficiency can also occur wi"
     },
     {
       "id": "Q54",
       "category": "in_corpus_procedural",
       "rank": 1,
-      "keyword_coverage": 1.0,
+      "keyword_coverage": 0.75,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 22.9,
+      "latency_s": 16.8,
       "is_verified": true,
-      "citation_count": 2,
-      "answer_preview": "**Symptoms:**\nClayey soils are prone to erosion and sloppiness.\n\n**Cause:**\nHeavy clayey soil impedes aeration, drainage"
+      "citation_count": 3,
+      "answer_preview": "**Symptoms:**\nNone explicitly mentioned in the evidence.\n- Sand addition to clayey soils improves aeration, drainage and"
     },
     {
       "id": "Q55",
@@ -522,7 +522,7 @@
       "keyword_coverage": 0.0,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 7.7,
+      "latency_s": 3.2,
       "is_verified": true,
       "citation_count": 1,
       "answer_preview": "**Projected Global Population Growth:**\n- 30% increase in global population between now and 2050."
@@ -530,11 +530,11 @@
     {
       "id": "Q56",
       "category": "in_corpus_factual",
-      "rank": 2,
+      "rank": 1,
       "keyword_coverage": 0.3333333333333333,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 10.1,
+      "latency_s": 4.6,
       "is_verified": true,
       "citation_count": 4,
       "answer_preview": "**Chemical Hazards:**\n- Unapproved pesticides are common sources of chemical hazards."
@@ -546,7 +546,7 @@
       "keyword_coverage": 0.6666666666666666,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 20.4,
+      "latency_s": 14.4,
       "is_verified": true,
       "citation_count": 5,
       "answer_preview": "**Symptoms:**\n- Younger leaves show interveinal chlorosis.\n- Leaves may appear pale yellow or white.\n\n**Cause:**\nZinc av"
@@ -554,14 +554,14 @@
     {
       "id": "Q59",
       "category": "in_corpus_procedural",
-      "rank": null,
+      "rank": 1,
       "keyword_coverage": 0.5,
       "verdict": "TN",
       "grounding_action": "pass",
-      "latency_s": 10.0,
+      "latency_s": 6.3,
       "is_verified": true,
-      "citation_count": 3,
-      "answer_preview": "**Management:**\n- Equipment used for applying fertilizers and soil additives must be maintained in areas kept away from "
+      "citation_count": 4,
+      "answer_preview": "**Management:**\nEquipment used to apply fertilizers and soil additives is maintained in working condition and checked fo"
     }
   ],
   "meta": {
