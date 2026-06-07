@@ -62,9 +62,15 @@ class TestImageAnalysisResult:
         )
 
         text = result.build_query_text("my rice is sick")
+        # The user query and the classifier disease label anchor retrieval.
         assert "my rice is sick" in text
-        assert "yellowing" in text
         assert "blast" in text
+        # OCR text (can carry real product/disease names) is included.
+        assert "Leaf Disease Guide" in text
+        # Generic color-heuristic keywords/symptom_hints are deliberately
+        # excluded from the retrieval text so they do not dilute the embedding;
+        # they are surfaced to the user in the image-analysis block instead.
+        assert "yellowing" not in text
 
     def test_build_query_text_with_user_query(self):
         from agribot.vision.schema import ImageAnalysisResult
@@ -72,7 +78,8 @@ class TestImageAnalysisResult:
         result = ImageAnalysisResult(symptom_hints=["brown spots"])
         text = result.build_query_text("what disease is this?")
         assert "what disease is this?" in text
-        assert "brown spots" in text
+        # symptom_hints are UI-only and not part of the retrieval query.
+        assert "brown spots" not in text
 
 
 class TestImageProcessorStructured:
