@@ -145,7 +145,6 @@ def fig1_architecture():
     # --- Client layer ---
     with g.subgraph(name="cluster_client") as c:
         c.attr(label="Client layer", style="dashed", color="gray50", fontsize="9")
-        c.node("mobile", "Mobile app\n(Capacitor)", fillcolor="#dde8f5")
         c.node("web", "Web UI\n(Vite + React)", fillcolor="#dde8f5")
 
     # --- API layer (middlewares + endpoints) ---
@@ -191,7 +190,6 @@ def fig1_architecture():
         c.node("telem", "telemetry.db", shape="cylinder", fillcolor="#ececec")
 
     # --- Edges: client → api ---
-    g.edge("mobile", "api", label="HTTPS / JSON")
     g.edge("web", "api", label="HTTPS / JSON")
     g.edge("middleware", "api", style="dashed", arrowhead="none",
            label="all routes", fontsize="7", color="dimgray")
@@ -362,7 +360,7 @@ def fig4_latency():
 
     from matplotlib.patches import Patch
 
-    fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 1.9))
+    fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 1.55))
     rows = [("CPU", cpu_stages, cpu_mean, cpu_p50, cpu_p95, 1.0),
             ("GPU", gpu_stages, gpu_mean, gpu_p50, gpu_p95, 0.0)]
     for label, stages, mean_wall, p50, p95, ypos in rows:
@@ -571,8 +569,7 @@ def fig1_mpl():
     _setup_diagram_axes(ax, xlim=(0, 14), ylim=(0, 10))
 
     # --- Row 1: Client ---
-    _draw_box(ax, 4.5, 8.7, 2.2, 0.8, "Mobile app\n(Capacitor)", fill="#dde8f5")
-    _draw_box(ax, 7.3, 8.7, 2.2, 0.8, "Web UI\n(Vite + React)", fill="#dde8f5")
+    _draw_box(ax, 5.9, 8.7, 2.2, 0.8, "Web UI\n(Vite + React)", fill="#dde8f5")
     ax.text(0.2, 9.1, "Client", fontsize=8, color="gray", style="italic")
 
     # --- Row 2: API ---

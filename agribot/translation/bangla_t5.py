@@ -135,23 +135,45 @@ class BanglaTranslator:
         # and mangled the bold markers (e.g. "**Symptoms:**" -> "* উপসর্গ: **").
         out_lines: list[str] = []
         for raw_line in text.split("\n"):
-            line = raw_line.rstrip()
-            if not line.strip():
+            s = raw_line.strip()
+            if not s:
                 out_lines.append("")
                 continue
 
-            # Detect + peel off markdown scaffolding so only prose is translated.
-            header = re.match(r"^\*\*(.+?):\*\*$", line.strip())
-            bullet = re.match(r"^[-•]\s+(.*)$", line.strip())
-            if header:
-                prefix, suffix, content = "**", ":**", header.group(1)
-            elif bullet:
-                prefix, suffix, content = "- ", "", bullet.group(1)
-            else:
-                prefix, suffix, content = "", "", line.strip()
+            # Defensive: the LLM occasionally emits an unbalanced bold marker
+            # (e.g. "- **Moisture" with no closing "**"). Drop the lone marker
+            # so it never survives into the translated output as raw "**".
+            if s.count("**") % 2 == 1:
+                _idx = s.rfind("**")
+                s = (s[:_idx] + s[_idx + 2:]).strip()
+                if not s:
+                    out_lines.append("")
+                    continue
 
-            translated_content = self._translate_block(content, max_length, num_beams)
-            out_lines.append(f"{prefix}{translated_content}{suffix}")
+            # Peel off markdown scaffolding so BanglaT5 only ever sees prose;
+            # the markers are re-applied around the translation. Translating raw
+            # "**...**" mangles the asterisks, so each marker class is handled.
+            header = re.match(r"^\*\*(.+?)\*\*$", s)              # **Header** / **Header:**
+            bullet_bold = re.match(r"^[-•]\s+\*\*(.+?)\*\*\s*(.*)$", s)  # - **Sub[:]** rest
+            bullet = re.match(r"^[-•]\s+(.*)$", s)                # - text
+
+            def _bold(inner: str) -> str:
+                # Preserve a trailing colon inside the bold span when present.
+                if inner.endswith(":"):
+                    return f"**{self._translate_block(inner[:-1], max_length, num_beams)}:**"
+                return f"**{self._translate_block(inner, max_length, num_beams)}**"
+
+            if header:
+                out_lines.append(_bold(header.group(1)))
+            elif bullet_bold:
+                rest = bullet_bold.group(2).strip()
+                rest_tr = f" {self._translate_block(rest, max_length, num_beams)}" if rest else ""
+                out_lines.append(f"- {_bold(bullet_bold.group(1))}{rest_tr}")
+            elif bullet:
+                body = self._translate_block(bullet.group(1), max_length, num_beams)
+                out_lines.append(f"- {body}")
+            else:
+                out_lines.append(self._translate_block(s, max_length, num_beams))
 
         return "\n".join(out_lines).strip()
 
