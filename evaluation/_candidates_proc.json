@@ -1,0 +1,552 @@
+[
+  {
+    "query": "How should I improve farm-level productivity in rice farming?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          12
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "farm -level",
+      "productivity"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "viii Executive summary Rice plays an important role in Myanmar's agricultural economy, livelihoods, and food security. The country possesses favorable conditions to enhance rice productivity, quality,"
+  },
+  {
+    "query": "How should I identify the active ingredient in a plant protection product?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          13
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "active ingredient",
+      "plant protection product"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "ix Glossary of good agricultural practices (GAP) terms The following terminologies frequently used in compliance with GAP are important for their understanding, planning and implementation. Term Defin"
+  },
+  {
+    "query": "How should I utilize rice straw after threshing?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          18
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "rice straw",
+      "animal fodder source",
+      "livestock bedding"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "3 used for making noodles, which is extremely popular in many Asian countries including Myanmar. Rice straw after threshing is an important animal fodder source and is also used in livestock bedding, "
+  },
+  {
+    "query": "How should I correct potassium deficiency in my rice field?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          46
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "potassium deficiency",
+      "soil analysis",
+      "organic manures"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "31 • Poorly drained soils in which potassium uptake is negatively influenced by H2S, organic acids and excessive concentration of Fe++; • Rice where high yielding rice varieties such as hybrid rice cu"
+  },
+  {
+    "query": "How should I manage soil to address climate change?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          51
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "soil management",
+      "climate smart approach"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "36 • Soil management is key to addressing climate change. • Make decisions on evidence-based soil nutrient management. • Judicious application of fertilizers increases production. • Improve and divers"
+  },
+  {
+    "query": "What steps should be taken for proper preparation and application of organic manuring?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          52
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "properly prepared",
+      "best medium"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "37 which if properly prepared and applied, provide the best medium for plant growth and nutrient mobility and uptake by the plant nutrients. Organic manuring: A climate smart approach for safe, sustai"
+  },
+  {
+    "query": "How should I determine the nutrient content in rice straw?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          53
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "rice straw",
+      "nutrient content"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "38 Table 7. Average values for nutrient content of rice straw, rice husk, rice husk ash and cow- dung (Kg ton-1) Source N P K Mg S Si Rice straw 5.0 – 8.0 0.7 – 1.2 11.6 – 16.6 - 0.5 – 1.0 40 – 70 Ric"
+  },
+  {
+    "query": "What steps should I take to create Bokashi compost?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          54
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Bokashi inoculant",
+      "specially made bucket"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "39 Figure 73. Well decomposed FYM Figure 74. Compost piles in various stages of development 2.8.1.2.2. Bokashi compost Bokashi is a Japanese word meaning, \"fermented organic matter\" which was first de"
+  },
+  {
+    "query": "How should I store compost to prevent mold and maintain moisture?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          56
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "mold",
+      "moisture"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "41 • Be careful and keep the compost not to be in direct sunlight for a long time before use. • For later use, air-dried compost can be stored in the polyethylene bags or containers. Moisture during s"
+  },
+  {
+    "query": "How should I make biodynamic compost in Myanmar?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          57
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "biodynamic compost",
+      "Myanmar"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "42 Figure 83. Biodynamic compost making in Myanmar Figure 84. Steps in compost making Source: FAO. 2015. FAO training manual for Organic Agriculture. 2015. https://www.fao.org/fileadmin/templates/nr/s"
+  },
+  {
+    "query": "How should I prepare vermicompost for my rice farm?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          58
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "vermicomposting",
+      "worms"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "43 2.8.1.2.3. Vermicomposting Vermicompost, which is also, called worm compost, and worm manure is decomposed materials broken down by some earthworms. The compost prepared with worms is rich in nutri"
+  },
+  {
+    "query": "What steps are involved in green manuring?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          59
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "organic matter",
+      "soil texture",
+      "structure and friability"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "44 Figure 85. Sorting through a tray of Malaysian Blue (Perionyx excavatus) earthworms, also known as Indian Blues Figure 86. African Nightcrawler (Eudrilus eugeniae) earthworms, note the distinctive "
+  },
+  {
+    "query": "How should I incorporate green manure crops into the soil?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          60
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "tractor",
+      "incorporation"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "45 Figure 87. Green manure crops Figure 88. Incorporation of green manure crops into the soil using tractor Figure 89. Green manuring (Crotalaria juncea) for paddy cultivation, Myanmar Figure 90. Inco"
+  },
+  {
+    "query": "How should farmers improve soil aeration and moisture retention?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          62
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "gypsum",
+      "vermicompost"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "47 apply sulphur-based additives → to decrease soil ph and increase soil acidity apply gypsum → to improve aeration of compacted soil and drainage apply vermicompost → to improve aeration and moisture"
+  },
+  {
+    "query": "How should I implement crop rotation to control pests and diseases?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          63
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "crop rotation",
+      "pests",
+      "diseases"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "48 CHAPTER 3 – CROP PRODUCTION REQUIREMENTS 3.1 Cropping patterns and systems 3.1.1 Crop rotation and intercropping Crop rotation and intercropping are ingeniou s, low cost and sustainable climate sma"
+  },
+  {
+    "query": "How should I plan for intercropping and mixed cropping?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          64
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "crop rotation schemes",
+      "intercropping",
+      "mixed cropping"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "49 Site-specific crop rotation schemes should be devised and implemented in close consultation with DoA agriculture extension experts according to the local cropping sequences and patterns, but keepin"
+  },
+  {
+    "query": "How should I add nitrogen to the soil for plant growth?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          65
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "nitrogen",
+      "soil fertility"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "50 nitrogen for plants uptake ; as a result, nitrogen (as an essential element for soil fertility and plant growth) is added to the soil. Pursuing biodiversity on farm: Intercropping, an ecological en"
+  },
+  {
+    "query": "How should I manage water to conserve resources while producing rice?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          66
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "shrinking water resources",
+      "climate change",
+      "industrial development"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "51 CHAPTER 4 – CROP PRODUCTION TECHNOLOGY 4.1. Irrigation and water management Water is a key input for sustainable rice production, therefore efficient and judicious water use is of paramount importa"
+  },
+  {
+    "query": "What steps should be taken to minimize wastage of water and the risk of environmental harm in irrigation systems?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          67
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "wastage",
+      "risk",
+      "environmental"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "52 Figure 95. Stage wise water requirement of paddy crop Source: Kumar K. P., Barik D. K. 2015. Comparison of Agricultural Yield with and Without A Canal Head Regulator. International Journal of Advan"
+  },
+  {
+    "query": "How should I manage irrigation during the tillering stage to prevent weed development?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          68
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "tillering stage",
+      "weed development"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "53 Irrigation water is essential for rice cultivation and may affect rice yield. Full irrigation is not necessary for young plants where small irrigation is recommended. If the rice field is dry durin"
+  },
+  {
+    "query": "How should I handle harvested rice to minimize losses?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          70
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "stalk cutting",
+      "stacking",
+      "handling",
+      "threshing"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "55 5.1.1.1. Harvesting Harvesting involves the separation of grains from the plant to recover the mature grains and encompasses stalk cutting, stacking, handling and threshing. Harvesting at the right"
+  },
+  {
+    "query": "How should I handle the grain after threshing?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          71
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "canvass",
+      "grain",
+      "threshed"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "56 • Thresh the crop on the same day of harvest if the rice straw are not wet from overnight rain or heavy dewfall. In such cases, the crop should be field dried before threshing . If the crop is harv"
+  },
+  {
+    "query": "How should I clean rice to ensure quality?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          72
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "straw chaff",
+      "foreign matters"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "57 Figure 99. Rice paddy being stored away in poly-bags with the bag mouth left open to allow air movement 5.1.1.4. Cleaning Cleaning is an important post -harvest operation determining the grade and "
+  },
+  {
+    "query": "How should I check the moisture content of milled rice to prevent mold development?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          73
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "moisture",
+      "development"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "58 5.1.1.6. Grading Grading is the process of sorting milled rice into different grades on the basis visual observation and moisture content. Milled rice appears as whole grains, broken grains, off -t"
+  },
+  {
+    "query": "How should I sanitize the storage place to prevent contamination?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          74
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "storage place",
+      "sanitation"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "59 • The infested residue, which can contaminate the newly introduced produce in the store, should be removed. • In order to maximize the use of space, ensure hygienic conditions and facilitate effect"
+  },
+  {
+    "query": "How should equipment be cleaned to avoid contamination?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          76
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "produce",
+      "cleaned"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "61 the harvest during which application of pesticides is not allowed, so as to avoid the risk of any residual effects in the produce). The chemicals obtained, stored, used, and the application and dis"
+  },
+  {
+    "query": "What steps should be taken for proper seedling age and number of plants per hill during transplanting?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          85
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "seedling age",
+      "number of plants"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "70 adaptable varieties and appropriate agricultural practices should be applied. - Levelling of rice field could reduce the seed rate, if there is no rats, birds and weeds occurrences. - Row to row an"
+  },
+  {
+    "query": "How should rice bags be stored to maintain optimum seed moisture content?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          87
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "timber floor",
+      "(2 –3) inches-high"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "72 packaging animals, any contamination, mixing with other variety and dangerous materials. - If more than one variety is stored, it is important to avoid mixing of each variety in storage areas. Rice"
+  },
+  {
+    "query": "What steps should be taken to resolve complaints related to produce quality?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          88
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "produce quality",
+      "complaints"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "73 Environmental Management Module, Produce Quality Module and Workers Health, Safety and Welfare Module. A record is kept of training attendance. 1.15 Review of practices - All practices are reviewed"
+  },
+  {
+    "query": "How should I manage irrigation and water availability for optimal crop yield?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          89
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "crop water requirements",
+      "soil moisture levels"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "74 2.1.4 Irrigation and water management To ensure efficient fulfillment of crop irrigation water requirement in a site and crop specific for increased yield, quality and water use efficiency 1. Irrig"
+  }
+]

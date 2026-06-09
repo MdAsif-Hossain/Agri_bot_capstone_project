@@ -1,0 +1,2051 @@
+[
+  {
+    "query": "What assesses the risk of contamination?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          10
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "chemical",
+      "biological"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "vi A2.7. The risk of chemical and biological contamination of produce from previous use of the site and from adjoining sites must be assessed .........................................................."
+  },
+  {
+    "query": "What has been reduced in the number of children under 5 suffering from stunted growth?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "stunted growth",
+      "children"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **NUTRITION, FOR EVERY CHILD** **UNICEF Nutrition Strategy 2020–2030** In Brief **Every child has the right to nutrition.** And today, the need for diets, services and practices that protect, promot"
+  },
+  {
+    "query": "What do fully developed leaf lesions look like?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "eye/spindle/diamond shaped",
+      "grey or white center",
+      "brown or reddish brown border"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Study on blast disease of rice** **Symptoms:** **i)** The fungus can attacked more rapidly in nursery and flowering stage and also infected leaves, blade and neck **ii)** Symptoms on leaves first ap"
+  },
+  {
+    "query": "What are the causal organisms of brown spot in rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Bipolaris oryzae",
+      "Cochilobolus miyabeans"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **BROWN SPOT OF RICE** **Causal organism**: *Bipolaris oryzae, Cochilobolus miyabeans* (synonyms *Dreschlera oryzae*, *Helminthosporium oryzae*) **Brown spot** is a fungal disease that can infect"
+  },
+  {
+    "query": "What can using good quality seeds reduce?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "insects",
+      "diseases"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Seed selection** Selecting good quality seed is one of the most important steps in rice production. Good quality seed must be true to type, germinate and be free from pests, diseases and seeds of "
+  },
+  {
+    "query": "What are the factors that have contributed to sheath blight becoming a major disease?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sheath blight",
+      "susceptible long-grain varieties",
+      "rice grown in rotation with soybeans",
+      "broadcast seeding",
+      "nitrogen fertilizers"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Several factors have contributed to the development of sheath blight from minor to major disease status. They include the increased acreage planted to susceptible long-grain varieties, the increase in"
+  },
+  {
+    "query": "What were the yield losses attributed to in Bengal during 1942?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Bengal",
+      "yield loss",
+      "brown spot epidemic"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Under Guyana conditions reduction in yield can be as high as 45% in severe infection and 12% in moderate infection. Yield losses due to brown spot epidemic in Bengal in 1942 was attributed to continuo"
+  },
+  {
+    "query": "What method is used for seed selection?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "salt-water",
+      "seed selection"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- 1. Choose varieties adapted to local conditions. - 2. Use refreshed seeds of right varieties and good quality. Do not use old, stored seeds as they could lose seed viability. - 3. Practice seed sele"
+  },
+  {
+    "query": "What are the sources of inoculum that infect rice plants?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sclerotia",
+      "plant debris"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": ". The fungus survives between crops as structures called sclerotia or as hyphae in plant debris. Sclerotia (Fig. 1) or plant debris floating on the surface of irrigation water serves as sources of ino"
+  },
+  {
+    "query": "What is the pathogen causing bacterial blight of rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Xanthomonas oryzae",
+      "*oryzae*",
+      "syn.",
+      "*Xanthomonas campestris*"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Disease common name:** Bacterial blight of rice or bacterial leaf blight of rice. **Pathogen:** *Xanthomonas oryzae* pv. *oryzae*; syn.: *Xanthomonas campestris* pv. *oryzae*. ## **Disease Cycle** *"
+  },
+  {
+    "query": "What is the shape of rice blast conidia?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "obpyriform",
+      "conidiophore"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "*Pyricularia oryzae (Imperfect stage)* *Magnaporthe oryzae (Perfect stage)* **Pathogenic characters:** **Mycelium:** The mycelium is well developed, branched, septate, inter or intracellular hyphae. *"
+  },
+  {
+    "query": "What are the symptoms of this disease in seedlings?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "seedling blight",
+      "lesions",
+      "coleoptile"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **SYMPTOMS** - This disease may be manifested as seedling blight or as a foliar and glume disease of mature plants. - In seedlings the fungus produces small, circular brown lesions which may gird"
+  },
+  {
+    "query": "What causes death of entire plants?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "lesions",
+      "sheaths",
+      "death"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Lesions on the upper parts of plants extend rapidly coalescing with each other to cover entire tillers from the water line to the flag leaf. The presence of several large lesions on a leaf sheath usua"
+  },
+  {
+    "query": "How many times should I harrow the land after plowing?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "harrowing",
+      "ploughing"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Land preparation** - 1. Plow the land 6–8 inches when there is enough moisture. - 2. Harrowing (2 times) should be done one week after ploughing. - 3. Another harrowing should be done and apply ba"
+  },
+  {
+    "query": "What does sheath blight look like on leaf blades?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sheath blight",
+      "leaf blade"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Sheath blight is characterized by large oval spots on the leaf sheaths (Fig. 2) and irregular spots on leaf blades (Fig. 3). Infections usually begin during the late tillering-joint elongation stages "
+  },
+  {
+    "query": "Through what do bacteria enter leaf tissues?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "hydathodes",
+      "stomata"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Infection:** The bacterium enters leaf tissues through natural openings such as hydathodes and stomata on leaf blades, growth cracks caused by the emergence of new roots at the base of the leaf shea"
+  },
+  {
+    "query": "What hormone does *Pyricularia oryzae* secrete at the base of rice stems?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "hormone",
+      "*P. oryzae*",
+      "base",
+      "stem"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Taxonomic position:** Kigdom: Fungi Division: Deuteromycota Class: Hyphomycetes Order: Moniliales Family: Dematiaceae Genus: *Pyricularia* Species: *P. oryzae* 1 Different sructure of *Pyricularia o"
+  },
+  {
+    "query": "What reduces the number of grains per panicle in rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Brown Spot",
+      "grains"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- Lesions may coalesce in severe infections killing large areas of affected leaves. - The fungus can infect the glumes and the grains. - Brown spot reduces the number of grains per panicle and the ker"
+  },
+  {
+    "query": "what is a xi plot in rice farming?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          15
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "xi plot",
+      "area"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "xi Plot An area in which a crop is planted and is not connected to other areas. In case the area is connected to others, the production management including inputs, cultural practices and personnel of"
+  },
+  {
+    "query": "What are the predisposing factors for rice blast?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "high temperature",
+      "inoculum",
+      "close spacing"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Average yield loss is around 30% ### **Predisposing factors** - High temperature (30-35°C) and relative humidity (>80%) - Presence of inoculum in the field - Close spacing and high dose of nitrogenous"
+  },
+  {
+    "query": "How much seed should be used per acre?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "two baskets",
+      "acre-1"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "## **Seed broadcasting** - 1. Drain out the water from the fields. - 2. Broadcast evenly pre germinated seeds. - 3. Do not over use seed rates and use good quality seeds about two baskets acre-1 . - 4"
+  },
+  {
+    "query": "What are the symptoms of leaf blight?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "leaf blight",
+      "water-soaked lesions",
+      "stripes on leaf blades"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Symptoms and signs:** There are two main sets of disease symptoms, leaf blight and wilt; the latter is commonly referred to as kresek. Leaf blight, the more common symptom, generally occurs from the"
+  },
+  {
+    "query": "What causes rice to exhibit root and crown rot?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Fusarium moniliforme",
+      "Gibberella fujikuroi"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "by their tall pale green leaves iii) Infected seedlings maybe stunted and chlorotic, exhibiting root and crown rot. Usually infected seedlings are killed iv) Older leaves can also be infected and may "
+  },
+  {
+    "query": "what favors brown spot infection?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "conditions",
+      "favor",
+      "brown spot"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Figure 2 Brown spot lesions on the grains and leaf of the rice plant.** # **How Brown Spot survive?** - The fungus persists on infected rice seed and probably infected crop debris. - It has traditio"
+  },
+  {
+    "query": "What are the characteristics of long grain rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          17
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "long grain",
+      "fluffy",
+      "light in composition"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "2 Rice grains are classified as short, medium and long based on structure, texture and unique properties, including aromatic and cooking features. Long milled grains with a three to four times width, "
+  },
+  {
+    "query": "What is the vision of UNICEF's Nutrition Strategy?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "UNICEF",
+      "Nutrition"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**At least** 2 in 3 children **are not fed the minimum diet they need to grow healthy.** ## **VISION AND GOAL** The vision of the UNICEF Nutrition Strategy 2020– 2030 is **\"a world where all children,"
+  },
+  {
+    "query": "What is the recommended timing for planting in endemic areas?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "T. Aman",
+      "planting after mid-August"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Control measures** - o Planting in wide spacing (20 cm x 20 cm), using tall varieties - o Burning residues in infected fields at least once in a year - o Alternate wetting and drying of the fiel"
+  },
+  {
+    "query": "How should the field be managed regarding water levels?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "levelled",
+      "drainage",
+      "wetting and drying"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Water management** - 1. Make sure land is levelled which is better for water management. - 2. Prepare drainage canals for easier water management. - 3. The field does not need to be always flooded"
+  },
+  {
+    "query": "How does the fungus spread in rice fields?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sclerotia",
+      "waterline",
+      "tiller",
+      "plant residue"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "*Fig. 1. Sclerotia and plant residue floating at waterline.* *Fig. 2. Early sheath lesions.* The fungus can spread in the field by growing from tiller to tiller on an infected plant or across the surf"
+  },
+  {
+    "query": "What causes small, round lesions with water-soaked margins on glumes?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "small",
+      "round",
+      "lesions",
+      "glumes"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": ". 2), and later become whitish with wavy margins (Fig. 3). They may coalesce to cover the entire leaf blade. Lesions on older infected leaves often appear grayish to white (Fig. 4) in contrast to the "
+  },
+  {
+    "query": "What are the mycelium characteristics of Fusarium moniliforme?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Fusarium moniliforme",
+      "mycelium",
+      "septate"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "*Fusarium moniliforme* (Imperfect stage) *Gibberella fujikuroi* (Perfect stage) **Pathogenic characters:** **Mycelium:** Well developed, branched, septate often colorless hyphae which turn brown at ma"
+  },
+  {
+    "query": "What conditions favor brown spot infection?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "P deficiency",
+      "infected seeds",
+      "volunteer rice"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **THE FOLLOWING CONDITIONS FAVOR BROWN SPOT INFECTION:** - Rice suffering from either N, K, or P deficiency is especially susceptible to brown spot. - Presence of infected seeds, volunteer rice, ric"
+  },
+  {
+    "query": "What color are the centers of lesions on rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "grayish-white",
+      "light green"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "The lesions have grayish-white or light green centers with a brown or reddish-brown margin (Fig. 2). As lesions coalesce on the sheath, the blades turn yellow-orange and eventually die. As areas in th"
+  },
+  {
+    "query": "What are the shapes and sizes of microconidia?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "microconidia",
+      "spherical to oval shaped"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "i) **Macroconidia:** macroconidia are long, septate (usually 3-5 cells), crescent shape/sickle shape structures hence called falcate type of conidia produced on sporodochia and hyaline ii) **Microconi"
+  },
+  {
+    "query": "What are the components of a floret in rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          20
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "floret",
+      "lemma",
+      "palea"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "5 margin, and is considered as spikelet rice, comprising of three flowers, two of which are reduced in development. Thus, the enlarged, cup -like apex is homologous with a pair of true glumes and may "
+  },
+  {
+    "query": "What are the objectives for preventing undernutrition in early childhood?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "undernutrition",
+      "early childhood"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- **Objective 1:** To prevent undernutrition, micronutrient deficiencies and overweight in early childhood (i.e., the first five years of life). - **Objective 2:** To prevent undernutrition, micronutr"
+  },
+  {
+    "query": "What is the last step to control pests and diseases effectively?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "pests",
+      "diseases"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "| Lessons | Page | |------------------------------------------------|------| | Step 1. Use a crop calendar | 3 | | Step 2. Choose the best variety | 5 | | Step 3. Use high quality seed | 7 | | Step 4."
+  },
+  {
+    "query": "What damages can be compensated in early 40 days?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "early 40 days",
+      "damages"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Integrated pest management of major pests** Pesticide application is not the most important activity in pest management. Pesticide is the last option. Regularly monitor and scout in the field is n"
+  },
+  {
+    "query": "What color do leaves of infected rice plants turn?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "grayish green",
+      "yellow to straw-colored"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": ". Leaves of infected plants wilt and roll up, turning grayish green (Fig. 7). The leaves then turn yellow to straw-colored and wither, and the entire plant generally dies. Plants that survive are stun"
+  },
+  {
+    "query": "what is the genus and species of Fusarium that causes rice blast?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "blast disease of rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Fusarium",
+      "*F. moniliforme*"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Class: Hyphomycetes Order: Moniliales Family: Tuberculariaceae Genus: *Fusarium* Species: *F. moniliforme* 3 Healty plant and nfected rice plant (tall pale, green slender leaf, elongated internode, ad"
+  },
+  {
+    "query": "how can a crop calendar help in rice farming?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "crop calendar",
+      "timeliness"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Step 1: Use a crop calendar Using a cropping calendar improves the timeliness and reduces costs A crop calendar is a picture of your rice growing season: crop production from the fallow, land preparat"
+  },
+  {
+    "query": "What causes brown lesions on the base of a panicle?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "panicle blast",
+      "brown lesion"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- In case of panicle blast the fungus usually attack at the base of the panicle, producing brown lesions and the panicle often fall over due to rotting of the neck. - The fungus also caused infection "
+  },
+  {
+    "query": "What causes caseworm infestations in rice fields?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "rice Caseworm",
+      "water lodged areas"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **Rice Caseworm** The adult moth is snowy white with light brown to black specks and two or three submarginal bands. The larvae have branched and threadlike gills alongside of their bodies and ca"
+  },
+  {
+    "query": "What are the six universal principles guiding UNICEF's programming?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "principles",
+      "programming"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Our vision, goal and objectives are realized through programming at the global, regional, national and subnational levels. Six universal principles guide UNICEF's programming for maternal and child nu"
+  },
+  {
+    "query": "What is the typical duration for planting and harvesting different rice varieties?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "duration",
+      "shortduration"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **How to create a crop calendar** - 1. Determine the best date to plant. - 2. Determine the time the variety takes from planting to harvest (shortduration, 100–120 days; medium duration, 120–140 day"
+  },
+  {
+    "query": "How do spores spread the disease?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "conidia",
+      "infected straw and seeds",
+      "irrigation water"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Disease Cycle** The disease spreads primarily through airborne conidia since spores of the fungus present throughout the year. Mycelium and conidia in the infected straw and seeds are major source"
+  },
+  {
+    "query": "What are the resistant rice varieties to sheath blight?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sheath blight",
+      "medium-grain",
+      "long-grain"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "*Fig. 3. Irregular lesions on leaves.* disking to control growth of grasses, will reduce inoculum in the soil. The pathogen also is known to infect sorghum, corn and sugarcane when environmental condi"
+  },
+  {
+    "query": "What are the climatic requirements for growing rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          26
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "tropical",
+      "subtropical"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "11 CHAPTER 2 – PADDY PRODUCTION STATUS IN MYANMAR 2.1. Production requirements and systems Rice can be successfully grown in a wide range of climatic and soil conditions. Different rice types/strains "
+  },
+  {
+    "query": "What are the immediate determinants of maternal and child nutrition according to UNICEF?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "malnutrition",
+      "determinants",
+      "maternal",
+      "child"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **CONCEPTUAL FRAMEWORK** The UNICEF Nutrition Strategy 2020–2030 introduces UNICEF's Conceptual Framework on the Determinants of Maternal and Child Nutrition, 2020. The Framework, which builds on pr"
+  },
+  {
+    "query": "What factors influence the selection of a rice variety?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "variety",
+      "conditions",
+      "water",
+      "soil type"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# Step 2: Choose the best variety Select a variety that suits your growing conditions The most suitable variety is the one best meeting farmer's and consumer's needs. It may not always give the highes"
+  },
+  {
+    "query": "What causes severe epidemics of blast?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "blast",
+      "secondary spread"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Primary infections generally result in a few widely scattered spots on leaves. Spores arising from the primary infections are capable of causing many more infections. This cycling is called secondary "
+  },
+  {
+    "query": "What diseases can brown plant hoppers transmit?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "brown plant hopper",
+      "transmit",
+      "ragged stunt viral disease"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Brown Plant Hopper (BPH)** Leafhoppers and plant hoppers damage plants by sucking the sap**.** In addition to damaging plants by direct feeding, plant hoppers and leafhoppers are also vectors of"
+  },
+  {
+    "query": "What technique has exacerbated the negative impacts of soil?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          27
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "wet tillage operations",
+      "damaged soil structure"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "12 cropping systems; moreover, degrading natural resources, especially soil and water, have given rise to various techniques of rice production systems. The labour -intensive nature of the crop and sh"
+  },
+  {
+    "query": "What contributes to good nutrition in children and women?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "positive narrative",
+      "nutrition"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Using a positive narrative about what contributes to good nutrition in children and women, the Framework provides conceptual clarity on the enabling, underlying and immediate determinants of adequate "
+  },
+  {
+    "query": "What are the duration categories for rice varieties?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "long-duration",
+      "medium-duration",
+      "short-duration"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Crop duration** - Long-duration varieties (160 days and longer) suitable for irrigated areas or flood-prone areas - Medium-duration varieties (120–140 days) suitable for both rainfed and irrigated"
+  },
+  {
+    "query": "What causes hopper burn?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "plant hoppers",
+      "high humidity",
+      "basal parts"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Since the plant hoppers prefer high humidity, they congregate in areas of more rigorous plant growth and multiply near the basal parts of the plant. Under favorable conditions, such as high N applicat"
+  },
+  {
+    "query": "What causes the grayish white lesions on rice leaves?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Xanthomonas oryzae",
+      "oryzicola"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Figure 1. Gradation in symptom development (top to bottom) on leaves with water-soaked streaks that widen, lengthen, and turn yellow. (Courtesy T. Mew) Figure 2. Leaf with large yellow stripe. (Courte"
+  },
+  {
+    "query": "What are the height requirements for different types of rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "tall varieties",
+      "medium height varieties",
+      "short varieties"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Crop height** - Tall varieties (1.4 m and taller) are suitable for flood-prone and unleveled fields, lodging may be a problem. - Medium height varieties (1–1.2 m) are suitable for most areas and a"
+  },
+  {
+    "query": "What are the symptoms of brown spot?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "brown spot",
+      "minute spots",
+      "coleoptile",
+      "leaf blade",
+      "glumes"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Brown spot** Causal organism: *Bipolaris oryzae* (Sexual stage: *Cochliobolus miyabeanus*) # **Symptoms:** The fungus attacks the crop from seedling to milky stage in main field. Symptoms appear a"
+  },
+  {
+    "query": "What method is used for seed treatment and soaking?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          30
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "seed treatment",
+      "soaking"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "15 Step by step rice crop establishment under SRI Figure 18. Seed treatment and soaking Figure 19. Seedbed preparation for SRI method in Yesagyo township, Magway region Figure 20. Nursery raised with "
+  },
+  {
+    "query": "What programming does UNICEF focus on for early childhood nutrition?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "undernutrition",
+      "stunting",
+      "wasting"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Results Area 1: Early childhood nutrition** encompasses UNICEF's programming for the prevention of all forms of malnutrition in the first five years of life, including undernutrition – both stunting"
+  },
+  {
+    "query": "What is important for eating quality?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "softness",
+      "stickiness",
+      "color"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "## **Grain quality** - A premium is often paid for aromatic varieties, but yields are normally lower. - Eating quality such as softness, stickiness, and color after cooking are important. Step 3: Use "
+  },
+  {
+    "query": "What favors the development of rice blast disease?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_pest.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "excessive uses",
+      "urea fertilizers",
+      "low soil moisture",
+      "rain shower",
+      "cool temperature"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "## **Rice blast disease** Rice blast is one of the most destructive diseases of rice. Rice can have blast in all growth stages. Rice blast disease occurs in areas with excessive uses of urea fertilize"
+  },
+  {
+    "query": "What is the method used for avoiding extreme drying and inundation?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          31
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "alternate wetting",
+      "drying",
+      "inundation"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "16 Figure 24. Geometrical layout using calibrated manual liners Figure 25. Transplanting seedling in Yesagyo township, Magway region Figure 26. Using mechanical weeder across the rows in Yesagyo towns"
+  },
+  {
+    "query": "What are the recommended practices for infants and young children?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "breastfeeding",
+      "complementary foods"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "We advocate for and support policies, strategies and programmes that aim to protect and promote recommended breastfeeding practices for infants and young children from birth; promote and support ageap"
+  },
+  {
+    "query": "How long are the conidia of brown spot fungus viable?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "conidia",
+      "brown spot"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **Disease Cycle** Infected seeds and stubbles are the most common source of primary infection. The conidia present on infected grain and mycelium in the infected tissue are viable for 2 to 3 year"
+  },
+  {
+    "query": "What should be assessed for in site selection?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          32
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "chemical",
+      "biological",
+      "hazards"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "17 Figure 30. Tillering and prolific root development of rice established under SRI Figure 31. Harvesting of rice in Yesagyo township, Magway region 2.5. Crop establishment 2.5.1. Site selection It is"
+  },
+  {
+    "query": "What programs does UNICEF focus on for middle childhood and adolescence?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "UNICEF",
+      "middle childhood",
+      "adolescence"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Results Area 2: Nutrition in middle childhood and adolescence** encompasses UNICEF's programming for the prevention of all forms of malnutrition in middle childhood (ages 5–9 years) and adolescence "
+  },
+  {
+    "query": "When should I harvest my rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "full maturity",
+      "straw-colored"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- 6. Harvest at full maturity when 80–85% of the grains are straw-colored or at 21–22% moisture. - 7. Thresh and dry quickly after harvest. - 8. Store seed safely and label containers or bags with var"
+  },
+  {
+    "query": "What fungicides are recommended for rice blast?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Iprodione",
+      "Propiconazole",
+      "Azoxystrobin"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Control measures** - High amount of organic matter - Healthy seeds - Balanced fertilizer and irrigation - Use fungicides (e.g., Iprodione, Propiconazole, Azoxystrobin, Trifloxystrobin, and Carbe"
+  },
+  {
+    "query": "What is an important consideration while preparing land for rice cultivation?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          33
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "clods",
+      "plant establishment"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "18 Land preparation is an important cultural operation in rice production in terms of weed control, effective nutrient management, rice plant root development , water and fertilizers use efficiency. L"
+  },
+  {
+    "query": "What should a well-prepared field have?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "clods",
+      "seed-soil contact",
+      "plowlayer",
+      "bunds"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# Step 4: Prepare and level the fields well Level fields give the best yields A well-prepared and leveled field gives a uniform, healthy crop that can compete with weeds, use less water, and give high"
+  },
+  {
+    "query": "What are the symptoms of *[Cercospora oryzae]*?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "lesions",
+      "2-10 mm long"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Causal organism: *[Cercospora](https://en.wikipedia.org/wiki/Cercospora_oryzae) oryzae* ### **Symptoms:** Short, linear brown lesions are produced on the leaves but may also occur on the leaf sheaths,"
+  },
+  {
+    "query": "What method is used for puddling?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          34
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "puddling",
+      "tractors",
+      "rotavator"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "19 Figure 34. Primary tillage operation using a tractor drawn plow Figure 35. Secondary tillage operation using a disc plow Puddling: In order minimize water losses through water percolation and prepa"
+  },
+  {
+    "query": "What symptoms do the flag leaf sheaths show?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "flag leaf sheath",
+      "greyish brown spots"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **Sheath rot** Causal organism: *Sarocladium oryzae* ### **Symptoms:** Initial symptoms are noticed only on the upper most leaf sheath enclosing young panicles. The flag leaf sheath show oblong o"
+  },
+  {
+    "query": "What should seeds be free from?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          35
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "pest",
+      "disease"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "20 2.5.3. Recommended varieties, seed and seed quality 2.5.3.1. Seed selection According to the findings of the GAP -project situation analysis, 63 percent of interviewed farmers ranked access to qual"
+  },
+  {
+    "query": "What policies aim to improve women's nutritional status?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "gender-responsive",
+      "nutritional status"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "We advocate for and support gender-responsive policies and programmes that aim to improve women's nutritional status before and during pregnancy and while breastfeeding; promote nutrition care and sup"
+  },
+  {
+    "query": "What predisposing factor causes the disease?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "infected seeds",
+      "plant debris"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Predisposing factors** - Infected seeds - Air-bone conidia from nearby infected field - High nitrogenous fertilizer - Hot and humid climate ### **Disease Cycle** The disease spreads mainly through"
+  },
+  {
+    "query": "What condition does UNICEF's programming target for early detection and treatment in children with wasting?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "wasting",
+      "early detection",
+      "treatment"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Results Area 4: Nutrition and care for children with** **wasting** encompasses UNICEF's programming for the early detection and treatment of children with wasting through facility- and community"
+  },
+  {
+    "query": "What is the recommended pre-germination step for seed?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "soak",
+      "seed"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- 1. Select a nursery site that is 1/10 in size of the intended planting area. - 2. Prepare the nursery by plowing at least twice and harrow at least once. - 3. Level the soil surface and put in drain"
+  },
+  {
+    "query": "What predisposing factor promotes the spread of rice blast?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "high nitrogenous fertilizer",
+      "close spacing"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Predisposing factors** - High nitrogenous fertilizer - Close spacing - High humidity - Moderate temperature # **Disease Cycle** The disease spreads mainly through air-borne conidia and also seed-b"
+  },
+  {
+    "query": "What is the recommended seedling age for transplanting?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          38
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "seedlings",
+      "20 to 25 days"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "23 2.5.3.4. Seed rate and method of sowing Levelling of rice field s could reduce the seed rate if there are no rats, birds or weed problems. Once uprooted, transplanting should be done to reduce the "
+  },
+  {
+    "query": "What is the focus of Results Area 5?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "nutrition programming",
+      "humanitarian crises"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Results Area 5: Maternal and child nutrition in humanitarian** **action** encompasses UNICEF's nutrition programming in emergencies and is guided by UNICEF's Core Commitments for Children in Hum"
+  },
+  {
+    "query": "What symptoms occur when **stem rot** affects the rice plant?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "rectangular black lesion",
+      "appressoria may be seen on the stem"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Stem rot** Causal organism: *Sclerotium oryzae* #### **Symptoms** - Disease starts near the water line as small, rectangular black lesion on leaf sheath. - The lesion invades inward into the ste"
+  },
+  {
+    "query": "What is the first step for preparing a field?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "plowing",
+      "twice"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **For direct seeding:** - 1. Prepare the field by plowing at least twice and harrowing once-compare seed size and clod size. - 2. Level the soil surface. - 3. Apply and incorporate basal fertilize"
+  },
+  {
+    "query": "How long do sclerotia survive in the soil?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sclerotia",
+      "survive",
+      "soil",
+      "2 years"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Disease Cycle** The sclerotia survive in stubbles and straw those are carried through irrigation water. The fungus over winters and survives for long periods as sclerotia in the upper layers (2-3 "
+  },
+  {
+    "query": "When should off-types be checked and removed during tillering?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          40
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "tillering stage",
+      "off -types",
+      "checked",
+      "removed"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "25 2.7.1. Rouging and weed control Rouging and weed control measures at appropriate times should be practiced during the crop growing season. Therefore, regular monitoring of off -type inspection and "
+  },
+  {
+    "query": "What are the five pillars of UNICEF's governance work for nutrition?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "pillars",
+      "governance",
+      "nutrition"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "### **Results Area 6: Partnerships and governance for nutrition** encompasses UNICEF's programming to strengthen the enabling environment for maternal and child nutrition through improved partnerships"
+  },
+  {
+    "query": "How long should seed be soaked before broadcasting?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "soak",
+      "24 hours"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Wet direct seeding:** - 1. Pre-germination of seed. Soak the seed for 24 hours and then drain for 24 hours in the shade before broadcasting evenly over the water-covered soil surface. - 2. Broadca"
+  },
+  {
+    "query": "What are the control measures for rice?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "wetting and drying",
+      "apply less nitrogen",
+      "burn plant debris",
+      "avoid thick planting"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **Control measures** - Alternate wetting and drying of the land - Apply less nitrogen - Burn plant debris after harvest - Avoid thick planting - Use fungicides (e.g., Provax 200WP, Bavistin DF) a"
+  },
+  {
+    "query": "What strategy results in lower nitrogen losses and increased nutrient use efficiency?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          42
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "spilt application",
+      "nitrogen losses",
+      "nutrient use"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "27 Spilt application of nitrogen is the best strategy resulting in lower nitrogen losses and increased nutrient use efficiency. Splitting of nitrogen can be increased in coarse textured sandy soils un"
+  },
+  {
+    "query": "What symptoms do infected seedlings exhibit?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "infected seedling",
+      "stunted",
+      "chlorotic",
+      "root and crown rot"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- The fungus secrets hormone at the base of the stem and stimulates adventitious root formation and internode elongation - The diseased plants are much taller, slender compared to healthy plants and d"
+  },
+  {
+    "query": "What is essential for root development in rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          43
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "phosphorus",
+      "root"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "28 Figure 47. Nitrogen-deficient leaf and a normal leaf. Figure 48. Nitrogen-deficient crop with a close view Phosphorus Phosphorus is an important macronutrient essential for various biochemical proc"
+  },
+  {
+    "query": "What is the causal organism for stack burn?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "*Alternaria padwickii*",
+      "stack burn"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Predisposing factors** - Infected seeds - Inoculum present in soil and infected stubble - Alternate hosts - High temperature (around 35°C) - Damp soil condition - High nitrogenous fertilizer # **C"
+  },
+  {
+    "query": "What is the effect of potassium deficiency on water use?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          45
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "potassium deficiency",
+      "water use"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "30 phloem transport. Potassium improves root growth, plant vigor and make the plants more lodging resistant. The element is mobile in plants as well as in soil (IRRI Rice Knowledge Bank). Potassium ha"
+  },
+  {
+    "query": "What are the five systems targeted by this strategy?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "food",
+      "health",
+      "water and sanitation",
+      "education",
+      "social protection"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "To support our goal and objectives, the Strategy calls for a systems approach to nutrition. This approach aims to activate the five systems – **food, health, water and sanitation, education, and socia"
+  },
+  {
+    "query": "What is the recommended timing for first weeding?",
+    "category": "in_corpus_procedural",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "first weedin",
+      "2–3 weeks"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- Plowing and harrowing in fallow should be undertaken at least 10–14 days apart or after rain. - Good land leveling reduces weed growth because most weeds have trouble germinating under water. - Sele"
+  },
+  {
+    "query": "What are the symptoms of stack burn?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "stack burn",
+      "spots",
+      "dark brown margins"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **Stack burn** Causal organism: *Alternaria padwickii* #### **Symptoms:** Large, oval or circular spots with narrow dark brown margins on the leaf. Initially, center of the spots remain pale brow"
+  },
+  {
+    "query": "What are the five areas of engagement?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "engagement",
+      "advocacy",
+      "support"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": ". We prioritize five areas of engagement, advocacy and support: (1) adequate foods and diets for children in national guidelines and standards; (2) better foods and diets for children through actions "
+  },
+  {
+    "query": "What is the treatment for rice blast?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "Thiram",
+      "Mancozeb"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Management** - Treat the seeds with Thiram or Mancozeb at 2 g/kg. - Hot water treatment at 54 °C for 15 minutes is also effective. - Burn the stubbles and straw in the field. ### **False smut** Ca"
+  },
+  {
+    "query": "What are the symptoms of iron deficiency in rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          48
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "interveinal chlorosis",
+      "chlorophyll",
+      "papery white"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "33 soils, coarse textured soils, lowlands with less organic matter and increased Rhizosphere pH. Deficiency of iron can be corrected with the application of 25 kg FeSO 4 ha-1 between the rows (Chaudha"
+  },
+  {
+    "query": "What does UNICEF prioritize in health systems?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "essential services",
+      "nutrition supplies"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Working with the health system:** UNICEF works with health systems to protect, promote and support diets, services and practices that prevent and treat child malnutrition through primary health care"
+  },
+  {
+    "query": "What are the base rates for nitrogen, phosphorus, and potassium removal?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "nitrogen",
+      "phosphorus",
+      "potassium"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Most soils provide only limited amount of nutrients to the crop, therefore fertilizers need to be applied to increase grain yield. In some cases, fertilizers are also added to improve the soil's physi"
+  },
+  {
+    "query": "What color are the spore balls at first?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "spore balls",
+      "initially",
+      "yellow"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "Infected grains are transformed into greenish spore balls of a velvety appearance. Initially the spore balls remains in between the glumes gradually enclosing the floral parts. They are slightly flatt"
+  },
+  {
+    "query": "What are the main sources of infection for rice?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "ascospores",
+      "chlamydospores"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "# **Disease Cycle** Grasses and wild rice species are alternate hosts. The main source of inoculum is airborne spores. Ascospores produced from sclerotia act as primary source of infection while chalm"
+  },
+  {
+    "query": "What causes sulphur deficiency in rice crops?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "fao_gap.pdf",
+        "expected_pages": [
+          50
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "sulphur",
+      "soils",
+      "organic matter"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "35 where oilseed and pulses crops are intensively cultivated (Kumar et al., 2009). Moreover, soils deficient in organic matter, light textured soils, soil exhausted by intensive cropping having less r"
+  },
+  {
+    "query": "What is the focus of UNICEF's engagement with education systems?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "UNICEF",
+      "education system"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "**Working with the education system:** UNICEF works with education systems to protect, promote and support diets, services and practices that prevent malnutrition in school-age children. We prioritize"
+  },
+  {
+    "query": "When should I apply the remaining N in my rice field?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "irri_rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "N (urea)",
+      "30 days",
+      "50–60 days"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "- Apply remaining N (urea) in 2 equal portions at 30 days and 50–60 days (panicle initiation) after emergence. - In established crops, apply chemical fertilizer only in standing water and evenly acros"
+  },
+  {
+    "query": "What does UNICEF prioritize in its engagements?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "unicef_nutrition.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "UNICEF",
+      "prioritize"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "UNICEF works with social protection systems to protect, promote and support diets, services and practices that prevent malnutrition among vulnerable children. We prioritize five areas of engagement, a"
+  },
+  {
+    "query": "What causes black pustules on grains?",
+    "category": "in_corpus_factual",
+    "expected_sources": [
+      {
+        "source_file": "Diseases-of-Rice.pdf",
+        "expected_pages": [
+          1
+        ]
+      }
+    ],
+    "expected_answer_keywords": [
+      "bunt",
+      "Tilletia barclayana"
+    ],
+    "must_refuse": false,
+    "_chunk_excerpt": "#### **Bunt or Kernel Smut or Black smut** Causal organism: *Tilletia barclayana* ### **Symptoms:** Minute black pustules or streaks are formed on the grains which burst open at the time of ripening. "
+  }
+]

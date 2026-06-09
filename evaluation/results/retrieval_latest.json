@@ -1,14 +1,14 @@
 {
   "summary": {
-    "queries_evaluated": 46,
-    "mrr": 0.933,
+    "queries_evaluated": 153,
+    "mrr": 0.9202,
     "recall_at_k": {
-      "1": 0.913,
-      "3": 0.9565,
-      "5": 0.9783,
-      "10": 0.9783
+      "1": 0.902,
+      "3": 0.9412,
+      "5": 0.9542,
+      "10": 0.9542
     },
-    "avg_retrieval_latency_ms": 774.1
+    "avg_retrieval_latency_ms": 609.2
   },
   "per_query": [
     {
@@ -420,6 +420,969 @@
       "retrieved_top1": {
         "source_file": "fao_gap.pdf",
         "page_num": 88
+      }
+    },
+    {
+      "id": "Q061",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q062",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q063",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q064",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q065",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q066",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q067",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q068",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q069",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q070",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q071",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q072",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q073",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q074",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q075",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q076",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 15
+      }
+    },
+    {
+      "id": "Q077",
+      "category": "in_corpus_factual",
+      "rank": null,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q078",
+      "category": "in_corpus_factual",
+      "rank": 3,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 85
+      }
+    },
+    {
+      "id": "Q079",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q080",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q081",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q082",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 17
+      }
+    },
+    {
+      "id": "Q083",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q084",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q085",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q086",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q087",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Brown-Spot-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q088",
+      "category": "in_corpus_factual",
+      "rank": 5,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q089",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 20
+      }
+    },
+    {
+      "id": "Q090",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q091",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q092",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q093",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "blast disease of rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q094",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q095",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q096",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q097",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q098",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q099",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Sheath Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q100",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 26
+      }
+    },
+    {
+      "id": "Q101",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q102",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q103",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q104",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q105",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 27
+      }
+    },
+    {
+      "id": "Q106",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q107",
+      "category": "in_corpus_factual",
+      "rank": 3,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 46
+      }
+    },
+    {
+      "id": "Q108",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q109",
+      "category": "in_corpus_factual",
+      "rank": null,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 26
+      }
+    },
+    {
+      "id": "Q110",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q111",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 37
+      }
+    },
+    {
+      "id": "Q112",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q113",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q114",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q115",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q116",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q117",
+      "category": "in_corpus_factual",
+      "rank": null,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 70
+      }
+    },
+    {
+      "id": "Q118",
+      "category": "in_corpus_factual",
+      "rank": null,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 84
+      }
+    },
+    {
+      "id": "Q119",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 33
+      }
+    },
+    {
+      "id": "Q120",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q121",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q122",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 36
+      }
+    },
+    {
+      "id": "Q123",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q124",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q125",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q126",
+      "category": "in_corpus_procedural",
+      "rank": 2,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 37
+      }
+    },
+    {
+      "id": "Q127",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q128",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 85
+      }
+    },
+    {
+      "id": "Q129",
+      "category": "in_corpus_factual",
+      "rank": 2,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 43
+      }
+    },
+    {
+      "id": "Q130",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q131",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 40
+      }
+    },
+    {
+      "id": "Q132",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "unicef_nutrition.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q133",
+      "category": "in_corpus_factual",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q134",
+      "category": "in_corpus_procedural",
+      "rank": null,
+      "retrieved_top1": {
+        "source_file": "fao_pest.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q135",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 12
+      }
+    },
+    {
+      "id": "Q136",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 71
+      }
+    },
+    {
+      "id": "Q137",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 46
+      }
+    },
+    {
+      "id": "Q138",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 51
+      }
+    },
+    {
+      "id": "Q139",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 53
+      }
+    },
+    {
+      "id": "Q140",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 58
+      }
+    },
+    {
+      "id": "Q141",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 59
+      }
+    },
+    {
+      "id": "Q142",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 62
+      }
+    },
+    {
+      "id": "Q143",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 64
+      }
+    },
+    {
+      "id": "Q144",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 65
+      }
+    },
+    {
+      "id": "Q145",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 65
+      }
+    },
+    {
+      "id": "Q146",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 66
+      }
+    },
+    {
+      "id": "Q147",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 100
+      }
+    },
+    {
+      "id": "Q148",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 85
+      }
+    },
+    {
+      "id": "Q149",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 69
+      }
+    },
+    {
+      "id": "Q150",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 70
+      }
+    },
+    {
+      "id": "Q151",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 72
+      }
+    },
+    {
+      "id": "Q152",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 73
+      }
+    },
+    {
+      "id": "Q153",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 38
+      }
+    },
+    {
+      "id": "Q154",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 87
+      }
+    },
+    {
+      "id": "Q155",
+      "category": "in_corpus_procedural",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 89
+      }
+    },
+    {
+      "id": "Q156",
+      "category": "dialect_bn",
+      "rank": null,
+      "retrieved_top1": {
+        "source_file": "Bacterial Blight of Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q157",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q158",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 68
+      }
+    },
+    {
+      "id": "Q159",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 47
+      }
+    },
+    {
+      "id": "Q160",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q161",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q162",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 45
+      }
+    },
+    {
+      "id": "Q163",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "irri_rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q164",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 50
+      }
+    },
+    {
+      "id": "Q165",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
+      }
+    },
+    {
+      "id": "Q166",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "fao_gap.pdf",
+        "page_num": 42
+      }
+    },
+    {
+      "id": "Q167",
+      "category": "dialect_bn",
+      "rank": 1,
+      "retrieved_top1": {
+        "source_file": "Diseases-of-Rice.pdf",
+        "page_num": 1
       }
     }
   ]
