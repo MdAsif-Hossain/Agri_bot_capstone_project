@@ -75,6 +75,13 @@ coverage.xml
 # =============================================================================
 .ipynb_checkpoints/
 *.ipynb_checkpoints
+*.ipynb
+
+# =============================================================================
+# Research-only (training notebook, LaTeX manuscript, reference papers,
+# dataset-generation scratch) — kept local, never pushed to GitHub.
+# =============================================================================
+research/
 
 # =============================================================================
 # Models — large binaries downloaded separately (see README)
