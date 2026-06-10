@@ -108,6 +108,14 @@ def grade_evidence(
     Returns:
         (grade, confidence) where grade is "SUFFICIENT" or "INSUFFICIENT"
     """
+    # Lexical fast-path. The on-device 1.5B grader is strongly biased toward
+    # INSUFFICIENT (it rejects ~95% of retrievals, firing the rewrite loop on
+    # nearly every query for no recall gain). When the evidence clearly covers
+    # the question's salient terms, the retrieval is on-topic and we accept it;
+    # the LLM grader is consulted only when lexical coverage is weak.
+    if _query_coverage(query, context) >= 0.6:
+        return "SUFFICIENT", 0.75
+
     prompt = f"""<|im_start|>system
 You are an evidence quality grader. Your task is to determine if the provided context contains enough information to answer the user's question about agriculture.
 
@@ -157,8 +165,8 @@ You are AgriBot, an agricultural expert assistant. Answer the user's question us
 1. STRUCTURE: Organise the answer under short bold section headers when appropriate (e.g. "**Symptoms:**", "**Cause:**", "**Management:**"), each on its OWN line. Put each distinct point on its own bullet line starting with "- ". Do NOT repeat the same sentence or fact more than once.
 2. NO INLINE CITATIONS: Do NOT put source filenames or page numbers in the answer text (e.g. do not write "[fao_pest.pdf, p.12]"). The sources are listed separately for the user.
 3. ANSWER IN ENGLISH ONLY. Bengali translation will be provided separately.
-4. SAFETY: If the evidence does NOT support a specific dosage or treatment recommendation, say "I don't have enough evidence to provide specific dosage recommendations. Please consult your local agricultural extension officer."
-5. USE THE EVIDENCE: The evidence above was retrieved for THIS question. If it contains relevant information, ANSWER using it — even if the match is only partial. Reply "I don't know based on the provided documents." ONLY when the evidence is empty or entirely unrelated to the question.
+4. SAFETY (dosage only): If — and ONLY if — the question asks for a chemical/pesticide/fertiliser DOSAGE or application rate and the evidence gives no specific safe figure, reply "I don't have enough evidence to provide specific dosage recommendations. Please consult your local agricultural extension officer." Never use this dosage wording for non-dosage questions.
+5. USE THE EVIDENCE: The evidence above was retrieved for THIS question. If it contains relevant information, ANSWER using it — even if the match is only partial. For any non-dosage question you cannot answer from the evidence, reply exactly "I don't know based on the provided documents." Use this generic wording (not the dosage wording) whenever the evidence is empty or unrelated.
 6. STAY ON TOPIC: Answer only what the question asks. Do not pull in unrelated pests, diseases, or topics that merely happen to appear in the evidence.
 7. Be concise and practical. Stop when the question is fully answered.
 <|im_end|>
@@ -262,6 +270,20 @@ def _evidence_overlap(answer: str, context: str) -> float:
         return 0.0  # too little content to judge by overlap; defer to the LLM
     present = sum(1 for t in terms if t in ctx)
     return present / len(terms)
+
+
+def _query_coverage(query: str, context: str) -> float:
+    """Fraction of the question's salient terms present in the evidence. High
+    coverage means the retrieval is on-topic for the question."""
+    ctx = (context or "").lower()
+    if not ctx:
+        return 0.0
+    terms = [w for w in re.findall(r"[a-z][a-z-]{3,}", (query or "").lower())
+             if w not in _VERIFY_STOP]
+    terms = list(dict.fromkeys(terms))
+    if not terms:
+        return 0.0
+    return sum(1 for t in terms if t in ctx) / len(terms)
 
 
 def verify_answer(

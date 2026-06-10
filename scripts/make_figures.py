@@ -172,7 +172,7 @@ def fig1_architecture():
     with g.subgraph(name="cluster_services") as c:
         c.attr(label="Inference services (per-node calls from the agent)",
                style="dashed", color="gray50", fontsize="9")
-        c.node("llm", "Qwen2.5-3B (Q4_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
+        c.node("llm", "Qwen2.5-1.5B (Q8_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
         c.node("retrv", "Hybrid retrieval\nFAISS dense + BM25 sparse\n+ RRF fusion + Cross-encoder",
                fillcolor=PALETTE["bg_cpu"])
         c.node("kg", "KG entity linker\n(SQLite)", fillcolor=PALETTE["bg_cpu"])
@@ -242,7 +242,7 @@ def fig2_workflow():
     g.node("rerank", "rerank\n(cross-encoder)")
     g.node("grade", "grade\n(LLM)", shape="diamond", fillcolor="#fff2cc")
     g.node("rewrite", "rewrite\n(LLM)", fillcolor="#f5dada")
-    g.node("generate", "generate\n(Qwen2.5-3B, GPU)")
+    g.node("generate", "generate\n(Qwen2.5-1.5B, GPU)")
     g.node("translate", "translate\n(BanglaT5)")
     g.node("verify", "verify\n(LLM)", fillcolor="#e0f0e0")
     g.node("enforce", "enforce_policy\n(safety)", fillcolor="#e0f0e0")
@@ -595,7 +595,7 @@ def fig1_mpl():
               fill="#f6e6f5", fontsize=7)
 
     # --- Row 5: Services ---
-    _draw_box(ax, 0.3, 1.6, 2.1, 1.1, "Qwen2.5-3B\n(Q4_0 GGUF)\n— GPU —",
+    _draw_box(ax, 0.3, 1.6, 2.1, 1.1, "Qwen2.5-1.5B\n(Q8_0 GGUF)\n— GPU —",
               fill=PALETTE["bg_gpu"], fontsize=7)
     _draw_box(ax, 2.6, 1.6, 2.6, 1.1, "Hybrid retrieval\nFAISS + BM25\n+ RRF + Reranker",
               fill=PALETTE["bg_cpu"], fontsize=7)

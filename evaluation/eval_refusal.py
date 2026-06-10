@@ -42,8 +42,14 @@ def _looks_like_refusal(resp: dict) -> bool:
     OR the answer text contains a known refusal/disclaimer marker."""
     if resp.get("grounding_action") == "refuse":
         return True
-    ans = (resp.get("answer") or "").lower()
-    return any(m in ans for m in REFUSE_MARKERS)
+    # Strip the appended verification caution: a substantive answer that merely
+    # carries a "could not be fully verified — consult extension officer" note
+    # is an answer, not a refusal. Only the answer body decides. (Both EN and BN
+    # cautions begin with ⚠️.)
+    core = (resp.get("answer") or "").split("⚠")[0].strip()
+    if not core:
+        return True
+    return any(m in core.lower() for m in REFUSE_MARKERS)
 
 
 def _post(backend: str, query: str, timeout: int = 240) -> dict:

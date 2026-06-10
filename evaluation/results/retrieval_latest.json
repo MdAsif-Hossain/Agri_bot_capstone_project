@@ -8,7 +8,7 @@
       "5": 0.9542,
       "10": 0.9542
     },
-    "avg_retrieval_latency_ms": 609.2
+    "avg_retrieval_latency_ms": 618.9
   },
   "per_query": [
     {
@@ -563,7 +563,7 @@
       "rank": 1,
       "retrieved_top1": {
         "source_file": "fao_gap.pdf",
-        "page_num": 15
+        "page_num": 14
       }
     },
     {

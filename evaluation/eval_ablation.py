@@ -106,8 +106,16 @@ def _keyword_coverage(answer: str, keywords: list[str]) -> float:
 def _looks_like_refusal(answer: str, grounding_action: str) -> bool:
     if grounding_action == "refuse":
         return True
-    ans = (answer or "").lower()
-    return any(m in ans for m in REFUSE_MARKERS)
+    # Strip the appended verification caution before judging. A substantive
+    # answer that merely carries a "some claims could not be fully verified —
+    # consult extension officer" note is an ANSWER delivered to the user, not a
+    # refusal; only the answer body decides refusal status. (Both the EN and BN
+    # cautions begin with the ⚠️ marker.)
+    core = (answer or "").split("⚠")[0].strip()
+    if not core:
+        return True
+    cl = core.lower()
+    return any(m in cl for m in REFUSE_MARKERS)
 
 
 # ---------------------------------------------------------------------------

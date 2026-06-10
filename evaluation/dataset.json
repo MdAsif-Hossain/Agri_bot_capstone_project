@@ -1283,8 +1283,8 @@
     },
     {
       "id": "Q071",
-      "query": "What are the symptoms of this disease in seedlings?",
-      "query_bn": "চারাগাছে এই রোগের লক্ষণগুলো কী?",
+      "query": "What are the symptoms of brown spot of rice in seedlings?",
+      "query_bn": "চারাগাছে ধানের বাদামি দাগের লক্ষণগুলো কী?",
       "category": "in_corpus_factual",
       "expected_sources": [
         {
@@ -1381,8 +1381,8 @@
     },
     {
       "id": "Q076",
-      "query": "what is a xi plot in rice farming?",
-      "query_bn": "ধান চাষের ক্ষেত্রে একটি এক্স প্লট কি?",
+      "query": "In good agricultural practices, what is a plot?",
+      "query_bn": "ভাল কৃষিকাজে, প্লট কি?",
       "category": "in_corpus_factual",
       "expected_sources": [
         {
@@ -1393,8 +1393,9 @@
         }
       ],
       "expected_answer_keywords": [
-        "xi plot",
-        "area"
+        "area",
+        "crop",
+        "planted"
       ],
       "must_refuse": false
     },

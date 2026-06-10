@@ -41,6 +41,11 @@ class ImageProcessor:
         """
         self.vlm_model_path = vlm_model_path
         self._vlm = None
+        # Minimum fraction of foliage-coloured pixels for an image to be
+        # treated as a plausible plant-leaf photo. Below this, the closed-set
+        # disease classifier is skipped to avoid confidently misclassifying
+        # out-of-distribution inputs (bottles, faces, documents, etc.).
+        self.leaf_veg_threshold = 0.12
 
         logger.info(
             "ImageProcessor initialized (VLM: %s)",
@@ -89,6 +94,24 @@ class ImageProcessor:
             # Extract keywords from OCR text
             words = [w.strip().lower() for w in ocr_text.split() if len(w.strip()) > 3]
             result.keywords.extend(words[:10])
+
+        # 1b. Out-of-distribution gate: if the image does not plausibly
+        #     contain plant foliage (e.g. a bottle, a face, a document), skip
+        #     symptom and disease analysis. A closed-set classifier would
+        #     otherwise return a confident but meaningless rice-disease label.
+        veg_fraction = self._vegetation_fraction(image_path)
+        if veg_fraction < self.leaf_veg_threshold:
+            result.pipeline_used = "no_leaf_detected"
+            result.quality_flags.append("no_leaf_detected")
+            result.limitations.append(
+                f"No rice-leaf foliage detected (vegetation cover "
+                f"{veg_fraction:.0%}); disease classification was skipped. "
+                "Please upload a clear, close-up photo of the affected rice leaf."
+            )
+            result.keywords = list(dict.fromkeys(result.keywords))
+            logger.info("OOD gate: vegetation %.0f%% < %.0f%% — skipping classifier",
+                        veg_fraction * 100, self.leaf_veg_threshold * 100)
+            return result
 
         # 2. Color/symptom heuristics
         symptom_hints = self._analyze_symptoms(image_path)
@@ -175,6 +198,33 @@ class ImageProcessor:
         except Exception as e:
             logger.warning("Image OCR failed: %s", e)
             return ""
+
+    def _vegetation_fraction(self, image_path: Path) -> float:
+        """Fraction of pixels that look like plant foliage, via the Excess
+        Green index (ExG = 2G - R - B). Healthy and diseased rice leaves are
+        green or yellow-green and score high; bottles, faces, documents, and
+        plain backgrounds score low. Used as an out-of-distribution gate
+        before the closed-set rice-disease classifier. On any error it returns
+        1.0 (fail-open) so an analysis bug never blocks a genuine leaf photo."""
+        try:
+            from PIL import Image
+            import numpy as np
+
+            img = Image.open(image_path).convert("RGB").resize((256, 256))
+            px = np.array(img, dtype=np.float32)
+            r, g, b = px[:, :, 0], px[:, :, 1], px[:, :, 2]
+            exg = 2.0 * g - r - b  # excess-green vegetation index
+            max_c = np.maximum(np.maximum(r, g), b)
+            min_c = np.minimum(np.minimum(r, g), b)
+            sat = np.where(max_c > 0, (max_c - min_c) / max_c, 0.0)
+            # green-dominant, reasonably saturated, and not near-black
+            veg = (exg > 18) & (sat > 0.15) & (g > 40)
+            return float(veg.mean())
+        except ImportError:
+            return 1.0
+        except Exception as e:
+            logger.warning("Vegetation check failed (%s); assuming leaf present", e)
+            return 1.0
 
     def _analyze_symptoms(self, image_path: Path) -> str:
         """
