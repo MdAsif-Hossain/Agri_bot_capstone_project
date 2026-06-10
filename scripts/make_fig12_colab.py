@@ -2,7 +2,8 @@
 # corrected model name (Qwen2.5-3B Q4_0). Writes fig1/fig2 .png + .pdf and
 # downloads them. Paste this whole thing into one Colab cell and run.
 
-import subprocess, sys
+import subprocess
+import sys
 subprocess.run("apt-get -qq install -y graphviz", shell=True)
 subprocess.run([sys.executable, "-m", "pip", "-q", "install", "graphviz"])
 

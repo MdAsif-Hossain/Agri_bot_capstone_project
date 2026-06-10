@@ -337,7 +337,6 @@ def fig4_latency():
         (55433.7, 53005.2, 83578.0))
 
     gpu_path = EVAL_DIR / "latency_gpu_latest.json"
-    has_gpu = gpu_path.exists() or True  # embedded fallback below keeps GPU bar
     gpu_stages, (gpu_mean, gpu_p50, gpu_p95) = _load(
         gpu_path,
         {"normalize": 0.1, "kg_link": 3.0, "retrieve": 12.8, "rerank": 192.2,

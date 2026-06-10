@@ -351,13 +351,17 @@ def _eval_config(svc, cfg_id: str, queries: list[dict], limit: int | None) -> di
         should_refuse = bool(q.get("must_refuse", False))
         did_refuse = _looks_like_refusal(answer, action)
         if should_refuse and did_refuse:
-            tp += 1; verdict = "TP"
+            tp += 1
+            verdict = "TP"
         elif should_refuse and not did_refuse:
-            fn += 1; verdict = "FN"
+            fn += 1
+            verdict = "FN"
         elif not should_refuse and did_refuse:
-            fp += 1; verdict = "FP"
+            fp += 1
+            verdict = "FP"
         else:
-            tn += 1; verdict = "TN"
+            tn += 1
+            verdict = "TN"
 
         per_query.append({
             "id": q["id"], "category": q["category"], "rank": rank,

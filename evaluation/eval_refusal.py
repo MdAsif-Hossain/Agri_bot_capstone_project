@@ -18,7 +18,7 @@ import time
 import urllib.error
 import urllib.request
 
-from evaluation.common import filter_queries, load_dataset, save_results
+from evaluation.common import load_dataset, save_results
 
 
 REFUSE_MARKERS = [
