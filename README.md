@@ -267,6 +267,12 @@ Supervised by **Dr. Farhana Huq** — Department of Computer Science and Enginee
 
 ---
 
+## 📄 License
+
+Released under the [MIT License](LICENSE) — free to use, modify, and distribute with attribution.
+
+---
+
 <div align="center">
 <sub>Built to put trustworthy, in-language agricultural knowledge in farmers' hands — even without the internet. 🌱</sub>
 </div>
