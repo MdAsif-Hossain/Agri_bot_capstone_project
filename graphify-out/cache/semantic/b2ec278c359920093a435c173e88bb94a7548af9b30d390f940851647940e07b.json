@@ -1,0 +1,1 @@
+{"nodes": [{"id": "models_vision_rice_disease_mobilenetv3_cbam_class_labels", "label": "Rice Disease Class Labels (6 classes)", "file_type": "document", "source_file": "models/vision/rice_disease_mobilenetv3_cbam.txt", "source_location": "L1-L6", "source_url": null, "captured_at": null, "author": null, "contributor": null}], "edges": [], "hyperedges": []}

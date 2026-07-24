@@ -40,10 +40,11 @@ langchain-text-splitters>=0.0.1
 # Structured Logging
 structlog>=23.0.0
 
-# Translation (BUET BanglaT5)
+# Translation (BanglaT5 base + AgriBanglaT5 domain-adapted LoRA)
 transformers>=4.30.0
 sentencepiece>=0.1.99
 bnunicodenormalizer>=0.1.5
+peft>=0.7.0
 
 # Voice Input (Whisper ASR)
 faster-whisper>=1.0.0

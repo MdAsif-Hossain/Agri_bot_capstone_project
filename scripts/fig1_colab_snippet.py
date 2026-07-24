@@ -18,7 +18,6 @@ The corrections vs. the original draft (commented inline below):
 """
 
 import graphviz
-from IPython.display import display, Image
 
 
 def generate_architecture():
@@ -167,13 +166,18 @@ def generate_architecture():
     dot.edge('Embed', 'FAISS')
     dot.edge('Embed', 'BM25')
 
-    dot.render('Agri_bot_Architecture')
-    return 'Agri_bot_Architecture.png'
+    dot.render('fig1', format='png', cleanup=True)
+    dot.render('fig1', format='pdf', cleanup=True)
+    print('wrote fig1.png / fig1.pdf')
+    return 'fig1.png'
 
 
 if __name__ == "__main__":
     output_file = generate_architecture()
+    # Auto-download in Colab; ignored when run locally.
     try:
-        display(Image(output_file))
-    except NameError:
+        from google.colab import files
+        for f in ('fig1.png', 'fig1.pdf'):
+            files.download(f)
+    except Exception:
         print(f"Generated: {output_file}")

@@ -8,6 +8,7 @@ by the BUET CSE NLP Group for optimal results.
 """
 
 import logging
+import os
 import re
 from threading import Lock
 
@@ -30,6 +31,11 @@ class BanglaTranslator:
     """
 
     EN_TO_BN_MODEL = "csebuetnlp/banglat5_nmt_en_bn"
+    # AgriBanglaT5: a domain-adapted (LoRA) BanglaT5 EN->BN model that, with
+    # knowledge-graph glossary hints, preserves agronomic terminology
+    # (e.g. rice blast -> "ব্লাস্ট", not "explosion"). Applied to the
+    # farmer-facing output direction only; BN->EN input stays stock BanglaT5.
+    EN_TO_BN_ADAPTER = "Sabuktagin/AgriBanglaT5"
     BN_TO_EN_MODEL = "csebuetnlp/banglat5_nmt_bn_en"
 
     def __init__(self, device: str = "cpu"):
@@ -41,10 +47,32 @@ class BanglaTranslator:
         """
         self.device = device
 
-        # EN→BN model
-        logger.info("Loading BanglaT5 EN->BN: %s", self.EN_TO_BN_MODEL)
-        self.en_bn_tokenizer = AutoTokenizer.from_pretrained(self.EN_TO_BN_MODEL)
-        self.en_bn_model = AutoModelForSeq2SeqLM.from_pretrained(self.EN_TO_BN_MODEL)
+        # EN→BN model. Default: AgriBanglaT5 (base BanglaT5 + domain LoRA
+        # adapter), which emits domain-correct agronomic terminology natively.
+        # Falls back to stock BanglaT5 if the adapter or peft is unavailable, so
+        # the system never fails to load.
+        self.uses_agribanglat5 = False
+        if os.getenv("AGRIBOT_DISABLE_AGRIBANGLAT5"):
+            self._load_stock_en_bn()
+        else:
+            try:
+                from peft import PeftModel
+
+                logger.info("Loading AgriBanglaT5 EN->BN: %s + adapter %s",
+                            self.EN_TO_BN_MODEL, self.EN_TO_BN_ADAPTER)
+                self.en_bn_tokenizer = AutoTokenizer.from_pretrained(self.EN_TO_BN_ADAPTER)
+                base = AutoModelForSeq2SeqLM.from_pretrained(self.EN_TO_BN_MODEL)
+                # Do NOT resize token embeddings: the adapter was trained on the
+                # base model's native embedding matrix (32128 rows). Resizing to
+                # the tokenizer length (32100) truncates the LM head and corrupts
+                # decoding into degenerate, repeated output.
+                self.en_bn_model = PeftModel.from_pretrained(
+                    base, self.EN_TO_BN_ADAPTER).merge_and_unload()
+                self.uses_agribanglat5 = True
+                logger.info("AgriBanglaT5 ready (domain-adapted EN->BN)")
+            except Exception as e:
+                logger.warning("AgriBanglaT5 unavailable (%s); using stock BanglaT5 EN->BN", e)
+                self._load_stock_en_bn()
         self.en_bn_model.to(device)
         self.en_bn_model.eval()
 
@@ -66,6 +94,12 @@ class BanglaTranslator:
             logger.info("BN Unicode normalizer loaded")
         except ImportError:
             logger.warning("bnunicodenormalizer not installed; skipping normalization")
+
+    def _load_stock_en_bn(self) -> None:
+        """Load the stock BanglaT5 EN->BN checkpoint (fallback path)."""
+        logger.info("Loading BanglaT5 EN->BN: %s", self.EN_TO_BN_MODEL)
+        self.en_bn_tokenizer = AutoTokenizer.from_pretrained(self.EN_TO_BN_MODEL)
+        self.en_bn_model = AutoModelForSeq2SeqLM.from_pretrained(self.EN_TO_BN_MODEL)
 
     def _normalize_bn(self, text: str) -> str:
         """Apply Bengali unicode normalization if available."""

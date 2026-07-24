@@ -1,5 +1,5 @@
 # Colab cell: regenerate fig1 (architecture) + fig2 (workflow) with the
-# corrected model name (Qwen2.5-3B Q4_0). Writes fig1/fig2 .png + .pdf and
+# corrected model name (Qwen2.5-1.5B Q8_0). Writes fig1/fig2 .png + .pdf and
 # downloads them. Paste this whole thing into one Colab cell and run.
 
 import subprocess
@@ -40,7 +40,7 @@ def fig1_architecture(out="fig1"):
 
     with g.subgraph(name="cluster_services") as c:
         c.attr(label="Inference services (per-node calls from the agent)", style="dashed", color="gray50", fontsize="9")
-        c.node("llm", "Qwen2.5-3B (Q4_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
+        c.node("llm", "Qwen2.5-1.5B (Q8_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
         c.node("retrv", "Hybrid retrieval\nFAISS dense + BM25 sparse\n+ RRF fusion + Cross-encoder", fillcolor=PALETTE["bg_cpu"])
         c.node("kg", "KG entity linker\n(SQLite)", fillcolor=PALETTE["bg_cpu"])
         c.node("trans", "BanglaT5 EN↔BN\n(2 models, CPU)", fillcolor=PALETTE["bg_cpu"])
@@ -91,7 +91,7 @@ def fig2_workflow(out="fig2"):
     g.node("rerank", "rerank\n(cross-encoder)")
     g.node("grade", "grade\n(LLM)", shape="diamond", fillcolor="#fff2cc")
     g.node("rewrite", "rewrite\n(LLM)", fillcolor="#f5dada")
-    g.node("generate", "generate\n(Qwen2.5-3B, GPU)")
+    g.node("generate", "generate\n(Qwen2.5-1.5B, GPU)")
     g.node("translate", "translate\n(BanglaT5)")
     g.node("verify", "verify\n(LLM)", fillcolor="#e0f0e0")
     g.node("enforce", "enforce_policy\n(safety)", fillcolor="#e0f0e0")
