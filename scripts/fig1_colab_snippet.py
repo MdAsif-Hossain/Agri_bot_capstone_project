@@ -75,7 +75,7 @@ def generate_architecture():
             # FIX 3: explicit Rewrite node in the retry loop
             agent.node('Rewrite', 'Query Rewrite\n(LLM, on INSUFFICIENT)',
                        fillcolor='#FFE0B2')
-            agent.node('LLM', 'Generative LLM (GPU)\n(Llama.cpp + Qwen2.5-1.5B)',
+            agent.node('LLM', 'Generative LLM (GPU)\n(llama.cpp + Qwen2.5-3B)',
                        fillcolor='#C8E6C9', penwidth='2.0')
             # CLEANUP A: Verify node before Grounding & Policy
             agent.node('Verify', 'Verify\n(LLM grounding check)',

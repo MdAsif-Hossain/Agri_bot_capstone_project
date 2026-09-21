@@ -34,7 +34,7 @@ def generate_workflow():
     g.node("grade", "grade  (overlap fast-path + LLM)",
            shape="diamond", fillcolor=YELLOW)
     g.node("rewrite", "rewrite\n(LLM)", fillcolor=PINK)
-    g.node("generate", "generate  (Qwen2.5-1.5B, GPU)", fillcolor=ORANGE)
+    g.node("generate", "generate  (Qwen2.5-3B, GPU)", fillcolor=ORANGE)
     g.node("translate", "translate  (BanglaT5)", fillcolor=BLUE)
     g.node("verify", "verify  (LLM + grounding backstop)", fillcolor=GREEN)
     g.node("enforce", "enforce_policy  (two-factor dosage refusal)",

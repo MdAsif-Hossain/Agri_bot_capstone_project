@@ -172,7 +172,7 @@ def fig1_architecture():
     with g.subgraph(name="cluster_services") as c:
         c.attr(label="Inference services (per-node calls from the agent)",
                style="dashed", color="gray50", fontsize="9")
-        c.node("llm", "Qwen2.5-1.5B (Q8_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
+        c.node("llm", "Qwen2.5-3B (Q4_0 GGUF)\n— GPU —", fillcolor=PALETTE["bg_gpu"])
         c.node("retrv", "Hybrid retrieval\nFAISS dense + BM25 sparse\n+ RRF fusion + Cross-encoder",
                fillcolor=PALETTE["bg_cpu"])
         c.node("kg", "KG entity linker\n(SQLite)", fillcolor=PALETTE["bg_cpu"])
@@ -242,7 +242,7 @@ def fig2_workflow():
     g.node("rerank", "rerank\n(cross-encoder)")
     g.node("grade", "grade\n(LLM)", shape="diamond", fillcolor="#fff2cc")
     g.node("rewrite", "rewrite\n(LLM)", fillcolor="#f5dada")
-    g.node("generate", "generate\n(Qwen2.5-1.5B, GPU)")
+    g.node("generate", "generate\n(Qwen2.5-3B, GPU)")
     g.node("translate", "translate\n(BanglaT5)")
     g.node("verify", "verify\n(LLM)", fillcolor="#e0f0e0")
     g.node("enforce", "enforce_policy\n(safety)", fillcolor="#e0f0e0")
@@ -293,7 +293,7 @@ def fig3_retrieval():
     for bar, v in zip(bars, vals):
         ax.text(bar.get_x() + bar.get_width() / 2, v + 0.02, f"{v:.2f}", ha="center", fontsize=8)
     ax.set_ylabel("Recall@k")
-    ax.set_ylim(0, max(1.05, max(vals) * 1.15 if vals else 1.0))
+    ax.set_ylim(0, max(1.28, max(vals) * 1.15 if vals else 1.0))
 
     # Stats badge: MRR + N + avg latency
     badge_lines = [f"MRR = {mrr:.3f}"]
@@ -301,7 +301,9 @@ def fig3_retrieval():
         badge_lines.append(f"N = {n_queries}")
     if avg_lat is not None:
         badge_lines.append(f"avg = {avg_lat:.0f} ms")
-    ax.text(0.98, 0.95, "\n".join(badge_lines), transform=ax.transAxes, ha="right", va="top",
+    # One line, centred in the headroom above the bars, so the badge never
+    # covers the value label of the tallest bar (it did at k=10).
+    ax.text(0.5, 0.96, "   |   ".join(badge_lines), transform=ax.transAxes, ha="center", va="top",
             fontsize=7, bbox=dict(boxstyle="round,pad=0.3", facecolor="white",
                                    edgecolor="gray", linewidth=0.4))
     ax.set_axisbelow(True)
@@ -362,13 +364,19 @@ def fig4_latency():
     fig, ax = plt.subplots(figsize=(WIDE_WIDTH_IN, 1.55))
     rows = [("CPU", cpu_stages, cpu_mean, cpu_p50, cpu_p95, 1.0),
             ("GPU", gpu_stages, gpu_mean, gpu_p50, gpu_p95, 0.0)]
+    bar_ends = []
     for label, stages, mean_wall, p50, p95, ypos in rows:
         left = 0.0
-        for name, v in _segments(stages, mean_wall):
+        segs = _segments(stages, mean_wall)
+        # Share of total stage time -- the same denominator as the paper's
+        # per-stage table -- not share of wall-clock, which differs slightly
+        # because stage means and wall-clock means are averaged separately.
+        total = sum(v for _, v in segs)
+        for name, v in segs:
             c = overhead_color if name == "overhead" else stage_color[name]
             ax.barh(ypos, v, left=left, height=0.55, color=c,
                     edgecolor="white", linewidth=0.6)
-            pct = v / mean_wall * 100 if mean_wall else 0
+            pct = v / total * 100 if total else 0
             # Only the wide CPU bar carries inline labels; the GPU bar is too
             # short, so its stages are read off the shared legend + colour.
             if label == "CPU" and pct >= 6:
@@ -376,12 +384,13 @@ def fig4_latency():
                         va="center", fontsize=6.5,
                         color="black" if name == "overhead" else "white")
             left += v
-        ax.text(mean_wall + cpu_mean * 0.015, ypos,
+        bar_ends.append(left)
+        ax.text(left + cpu_mean * 0.015, ypos,
                 f"{label}: p50 {p50/1000:.1f}\\,s, p95 {p95/1000:.1f}\\,s".replace("\\,", " "),
                 va="center", ha="left", fontsize=8, fontweight="bold")
 
     speedup = cpu_p50 / gpu_p50 if gpu_p50 else 0
-    ax.set_xlim(0, cpu_mean * 1.20)
+    ax.set_xlim(0, max(bar_ends) * 1.20)
     ax.set_ylim(-0.6, 1.6)
     ax.set_yticks([1.0, 0.0])
     ax.set_yticklabels(["CPU-only\nLLM", "GPU-offload\nLLM"], fontsize=8)
@@ -389,11 +398,16 @@ def fig4_latency():
                   f"x 3 runs. GPU offload cuts median latency {speedup:.1f}x "
                   f"({cpu_p50/1000:.0f}s to {gpu_p50/1000:.1f}s).", fontsize=8)
 
-    legend_stages = [s for s in all_stages
-                     if cpu_stages.get(s, 0) > 0][:7] + ["overhead"]
+    # Every stage that appears in either bar goes in the legend (the old
+    # [:7] cap silently dropped `translate` and `verify`).
+    legend_stages = [s for s in all_stages if cpu_stages.get(s, 0) > 0]
+    # "overhead" is only worth a legend entry when a bar actually has some.
+    if any(max(0.0, w - sum(st.values())) > 0
+           for st, w in ((cpu_stages, cpu_mean), (gpu_stages, gpu_mean))):
+        legend_stages.append("overhead")
     handles = [Patch(facecolor=(overhead_color if s == "overhead" else stage_color[s]),
                      edgecolor="white", label=s) for s in legend_stages]
-    ax.legend(handles=handles, ncol=len(legend_stages), fontsize=6.5,
+    ax.legend(handles=handles, ncol=min(len(legend_stages), 5), fontsize=6.5,
               loc="upper center", bbox_to_anchor=(0.5, -0.32),
               frameon=False, handlelength=1.0, columnspacing=1.0)
     ax.grid(False)
