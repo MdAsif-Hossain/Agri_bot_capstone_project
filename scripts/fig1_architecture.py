@@ -100,15 +100,15 @@ B4 = (2.64, 4.30)
 B5 = (4.38, 5.02)
 band(*B1, "1  Client")
 band(*B2, "2  Gateway")
-band(*B3, "3  Preprocess")
+band(*B3, "3  Preprocessors")
 band(*B4, "4  Agent + models")
 band(*B5, "5  Local data")
 
 # column grid for the three preprocessors and the four models
-X0, XR = 0.46, 5.78                  # content span (right column is the bus)
-pre_w, pre_g = 1.60, 0.16
-pre_x = [X0 + i * (pre_w + pre_g) for i in range(3)]
-mod_w, mod_g = 1.22, 0.147
+X0, XR = 0.46, 5.79                  # content span (right column is the bus)
+pre_w = 1.56
+pre_x = [X0, X0 + pre_w + 0.14, X0 + 2 * pre_w + 0.14 + 0.42]
+mod_w, mod_g = 1.28, 0.07
 mod_x = [X0 + i * (mod_w + mod_g) for i in range(4)]
 
 # ----------------------------------------------------------------- layer 1
@@ -117,7 +117,7 @@ box(0.46, 0.15, 2.34, 0.61, "Browser client (React)",
     "text  ·  voice recording  ·  leaf photo", "client")
 
 # ----------------------------------------------------------------- layer 2
-box(0.46, 0.86, 6.28, 1.38, "FastAPI gateway",
+box(0.46, 0.86, 6.10, 1.38, "FastAPI gateway",
     "REST  /v1/chat  ·  /v1/chat/voice  ·  /v1/chat/image  ·  /v1/tts (pyttsx3 system voice)\n"
     "rate limit  ·  optional API key  ·  semaphores: LLM 1, STT 2, image 2  ·  local telemetry",
     "gateway")
@@ -125,7 +125,7 @@ box(0.46, 0.86, 6.28, 1.38, "FastAPI gateway",
 # ----------------------------------------------------------------- layer 3
 py0, py1 = 1.70, 2.44
 box(pre_x[0], py0, pre_x[0] + pre_w, py1, "Image pipeline  (CPU)",
-    "vegetation gate (ExG ≥ 0.12) →\n"
+    "vegetation gate (green px ≥ 12%) →\n"
     "MobileNetV3-L + CBAM, ONNX →\n"
     "Tesseract OCR, colour hints", "cpu")
 box(pre_x[1], py0, pre_x[1] + pre_w, py1, "Speech-to-text cascade  (CPU)",
@@ -140,14 +140,15 @@ box(pre_x[2], py0, pre_x[2] + pre_w, py1, "Input translation  (CPU)",
 # ----------------------------------------------------------------- layer 4
 ay0, ay1 = 2.78, 3.40
 box(X0, ay0, XR, ay1, "LangGraph agent — bounded loop  (Fig. 3, Algorithm 1)",
-    "normalize → kg_link → retrieve → rerank → grade ↺ rewrite (≤ 2) "
-    "→ generate → translate → verify → enforce_policy",
+    "normalize → kg_link → retrieve → rerank → grade → generate "
+    "→ translate → verify → enforce_policy\n"
+    "grade sends weak evidence to rewrite (at most twice) and back to retrieve",
     "agent", body_size=6.8)
 
 my0, my1 = 3.62, 4.20
 box(mod_x[0], my0, mod_x[0] + mod_w, my1, "Generator  (GPU)",
-    "Qwen2.5-3B-Instruct Q4_0\nllama.cpp, 36 layers offloaded\ngrade · rewrite · generate · verify",
-    "gpu")
+    "Qwen2.5-3B-Instruct, Q4_0\nllama.cpp, 36 layers on GPU\ngrade, rewrite, generate, verify",
+    "gpu", body_size=6.2)
 box(mod_x[1], my0, mod_x[1] + mod_w, my1, "Hybrid retriever  (CPU)",
     "FAISS (MiniLM-L6) + BM25\nweighted RRF → cross-encoder\n(MS-MARCO MiniLM-L-12)", "cpu")
 box(mod_x[2], my0, mod_x[2] + mod_w, my1, "KG entity linker  (CPU)",
@@ -157,8 +158,9 @@ box(mod_x[3], my0, mod_x[3] + mod_w, my1, "Output translator  (CPU)",
 
 # ----------------------------------------------------------------- layer 5
 dy0, dy1 = 4.48, 4.94
-box(mod_x[0], dy0, mod_x[0] + mod_w, dy1, "Offline ingestion",
-    "PDF → Marker / OCR → 600-char\nchunks → MiniLM embeddings", "proc", dashed=True)
+ING_R = mod_x[1] - 0.22              # leave a visible gap for the "builds" arrow
+box(mod_x[0], dy0, ING_R, dy1, "Offline ingestion",
+    "PDF → Marker / OCR →\n600-char chunks → embed", "proc", dashed=True, body_size=6.3)
 box(mod_x[1], dy0, mod_x[1] + mod_w, dy1, "FAISS + BM25 indexes",
     "+ chunk store: 914 chunks\nfrom 10 PDFs (204 pages)", "data")
 box(mod_x[2], dy0, mod_x[2] + mod_w, dy1, "knowledge_graph.db",
@@ -177,9 +179,9 @@ for x, lab in zip([p + pre_w / 2 for p in pre_x], ["image", "audio", "Bengali te
     elabel(x + 0.07, 1.54, lab)
 
 # gateway -> agent directly (English text)
-xe = 6.06
+xe = 5.92
 arrow([(xe, 1.38), (xe, ay0)])
-elabel(xe, 1.98, "English\ntext", ha="center")
+elabel(xe, 1.54, "English text", ha="center")
 
 # STT -> input translation (transcript)
 arrow([(pre_x[1] + pre_w, 2.07), (pre_x[2], 2.07)])
@@ -201,32 +203,33 @@ for x in [m + mod_w / 2 for m in mod_x]:
 for i in (1, 2):
     x = mod_x[i] + mod_w / 2
     arrow([(x, my1), (x, dy0)], color=DATA_LN, ls=":", head=False)
-arrow([(mod_x[0] + mod_w, 4.71), (mod_x[1], 4.71)], color=DATA_LN)
-elabel(mod_x[0] + mod_w + 0.03, 4.60, "builds", size=5.8, color=DATA_LN)
+arrow([(ING_R, 4.71), (mod_x[1], 4.71)], color=DATA_LN)
 
 # response path: agent -> gateway (red), drawn on the right-hand bus
-xr = 6.46
-arrow([(XR, 3.09), (xr, 3.09), (xr, 1.12), (6.28, 1.12)], color=RESP)
-elabel(xr + 0.06, 2.20, "EN + BN answer,\ncitations, verdict,\npolicy action", color=RESP, size=6.0)
+xr = 6.30
+arrow([(XR, 3.09), (xr, 3.09), (xr, 1.12), (6.10, 1.12)], color=RESP)
+elabel(xr + 0.07, 2.20, "EN + BN answer,\ncitations, verdict,\npolicy action", color=RESP, size=5.9)
 
 # ----------------------------------------------------------------- legend
 ly = 5.16
-items = [("gpu", "GPU-resident model"), ("cpu", "CPU-pinned model"),
-         ("agent", "orchestration"), ("data", "data on disk")]
-x = 0.46
-for kind, lab in items:
+renderer = fig.canvas.get_renderer()
+
+
+def text_w(t):
+    return t.get_window_extent(renderer).width / fig.dpi
+
+
+x = 0.14
+for kind, lab in [("gpu", "GPU-resident model"), ("cpu", "CPU-pinned model"),
+                  ("agent", "orchestration"), ("data", "data on disk")]:
     fill, edge = STYLE[kind]
     ax.add_patch(Rectangle((x, ly - 0.065), 0.17, 0.13, facecolor=fill, edgecolor=edge, lw=0.8))
-    ax.text(x + 0.23, ly, lab, va="center", fontsize=6.3, color=COL)
-    x += 0.23 + 0.075 * len(lab) + 0.18
-ax.plot([x, x + 0.28], [ly, ly], color=COL, lw=0.8)
-ax.text(x + 0.34, ly, "request", va="center", fontsize=6.3, color=COL)
-x += 0.34 + 0.62
-ax.plot([x, x + 0.28], [ly, ly], color=RESP, lw=0.8)
-ax.text(x + 0.34, ly, "response", va="center", fontsize=6.3, color=COL)
-x += 0.34 + 0.70
-ax.plot([x, x + 0.28], [ly, ly], color=DATA_LN, lw=0.8, ls=":")
-ax.text(x + 0.34, ly, "index / database access", va="center", fontsize=6.3, color=COL)
+    t = ax.text(x + 0.22, ly, lab, va="center", fontsize=6.3, color=COL)
+    x += 0.22 + text_w(t) + 0.16
+for color, ls, lab in [(COL, "-", "request"), (RESP, "-", "response"), (DATA_LN, ":", "data access")]:
+    ax.plot([x, x + 0.26], [ly, ly], color=color, lw=0.8, ls=ls)
+    t = ax.text(x + 0.31, ly, lab, va="center", fontsize=6.3, color=COL)
+    x += 0.31 + text_w(t) + 0.16
 
 for out in OUTS:
     out.parent.mkdir(parents=True, exist_ok=True)
