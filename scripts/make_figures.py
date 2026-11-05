@@ -323,8 +323,18 @@ def fig4_latency():
 
     def _load(path, fallback_stages, fallback_wall):
         if path.exists():
-            d = json.loads(path.read_text(encoding="utf-8"))["summary"]
-            stages = dict(d["stage_means_ms"])
+            blob = json.loads(path.read_text(encoding="utf-8"))
+            d = blob["summary"]
+            # Amortise over ALL queries, matching the paper's per-stage table.
+            # summary["stage_means_ms"] averages each stage over only the
+            # queries on which it ran, so `rewrite` (4 of 37) is inflated
+            # ~9x and the shares do not sum to the stage total.
+            pq = blob.get("per_query")
+            if pq:
+                stages = {k: sum(q["stage_means_ms"].get(k) or 0 for q in pq) / len(pq)
+                          for k in d["stage_means_ms"]}
+            else:
+                stages = dict(d["stage_means_ms"])
             stages.pop("total", None)
             w = d["wall_ms"]
             return stages, (w["mean"], w["p50"], w["p95"])
@@ -368,10 +378,11 @@ def fig4_latency():
     for label, stages, mean_wall, p50, p95, ypos in rows:
         left = 0.0
         segs = _segments(stages, mean_wall)
-        # Share of total stage time -- the same denominator as the paper's
-        # per-stage table -- not share of wall-clock, which differs slightly
-        # because stage means and wall-clock means are averaged separately.
-        total = sum(v for _, v in segs)
+        # Percentages use the stage total, excluding the overhead segment,
+        # so they match the paper's per-stage table exactly. The overhead
+        # segment is still drawn (it is ~2% and falls below the label
+        # threshold), which is why the bar is slightly wider than the sum.
+        total = sum(v for n, v in segs if n != "overhead")
         for name, v in segs:
             c = overhead_color if name == "overhead" else stage_color[name]
             ax.barh(ypos, v, left=left, height=0.55, color=c,
@@ -395,8 +406,7 @@ def fig4_latency():
     ax.set_yticks([1.0, 0.0])
     ax.set_yticklabels(["CPU-only\nLLM", "GPU-offload\nLLM"], fontsize=8)
     ax.set_xlabel("End-to-end per-stage latency (ms), mean over 37 queries "
-                  f"x 3 runs. GPU offload cuts median latency {speedup:.1f}x "
-                  f"({cpu_p50/1000:.0f}s to {gpu_p50/1000:.1f}s).", fontsize=8)
+                  "x 3 runs, amortised over all queries.", fontsize=8)
 
     # Every stage that appears in either bar goes in the legend (the old
     # [:7] cap silently dropped `translate` and `verify`).

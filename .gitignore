@@ -188,3 +188,6 @@ docs/paper/bibliography*
 !docs/paper/README.md
 venv-gpu/
 evaluation/results/
+
+# Q1 journal submission bundle (manuscript + figures) — never tracked
+journal_q1/
